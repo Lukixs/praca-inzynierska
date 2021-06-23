@@ -11,6 +11,7 @@
         </div>
       </div>
     </div>
+    <span>Tura {{moveCounter}} |</span>
     <span v-if="tura">
       Ruch Białych
     </span>
@@ -27,9 +28,10 @@ export default {
   data: function () {
     return {
       tura: true,
+      moveCounter: 1,
       board: {
-        columnsNumber: 8,
-        rowsNumber: 8,
+        columnsNumber: 6,
+        rowsNumber: 5,
         values: null
         // rows: Array(8).fill(null),
       }
@@ -45,8 +47,11 @@ export default {
         newRow[columnIndex-1] = "czarny"
         this.tura = !this.tura
         this.$set(this.board.values, rowIndex-1, newRow)
+
+
+        this.moveCounter++
         // this.board.values[rowIndex-1][columnIndex-1] = "XD"
-        console.log(this.board.values)
+        // console.log(this.board.values)
         // alert("Kliknięto wiersz: " + rowIndex + " kolumny: " + columnIndex)
       }
     }
@@ -62,28 +67,30 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .board  {
-    width: 640px;
-    height: 640px;
+    width: 720px;
+    height: 600px;
     margin: 20px;
     border: 25px solid #333;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .black {
     float: left;
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     background-color: #999;
-      font-size:50px;
+      font-size:80px;
     text-align:center;
     display: table-cell;
     vertical-align:middle;
 }
 .white {
     float: left;
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     background-color: #fff;
-    font-size:50px;
+    font-size:80px;
     text-align:center;
     display: table-cell;
     vertical-align:middle;
