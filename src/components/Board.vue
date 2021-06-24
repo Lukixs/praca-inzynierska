@@ -1,12 +1,12 @@
 <template>
   <div class="hello">
-    Hi there will be a Game
+    Webowa Aplikacja do gry Dara
     <div class="board">
       <div v-for="rowIndex in board.rowsNumber" :key="rowIndex">
         <div v-for="columnIndex in board.columnsNumber" :key="columnIndex" @click="cellOnClick(rowIndex, columnIndex)">
           <div :class="[(rowIndex + columnIndex) % 2 === 0 ? 'white' : 'black']"> 
-            <div v-if="board.values[rowIndex-1][columnIndex-1] == 'biały'">&#9817;</div>
-            <div v-if="board.values[rowIndex-1][columnIndex-1] == 'czarny'">&#9823;</div>
+            <div v-if="board.values[rowIndex-1][columnIndex-1] == 'biały'">&#9920;</div>
+            <div v-if="board.values[rowIndex-1][columnIndex-1] == 'czarny'">&#9922;</div>
           </div>
         </div>
       </div>
