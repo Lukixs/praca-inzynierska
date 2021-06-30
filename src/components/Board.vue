@@ -4,7 +4,7 @@
     <div class="board">
       <div v-for="rowIndex in board.rowsNumber" :key="rowIndex">
         <div v-for="columnIndex in board.columnsNumber" :key="columnIndex" @click="cellOnClick(rowIndex, columnIndex)">
-          <div :class="[(rowIndex + columnIndex) % 2 === 0 ? 'white' : 'black']"> 
+          <div :id="rowIndex*10+columnIndex" :class="[(rowIndex + columnIndex) % 2 === 0 ? 'white' : 'black']"> 
             <div v-if="board.values[rowIndex-1][columnIndex-1] == 'biały'">&#9920;</div>
             <div v-if="board.values[rowIndex-1][columnIndex-1] == 'czarny'">&#9922;</div>
           </div>
@@ -29,6 +29,7 @@ export default {
     return {
       tura: true,
       moveCounter: 1,
+      focused: false, //Mówi czy gracz wybrał piona którym chce ruszyć.
       board: {
         columnsNumber: 6,
         rowsNumber: 5,
@@ -39,6 +40,15 @@ export default {
   },
   methods: {
     cellOnClick(rowIndex, columnIndex){
+      if((this.board.values[rowIndex-1][columnIndex-1] == null) & (this.moveCounter<=24)){
+        this.placePawn(rowIndex, columnIndex)
+      }
+      else if ((this.board.values[rowIndex-1][columnIndex-1] != null) & (this.moveCounter>24)) {
+        this.selectPawn(rowIndex, columnIndex)
+      }
+    },
+
+    placePawn(rowIndex, columnIndex){
       if(this.board.values[rowIndex-1][columnIndex-1] == null){
         const newRow = this.board.values[rowIndex-1].slice(0)
         if(this.tura == true)
@@ -54,6 +64,12 @@ export default {
         // console.log(this.board.values)
         // alert("Kliknięto wiersz: " + rowIndex + " kolumny: " + columnIndex)
       }
+    },
+
+    selectPawn(rowIndex, columnIndex){
+      const element = document.getElementById(rowIndex*10+columnIndex)
+      element.classList.add("yellowgreen")
+      console.log(rowIndex, columnIndex);
     }
   },
   beforeMount() {
@@ -94,6 +110,10 @@ export default {
     text-align:center;
     display: table-cell;
     vertical-align:middle;
+}
+
+.yellowgreen {
+    background-color: yellowgreen;
 }
 
 
