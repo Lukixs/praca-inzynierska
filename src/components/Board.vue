@@ -33,9 +33,10 @@ export default {
       board: {
         columnsNumber: 6,
         rowsNumber: 5,
-        values: null
+        values: null // { player: 'black', pawnIndex: '0' }
         // rows: Array(8).fill(null),
-      }
+      },
+      history: [] // HistoryItem{tour: 1, from: 'e4', to: 'e5', player: 'black' }...
     }
   },
   methods: {
