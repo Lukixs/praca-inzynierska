@@ -110,42 +110,44 @@ export default {
     },
 
     drawAvailableMoves(rowIndex, columnIndex){
-      const element = document.getElementById(rowIndex*10+columnIndex)
-      element.classList.add("darkgreen")
-      if(rowIndex-1 >= 1 & this.board.values[rowIndex-2][columnIndex-1].player == null){
+      const element = document.getElementById(rowIndex*10+columnIndex);
+      element.classList.add("darkgreen");
+
+      if(rowIndex-1 >= 1 && this.board.values[rowIndex-2][columnIndex-1].player == null){
         const element = document.getElementById((rowIndex-1)*10+columnIndex)
         element.classList.add("yellowgreen")
       }
-      if(rowIndex+1 <= this.board.rowsNumber & this.board.values[rowIndex][columnIndex-1].player == null){
+      if(rowIndex+1 <= this.board.rowsNumber && this.board.values[rowIndex][columnIndex-1].player == null){
         const element = document.getElementById((rowIndex+1)*10+columnIndex)
         element.classList.add("yellowgreen")
       }
-      if(columnIndex-1 >= 1 & this.board.values[rowIndex-1][columnIndex-2].player == null){
+      if(columnIndex-1 >= 1 && this.board.values[rowIndex-1][columnIndex-2].player == null){
         const element = document.getElementById(rowIndex*10+(columnIndex-1))
         element.classList.add("yellowgreen")
       }
-      if(columnIndex+1 <= this.board.columnsNumber & this.board.values[rowIndex-1][columnIndex].player == null){
+      if(columnIndex+1 <= this.board.columnsNumber && this.board.values[rowIndex-1][columnIndex].player == null){
         const element = document.getElementById(rowIndex*10+(columnIndex+1))
         element.classList.add("yellowgreen")
       }
     },
 
     removeAvailableMoves(rowIndex, columnIndex){
-      const element = document.getElementById(rowIndex*10+columnIndex)
-      element.classList.remove("darkgreen")
-      if(rowIndex-1 >= 1 & this.board.values[rowIndex-2][columnIndex-1].player == null){
+      const element = document.getElementById(rowIndex*10+columnIndex);
+      element.classList.remove("darkgreen");
+
+      if(rowIndex-1 >= 1){
         const element = document.getElementById((rowIndex-1)*10+columnIndex)
         element.classList.remove("yellowgreen")
       }
-      if(rowIndex+1 <= this.board.rowsNumber & this.board.values[rowIndex][columnIndex-1].player == null){
+      if(rowIndex+1 <= this.board.rowsNumber){
         const element = document.getElementById((rowIndex+1)*10+columnIndex)
         element.classList.remove("yellowgreen")
       }
-      if(columnIndex-1 >= 1 & this.board.values[rowIndex-1][columnIndex-2].player == null){
+      if(columnIndex-1 >= 1){
         const element = document.getElementById(rowIndex*10+(columnIndex-1))
         element.classList.remove("yellowgreen")
       }
-      if(columnIndex+1 <= this.board.columnsNumber & this.board.values[rowIndex-1][columnIndex].player == null){
+      if(columnIndex+1 <= this.board.columnsNumber){
         const element = document.getElementById(rowIndex*10+(columnIndex+1))
         element.classList.remove("yellowgreen")
       }
@@ -159,13 +161,15 @@ export default {
           let newRow = this.board.values[rowIndex-1].slice(0);
           newRow[columnIndex-1] = {player: this.board.values[this.focused.rowIndex-1][this.focused.columnIndex-1].player, pawnIndex: this.board.values[this.focused.rowIndex-1][this.focused.columnIndex-1].pawnIndex};
           this.$set(this.board.values, rowIndex-1, newRow);
-          console.log('player', this.board.values[this.focused.rowIndex-1][this.focused.columnIndex-1].player, this.focused);
+          // console.log('player', this.board.values[this.focused.rowIndex-1][this.focused.columnIndex-1].player, this.focused);
           
           
-          
-          let oldRow = this.board.values[this.focused.rowIndex-1].slice(0)
+          let oldRow = this.board.values[this.focused.rowIndex-1].slice(0);
           oldRow[this.focused.columnIndex-1] = { player: null, pawnIndex: null };
-          this.$set(this.board.values, this.focused.rowIndex-1, oldRow)
+          this.$set(this.board.values, this.focused.rowIndex-1, oldRow);
+
+          this.removeAvailableMoves(this.focused.rowIndex, this.focused.columnIndex);
+          this.focused = null;
 
           this.tura = !this.tura;
           this.moveCounter++;
