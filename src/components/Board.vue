@@ -3,15 +3,34 @@
     Webowa Aplikacja do gry Dara
     <div class="board">
       <div v-for="rowIndex in board.rowsNumber" :key="rowIndex">
-        <div v-for="columnIndex in board.columnsNumber" :key="columnIndex" @click="cellOnClick(rowIndex, columnIndex)">
-          <div :id="rowIndex*10+columnIndex" :class="[(rowIndex + columnIndex) % 2 === 0 ? 'white' : 'black']"> 
-            <div v-if="board.values[rowIndex-1][columnIndex-1].player == 'white'">&#9920;</div>
-            <div v-if="board.values[rowIndex-1][columnIndex-1].player == 'black'">&#9922;</div>
+        <div
+          v-for="columnIndex in board.columnsNumber"
+          :key="columnIndex"
+          @click="cellOnClick(rowIndex, columnIndex)"
+        >
+          <div
+            :id="rowIndex * 10 + columnIndex"
+            :class="[(rowIndex + columnIndex) % 2 === 0 ? 'white' : 'black']"
+          >
+            <div
+              v-if="
+                board.values[rowIndex - 1][columnIndex - 1].player == 'white'
+              "
+            >
+              &#9920;
+            </div>
+            <div
+              v-if="
+                board.values[rowIndex - 1][columnIndex - 1].player == 'black'
+              "
+            >
+              &#9922;
+            </div>
           </div>
         </div>
       </div>
     </div>
-    <span>Tura {{moveCounter}} |</span>
+    <span>Tura {{ moveCounter }} |</span>
     <span v-if="tura">
       Ruch Białych
     </span>
@@ -23,211 +42,429 @@
 export default {
   // name: 'Board',
   props: {
-    msg: String
+    msg: String,
   },
-  data: function () {
+  data: function() {
     return {
       tura: true,
       moveCounter: 1,
-      firstStageMovesLimit: 4, 
+      firstStageMovesLimit: 8,
       focused: null, // {rowIndex, columnIndex}   Aktualnie wybrany pionek
       board: {
         columnsNumber: 6,
         rowsNumber: 5,
-        values: null // { player: 'black', pawnIndex: '0' }
+        values: null, // { player: 'black', pawnIndex: '0' }
         // rows: Array(8).fill(null),
       },
-      history: [] // HistoryItem{tour: 1, from: 'e4', to: 'e5', player: 'black' }...
-    }
+      history: [], // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
+    };
   },
   methods: {
-    cellOnClick(rowIndex, columnIndex){
-      if((this.moveCounter <= this.firstStageMovesLimit) & (this.board.values[rowIndex-1][columnIndex-1].player == null)){
-        this.placePawn(rowIndex, columnIndex)
-      }
-      else if ((this.moveCounter > this.firstStageMovesLimit) & (this.focused == null) & (this.board.values[rowIndex-1][columnIndex-1].player != null)) {
-        this.selectPawn(rowIndex, columnIndex)
-      }
-      else if ((this.moveCounter > this.firstStageMovesLimit) & (this.focused != null) & (this.board.values[rowIndex-1][columnIndex-1].player != null)) {
-        this.reSelectPawn(rowIndex, columnIndex)
-      }
-      else if ((this.moveCounter > this.firstStageMovesLimit) & (this.focused != null) & (this.board.values[rowIndex-1][columnIndex-1].player == null)){
+    cellOnClick(rowIndex, columnIndex) {
+      console.log("rowIndex", rowIndex, "columnIndex", columnIndex);
+      if (
+        (this.moveCounter <= this.firstStageMovesLimit) &
+        (this.board.values[rowIndex - 1][columnIndex - 1].player == null)
+      ) {
+        this.placePawn(rowIndex, columnIndex);
+      } else if (
+        (this.moveCounter > this.firstStageMovesLimit) &
+        (this.focused == null) &
+        (this.board.values[rowIndex - 1][columnIndex - 1].player != null)
+      ) {
+        this.selectPawn(rowIndex, columnIndex);
+      } else if (
+        (this.moveCounter > this.firstStageMovesLimit) &
+        (this.focused != null) &
+        (this.board.values[rowIndex - 1][columnIndex - 1].player != null)
+      ) {
+        this.reSelectPawn(rowIndex, columnIndex);
+      } else if (
+        (this.moveCounter > this.firstStageMovesLimit) &
+        (this.focused != null) &
+        (this.board.values[rowIndex - 1][columnIndex - 1].player == null)
+      ) {
         this.tryToMovePawnTo(rowIndex, columnIndex);
       }
     },
 
-    placePawn(rowIndex, columnIndex){
-      if(this.board.values[rowIndex-1][columnIndex-1].player == null){
-        const newRow = this.board.values[rowIndex-1].slice(0)
-        if(this.tura == true)
-          newRow[columnIndex-1] = { player: 'white', pawnIndex: ((this.moveCounter + 1) / 2) }
+    placePawn(rowIndex, columnIndex) {
+      if (this.board.values[rowIndex - 1][columnIndex - 1].player == null) {
+        const newRow = this.board.values[rowIndex - 1].slice(0);
+        if (this.tura == true)
+          newRow[columnIndex - 1] = {
+            player: "white",
+            pawnIndex: (this.moveCounter + 1) / 2,
+          };
         else
-        newRow[columnIndex-1] = { player: 'black', pawnIndex: (this.moveCounter / 2) }
-        this.tura = !this.tura
-        this.$set(this.board.values, rowIndex-1, newRow)
+          newRow[columnIndex - 1] = {
+            player: "black",
+            pawnIndex: this.moveCounter / 2,
+          };
+        this.tura = !this.tura;
+        this.$set(this.board.values, rowIndex - 1, newRow);
 
-
-        this.moveCounter++
+        this.moveCounter++;
       }
     },
 
-    selectPawn(rowIndex, columnIndex){
+    selectPawn(rowIndex, columnIndex) {
       // const element = document.getElementById(rowIndex*10+columnIndex)
       // element.classList.add("yellowgreen")
       // console.log(rowIndex, columnIndex);
       // console.log(element.children[0].textContent);
-      if(this.board.values[rowIndex-1][columnIndex-1].player == 'white' && this.tura % 2 == 1){
-        this.drawAvailableMoves(rowIndex,columnIndex)
+      if (
+        this.board.values[rowIndex - 1][columnIndex - 1].player == "white" &&
+        this.tura % 2 == 1
+      ) {
+        this.drawAvailableMoves(rowIndex, columnIndex);
         // const element = document.getElementById(rowIndex*10+columnIndex)
         // element.classList.add("yellowgreen")
-        this.focused = {rowIndex: rowIndex, columnIndex: columnIndex}
-        console.log(this.focused)
-      }
-      else if (this.board.values[rowIndex-1][columnIndex-1].player == 'black' && this.tura % 2 == 0){
-        this.drawAvailableMoves(rowIndex,columnIndex)
+        this.focused = { rowIndex: rowIndex, columnIndex: columnIndex };
+        console.log(this.focused);
+      } else if (
+        this.board.values[rowIndex - 1][columnIndex - 1].player == "black" &&
+        this.tura % 2 == 0
+      ) {
+        this.drawAvailableMoves(rowIndex, columnIndex);
         // const element = document.getElementById(rowIndex*10+columnIndex)
         // element.classList.add("yellowgreen")
-        this.focused = {rowIndex: rowIndex, columnIndex: columnIndex}
-        console.log(this.focused)
+        this.focused = { rowIndex: rowIndex, columnIndex: columnIndex };
+        console.log(this.focused);
       }
     },
 
-    reSelectPawn(rowIndex, columnIndex){
-      if(rowIndex != this.focused.rowIndex || columnIndex != this.focused.columnIndex){
-        if(this.board.values[rowIndex-1][columnIndex-1].player == 'white' && this.tura % 2 == 1){
-          this.removeAvailableMoves(this.focused.rowIndex, this.focused.columnIndex)
-          this.drawAvailableMoves(rowIndex,columnIndex)
-          this.focused = {rowIndex, columnIndex}
-          console.log(this.focused)
-        }
-        else if (this.board.values[rowIndex-1][columnIndex-1].player == 'black' && this.tura % 2 == 0){
-          this.removeAvailableMoves(this.focused.rowIndex, this.focused.columnIndex)
-          this.drawAvailableMoves(rowIndex,columnIndex)
-          this.focused = {rowIndex, columnIndex}
-          console.log(this.focused)
+    reSelectPawn(rowIndex, columnIndex) {
+      if (
+        rowIndex != this.focused.rowIndex ||
+        columnIndex != this.focused.columnIndex
+      ) {
+        if (
+          this.board.values[rowIndex - 1][columnIndex - 1].player == "white" &&
+          this.tura % 2 == 1
+        ) {
+          this.removeAvailableMoves(
+            this.focused.rowIndex,
+            this.focused.columnIndex
+          );
+          this.drawAvailableMoves(rowIndex, columnIndex);
+          this.focused = { rowIndex, columnIndex };
+          console.log(this.focused);
+        } else if (
+          this.board.values[rowIndex - 1][columnIndex - 1].player == "black" &&
+          this.tura % 2 == 0
+        ) {
+          this.removeAvailableMoves(
+            this.focused.rowIndex,
+            this.focused.columnIndex
+          );
+          this.drawAvailableMoves(rowIndex, columnIndex);
+          this.focused = { rowIndex, columnIndex };
+          console.log(this.focused);
         }
       }
     },
 
-    drawAvailableMoves(rowIndex, columnIndex){
-      const element = document.getElementById(rowIndex*10+columnIndex);
+    drawAvailableMoves(rowIndex, columnIndex) {
+      const element = document.getElementById(rowIndex * 10 + columnIndex);
       element.classList.add("darkgreen");
 
-      if(rowIndex-1 >= 1 && this.board.values[rowIndex-2][columnIndex-1].player == null){
-        const element = document.getElementById((rowIndex-1)*10+columnIndex)
-        element.classList.add("yellowgreen")
+      if (
+        rowIndex - 1 >= 1 &&
+        this.board.values[rowIndex - 2][columnIndex - 1].player == null
+      ) {
+        const element = document.getElementById(
+          (rowIndex - 1) * 10 + columnIndex
+        );
+        element.classList.add("yellowgreen");
       }
-      if(rowIndex+1 <= this.board.rowsNumber && this.board.values[rowIndex][columnIndex-1].player == null){
-        const element = document.getElementById((rowIndex+1)*10+columnIndex)
-        element.classList.add("yellowgreen")
+      if (
+        rowIndex + 1 <= this.board.rowsNumber &&
+        this.board.values[rowIndex][columnIndex - 1].player == null
+      ) {
+        const element = document.getElementById(
+          (rowIndex + 1) * 10 + columnIndex
+        );
+        element.classList.add("yellowgreen");
       }
-      if(columnIndex-1 >= 1 && this.board.values[rowIndex-1][columnIndex-2].player == null){
-        const element = document.getElementById(rowIndex*10+(columnIndex-1))
-        element.classList.add("yellowgreen")
+      if (
+        columnIndex - 1 >= 1 &&
+        this.board.values[rowIndex - 1][columnIndex - 2].player == null
+      ) {
+        const element = document.getElementById(
+          rowIndex * 10 + (columnIndex - 1)
+        );
+        element.classList.add("yellowgreen");
       }
-      if(columnIndex+1 <= this.board.columnsNumber && this.board.values[rowIndex-1][columnIndex].player == null){
-        const element = document.getElementById(rowIndex*10+(columnIndex+1))
-        element.classList.add("yellowgreen")
+      if (
+        columnIndex + 1 <= this.board.columnsNumber &&
+        this.board.values[rowIndex - 1][columnIndex].player == null
+      ) {
+        const element = document.getElementById(
+          rowIndex * 10 + (columnIndex + 1)
+        );
+        element.classList.add("yellowgreen");
       }
     },
 
-    removeAvailableMoves(rowIndex, columnIndex){
-      const element = document.getElementById(rowIndex*10+columnIndex);
+    removeAvailableMoves(rowIndex, columnIndex) {
+      const element = document.getElementById(rowIndex * 10 + columnIndex);
       element.classList.remove("darkgreen");
 
-      if(rowIndex-1 >= 1){
-        const element = document.getElementById((rowIndex-1)*10+columnIndex)
-        element.classList.remove("yellowgreen")
+      if (rowIndex - 1 >= 1) {
+        const element = document.getElementById(
+          (rowIndex - 1) * 10 + columnIndex
+        );
+        element.classList.remove("yellowgreen");
       }
-      if(rowIndex+1 <= this.board.rowsNumber){
-        const element = document.getElementById((rowIndex+1)*10+columnIndex)
-        element.classList.remove("yellowgreen")
+      if (rowIndex + 1 <= this.board.rowsNumber) {
+        const element = document.getElementById(
+          (rowIndex + 1) * 10 + columnIndex
+        );
+        element.classList.remove("yellowgreen");
       }
-      if(columnIndex-1 >= 1){
-        const element = document.getElementById(rowIndex*10+(columnIndex-1))
-        element.classList.remove("yellowgreen")
+      if (columnIndex - 1 >= 1) {
+        const element = document.getElementById(
+          rowIndex * 10 + (columnIndex - 1)
+        );
+        element.classList.remove("yellowgreen");
       }
-      if(columnIndex+1 <= this.board.columnsNumber){
-        const element = document.getElementById(rowIndex*10+(columnIndex+1))
-        element.classList.remove("yellowgreen")
+      if (columnIndex + 1 <= this.board.columnsNumber) {
+        const element = document.getElementById(
+          rowIndex * 10 + (columnIndex + 1)
+        );
+        element.classList.remove("yellowgreen");
       }
     },
 
-    tryToMovePawnTo(rowIndex, columnIndex){
-      console.log('Nowy ruch na:', rowIndex, columnIndex, this.focused);
-      if(((rowIndex == this.focused.rowIndex)  && (columnIndex == this.focused.columnIndex-1 || columnIndex == this.focused.columnIndex+1)) 
-      || (columnIndex == this.focused.columnIndex)  && (rowIndex == this.focused.rowIndex-1 || rowIndex == this.focused.rowIndex+1)){
+    tryToMovePawnTo(rowIndex, columnIndex) {
+      console.log("Nowy ruch na:", rowIndex, columnIndex, this.focused);
+      if (
+        (rowIndex == this.focused.rowIndex &&
+          (columnIndex == this.focused.columnIndex - 1 ||
+            columnIndex == this.focused.columnIndex + 1)) ||
+        (columnIndex == this.focused.columnIndex &&
+          (rowIndex == this.focused.rowIndex - 1 ||
+            rowIndex == this.focused.rowIndex + 1))
+      ) {
         //if(true){//Tutaj czy spalone sprawdzić historie
-          let newRow = this.board.values[rowIndex-1].slice(0);
-          newRow[columnIndex-1] = {player: this.board.values[this.focused.rowIndex-1][this.focused.columnIndex-1].player, pawnIndex: this.board.values[this.focused.rowIndex-1][this.focused.columnIndex-1].pawnIndex};
-          this.$set(this.board.values, rowIndex-1, newRow);
-          // console.log('player', this.board.values[this.focused.rowIndex-1][this.focused.columnIndex-1].player, this.focused);
-          
-          
-          let oldRow = this.board.values[this.focused.rowIndex-1].slice(0);
-          oldRow[this.focused.columnIndex-1] = { player: null, pawnIndex: null };
-          this.$set(this.board.values, this.focused.rowIndex-1, oldRow);
+        let newRow = this.board.values[rowIndex - 1].slice(0);
+        newRow[columnIndex - 1] = {
+          player: this.board.values[this.focused.rowIndex - 1][
+            this.focused.columnIndex - 1
+          ].player,
+          pawnIndex: this.board.values[this.focused.rowIndex - 1][
+            this.focused.columnIndex - 1
+          ].pawnIndex,
+        };
+        this.$set(this.board.values, rowIndex - 1, newRow);
+        // console.log('player', this.board.values[this.focused.rowIndex-1][this.focused.columnIndex-1].player, this.focused);
 
-          this.removeAvailableMoves(this.focused.rowIndex, this.focused.columnIndex);
-          this.focused = null;
+        let oldRow = this.board.values[this.focused.rowIndex - 1].slice(0);
+        oldRow[this.focused.columnIndex - 1] = {
+          player: null,
+          pawnIndex: null,
+        };
+        this.$set(this.board.values, this.focused.rowIndex - 1, oldRow);
 
-          this.tura = !this.tura;
-          this.moveCounter++;
+        this.removeAvailableMoves(
+          this.focused.rowIndex,
+          this.focused.columnIndex
+        );
+        this.focused = null;
 
-          console.log('Powodzenie')
-        //}
+        console.log(
+          "Has Player Scored",
+          this.hasPlayerScored(
+            rowIndex,
+            columnIndex,
+            newRow[columnIndex - 1].player
+          )
+        );
+
+        this.tura = !this.tura;
+        this.moveCounter++;
       }
-      //
-    }
+    },
+
+    hasPlayerScored(rowIndex, columnIndex, player) {
+      /*
+      NOWY PLAN
+      1. Sprawdzamy pionowo
+       -Czy to skrajne wartości?
+        -tak : idziemy tylko w danę stronę
+        -nie : srpawdzamy górę i dół i jeśli mamy obydwa true,
+          -sprawdzamy czy nie są skrajnymi, bądź kolejny pion nie należy do gracza
+          -idziemy tylko w danę stronę
+
+      2. SPrawdzamy poziomo
+
+      ======================
+
+      
+      */
+      console.log("Dane w stwierdzaniu wyniku", rowIndex, columnIndex, player);
+      if (rowIndex === 1)
+        return this.checkLowerRows(rowIndex, columnIndex, player);
+
+      if (rowIndex === this.rowsNumber)
+        return this.checkUpperRows(rowIndex, columnIndex, player);
+
+      return this.checkAroundRow(rowIndex, columnIndex, player);
+
+      //Sprawdzamy w pionie
+      /*if (
+        (rowIndex > 3 &&
+          this.board.values[rowIndex - 2][columnIndex - 1].player == player &&
+          this.board.values[rowIndex - 3][columnIndex - 1].player == player &&
+          this.board.values[rowIndex - 4][columnIndex - 1].player != player) ||
+        (rowIndex == 3 &&
+          this.board.values[rowIndex - 2][columnIndex - 1].player == player &&
+          this.board.values[rowIndex - 3][columnIndex - 1].player == player)
+      ) {
+        console.log("punkt");
+      }
+      //Tu w poziomie
+      else if (
+        (rowIndex < this.board.rowsNumber - 2 &&
+          this.board.values[rowIndex][columnIndex - 1].player == player &&
+          this.board.values[rowIndex + 1][columnIndex - 1].player == player &&
+          this.board.values[rowIndex + 2][columnIndex - 1].player != player) ||
+        (rowIndex == this.board.rowsNumber - 2 &&
+          this.board.values[rowIndex][columnIndex - 1].player == player &&
+          this.board.values[rowIndex + 1][columnIndex - 1].player == player)
+      ) {
+        console.log("punkt");
+      }*/
+    },
+
+    checkAroundRow(rowIndex, columnIndex, player) {
+      let under = this.isThisPlayerField(rowIndex + 1, columnIndex, player);
+      let over = this.isThisPlayerField(rowIndex - 1, columnIndex, player);
+
+      //Czy otaczające należą do gracza?
+      if (under && over) {
+        under = this.isThisPlayerField(rowIndex + 2, columnIndex, player);
+        over = this.isThisPlayerField(rowIndex - 2, columnIndex, player);
+
+        //Czy następne pola należą do gracza? (Zasada o mniej niż 4 w rzędzie)
+        if (under || over) return false;
+        return true;
+      }
+      if (under) return this.checkLowerRows(rowIndex, columnIndex, player);
+      return this.checkUpperRows(rowIndex, columnIndex, player);
+    },
+
+    checkLowerRows(rowIndex, columnIndex, player) {
+      console.log("lower");
+      const firstNext = this.isThisPlayerField(
+        rowIndex + 1,
+        columnIndex,
+        player
+      );
+      const secondNext = this.isThisPlayerField(
+        rowIndex + 2,
+        columnIndex,
+        player
+      );
+      const thirdNext = this.isThisPlayerField(
+        rowIndex + 3,
+        columnIndex,
+        player
+      );
+      if (firstNext && secondNext && !thirdNext) return true;
+    },
+
+    checkUpperRows(rowIndex, columnIndex, player) {
+      console.log("upper");
+      const firstNext = this.isThisPlayerField(
+        rowIndex - 1,
+        columnIndex,
+        player
+      );
+      const secondNext = this.isThisPlayerField(
+        rowIndex - 2,
+        columnIndex,
+        player
+      );
+      const thirdNext = this.isThisPlayerField(
+        rowIndex - 3,
+        columnIndex,
+        player
+      );
+      if (firstNext && secondNext && !thirdNext) return true;
+    },
+
+    isThisPlayerField(rowIndex, columnIndex, player) {
+      if (
+        rowIndex > this.rowsNumber ||
+        rowIndex < 1 ||
+        columnIndex > this.columnsNumber ||
+        columnIndex < 1
+      ) {
+        return;
+      }
+
+      return this.board.values[rowIndex - 1][columnIndex - 1].player === player;
+    },
   },
   beforeMount() {
-    this.board.values = Array(8).fill(null).map(() => Array(8).fill({ player: null, pawnIndex: null }));
-  }
-}
+    this.board.values = Array(8)
+      .fill(null)
+      .map(() => Array(8).fill({ player: null, pawnIndex: null }));
+  },
+};
 </script>
-
-
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.board  {
-    width: 720px;
-    height: 600px;
-    margin: 20px;
-    border: 25px solid #333;
-    margin-left: auto;
-    margin-right: auto;
+.board {
+  width: 720px;
+  height: 600px;
+  margin: 20px;
+  border: 25px solid #333;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .black {
-    float: left;
-    width: 120px;
-    height: 120px;
-    background-color: #999;
-      font-size:80px;
-    text-align:center;
-    display: table-cell;
-    vertical-align:middle;
+  float: left;
+  width: 120px;
+  height: 120px;
+  background-color: #999;
+  font-size: 80px;
+  text-align: center;
+  display: table-cell;
+  vertical-align: middle;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 .white {
-    float: left;
-    width: 120px;
-    height: 120px;
-    background-color: #fff;
-    font-size:80px;
-    text-align:center;
-    display: table-cell;
-    vertical-align:middle;
+  float: left;
+  width: 120px;
+  height: 120px;
+  background-color: #fff;
+  font-size: 80px;
+  text-align: center;
+  display: table-cell;
+  vertical-align: middle;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .yellowgreen {
-    background-color: yellowgreen;
+  background-color: yellowgreen;
 }
 
 .darkgreen {
-    background-color: darkgreen;
+  background-color: darkgreen;
 }
-
 
 h3 {
   margin: 40px 0 0;
