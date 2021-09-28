@@ -273,14 +273,16 @@ export default {
         );
         this.focused = null;
 
-        console.log(
-          "Has Player Scored",
+        if (
           this.hasPlayerScored(
             rowIndex,
             columnIndex,
             newRow[columnIndex - 1].player
           )
-        );
+        )
+          alert(
+            `Player ${newRow[columnIndex - 1].player} zdobył właśnie punkt!`
+          );
 
         this.tura = !this.tura;
         this.moveCounter++;
@@ -288,22 +290,14 @@ export default {
     },
 
     hasPlayerScored(rowIndex, columnIndex, player) {
-      /*
-      NOWY PLAN
-      1. Sprawdzamy pionowo
-       -Czy to skrajne wartości?
-        -tak : idziemy tylko w danę stronę
-        -nie : srpawdzamy górę i dół i jeśli mamy obydwa true,
-          -sprawdzamy czy nie są skrajnymi, bądź kolejny pion nie należy do gracza
-          -idziemy tylko w danę stronę
+      if (
+        this.checkRowsForPoint(rowIndex, columnIndex, player) ||
+        this.checkColumnsForPoint(rowIndex, columnIndex, player)
+      )
+        return true;
+    },
 
-      2. SPrawdzamy poziomo
-
-      ======================
-
-      
-      */
-      console.log("Dane w stwierdzaniu wyniku", rowIndex, columnIndex, player);
+    checkRowsForPoint(rowIndex, columnIndex, player) {
       if (rowIndex === 1)
         return this.checkLowerRows(rowIndex, columnIndex, player);
 
@@ -311,31 +305,6 @@ export default {
         return this.checkUpperRows(rowIndex, columnIndex, player);
 
       return this.checkAroundRow(rowIndex, columnIndex, player);
-
-      //Sprawdzamy w pionie
-      /*if (
-        (rowIndex > 3 &&
-          this.board.values[rowIndex - 2][columnIndex - 1].player == player &&
-          this.board.values[rowIndex - 3][columnIndex - 1].player == player &&
-          this.board.values[rowIndex - 4][columnIndex - 1].player != player) ||
-        (rowIndex == 3 &&
-          this.board.values[rowIndex - 2][columnIndex - 1].player == player &&
-          this.board.values[rowIndex - 3][columnIndex - 1].player == player)
-      ) {
-        console.log("punkt");
-      }
-      //Tu w poziomie
-      else if (
-        (rowIndex < this.board.rowsNumber - 2 &&
-          this.board.values[rowIndex][columnIndex - 1].player == player &&
-          this.board.values[rowIndex + 1][columnIndex - 1].player == player &&
-          this.board.values[rowIndex + 2][columnIndex - 1].player != player) ||
-        (rowIndex == this.board.rowsNumber - 2 &&
-          this.board.values[rowIndex][columnIndex - 1].player == player &&
-          this.board.values[rowIndex + 1][columnIndex - 1].player == player)
-      ) {
-        console.log("punkt");
-      }*/
     },
 
     checkAroundRow(rowIndex, columnIndex, player) {
@@ -390,6 +359,73 @@ export default {
       const thirdNext = this.isThisPlayerField(
         rowIndex - 3,
         columnIndex,
+        player
+      );
+      if (firstNext && secondNext && !thirdNext) return true;
+    },
+
+    checkColumnsForPoint(rowIndex, columnIndex, player) {
+      if (columnIndex === 1)
+        return this.checkRightColumns(rowIndex, columnIndex, player);
+
+      if (columnIndex === this.columnsNumber)
+        return this.checkLeftColumns(rowIndex, columnIndex, player);
+
+      return this.checkAroundColumn(rowIndex, columnIndex, player);
+    },
+
+    checkAroundColumn(rowIndex, columnIndex, player) {
+      let right = this.isThisPlayerField(rowIndex, columnIndex + 1, player);
+      let left = this.isThisPlayerField(rowIndex, columnIndex - 1, player);
+
+      //Czy otaczające należą do gracza?
+      if (right && left) {
+        right = this.isThisPlayerField(rowIndex, columnIndex + 2, player);
+        left = this.isThisPlayerField(rowIndex, columnIndex - 2, player);
+
+        //Czy następne pola należą do gracza? (Zasada o mniej niż 4 w rzędzie)
+        if (right || left) return false;
+        return true;
+      }
+      if (right) return this.checkRightColumns(rowIndex, columnIndex, player);
+      return this.checkLeftColumns(rowIndex, columnIndex, player);
+    },
+
+    checkRightColumns(rowIndex, columnIndex, player) {
+      console.log("lower");
+      const firstNext = this.isThisPlayerField(
+        rowIndex,
+        columnIndex + 1,
+        player
+      );
+      const secondNext = this.isThisPlayerField(
+        rowIndex,
+        columnIndex + 2,
+        player
+      );
+      const thirdNext = this.isThisPlayerField(
+        rowIndex,
+        columnIndex + 3,
+        player
+      );
+      if (firstNext && secondNext && !thirdNext) return true;
+    },
+
+    checkLeftColumns(rowIndex, columnIndex, player) {
+      console.log("left side");
+      const firstNext = this.isThisPlayerField(
+        rowIndex,
+        columnIndex - 1,
+        player
+      );
+      const secondNext = this.isThisPlayerField(
+        rowIndex,
+        columnIndex - 2,
+        player
+      );
+      const thirdNext = this.isThisPlayerField(
+        rowIndex,
+        columnIndex - 3,
         player
       );
       if (firstNext && secondNext && !thirdNext) return true;
