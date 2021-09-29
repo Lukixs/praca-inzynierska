@@ -47,6 +47,7 @@ export default {
   data: function() {
     return {
       tura: true,
+      removeStagePlayer: null,
       moveCounter: 1,
       firstStageMovesLimit: 8,
       focused: null, // {rowIndex, columnIndex}   Aktualnie wybrany pionek
@@ -56,33 +57,39 @@ export default {
         values: null, // { player: 'black', pawnIndex: '0' }
         // rows: Array(8).fill(null),
       },
+      pawns: [], // { player: 'black', currentPosition: {rowIndex: 4, columnIndex: 4}, lastPosition:{rowIndex: 4, columnIndex: 3} }
       history: [], // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
     };
   },
   methods: {
     cellOnClick(rowIndex, columnIndex) {
-      console.log("rowIndex", rowIndex, "columnIndex", columnIndex);
       if (
-        (this.moveCounter <= this.firstStageMovesLimit) &
-        (this.board.values[rowIndex - 1][columnIndex - 1].player == null)
+        this.moveCounter <= this.firstStageMovesLimit &&
+        this.board.values[rowIndex - 1][columnIndex - 1].player == null
       ) {
         this.placePawn(rowIndex, columnIndex);
       } else if (
-        (this.moveCounter > this.firstStageMovesLimit) &
-        (this.focused == null) &
-        (this.board.values[rowIndex - 1][columnIndex - 1].player != null)
+        this.moveCounter > this.firstStageMovesLimit &&
+        this.removeStagePlayer &&
+        this.board.values[rowIndex - 1][columnIndex - 1].player != null
+      ) {
+        this.removeEnemyPawn(rowIndex, columnIndex);
+      } else if (
+        this.moveCounter > this.firstStageMovesLimit &&
+        this.focused == null &&
+        this.board.values[rowIndex - 1][columnIndex - 1].player != null
       ) {
         this.selectPawn(rowIndex, columnIndex);
       } else if (
-        (this.moveCounter > this.firstStageMovesLimit) &
-        (this.focused != null) &
-        (this.board.values[rowIndex - 1][columnIndex - 1].player != null)
+        this.moveCounter > this.firstStageMovesLimit &&
+        this.focused != null &&
+        this.board.values[rowIndex - 1][columnIndex - 1].player != null
       ) {
         this.reSelectPawn(rowIndex, columnIndex);
       } else if (
-        (this.moveCounter > this.firstStageMovesLimit) &
-        (this.focused != null) &
-        (this.board.values[rowIndex - 1][columnIndex - 1].player == null)
+        this.moveCounter > this.firstStageMovesLimit &&
+        this.focused != null &&
+        this.board.values[rowIndex - 1][columnIndex - 1].player == null
       ) {
         this.tryToMovePawnTo(rowIndex, columnIndex);
       }
@@ -91,16 +98,31 @@ export default {
     placePawn(rowIndex, columnIndex) {
       if (this.board.values[rowIndex - 1][columnIndex - 1].player == null) {
         const newRow = this.board.values[rowIndex - 1].slice(0);
-        if (this.tura == true)
-          newRow[columnIndex - 1] = {
+        if (this.tura == true) {
+          const newPawn = {
             player: "white",
-            pawnIndex: (this.moveCounter + 1) / 2,
+            pawnIndex: this.moveCounter,
+            currentPosition: {
+              rowIndex: rowIndex - 1,
+              columnIndex: columnIndex - 1,
+            },
+            lastPosition: null,
           };
-        else
-          newRow[columnIndex - 1] = {
+          this.pawns.push(newPawn);
+          newRow[columnIndex - 1] = newPawn;
+        } else {
+          const newPawn = {
             player: "black",
-            pawnIndex: this.moveCounter / 2,
+            pawnIndex: this.moveCounter,
+            currentPosition: {
+              rowIndex: rowIndex - 1,
+              columnIndex: columnIndex - 1,
+            },
+            lastPosition: null,
           };
+          this.pawns.push(newPawn);
+          newRow[columnIndex - 1] = newPawn;
+        }
         this.tura = !this.tura;
         this.$set(this.board.values, rowIndex - 1, newRow);
 
@@ -121,7 +143,7 @@ export default {
         // const element = document.getElementById(rowIndex*10+columnIndex)
         // element.classList.add("yellowgreen")
         this.focused = { rowIndex: rowIndex, columnIndex: columnIndex };
-        console.log(this.focused);
+        // console.log(this.focused);
       } else if (
         this.board.values[rowIndex - 1][columnIndex - 1].player == "black" &&
         this.tura % 2 == 0
@@ -130,7 +152,7 @@ export default {
         // const element = document.getElementById(rowIndex*10+columnIndex)
         // element.classList.add("yellowgreen")
         this.focused = { rowIndex: rowIndex, columnIndex: columnIndex };
-        console.log(this.focused);
+        // console.log(this.focused);
       }
     },
 
@@ -149,7 +171,7 @@ export default {
           );
           this.drawAvailableMoves(rowIndex, columnIndex);
           this.focused = { rowIndex, columnIndex };
-          console.log(this.focused);
+          // console.log(this.focused);
         } else if (
           this.board.values[rowIndex - 1][columnIndex - 1].player == "black" &&
           this.tura % 2 == 0
@@ -160,18 +182,79 @@ export default {
           );
           this.drawAvailableMoves(rowIndex, columnIndex);
           this.focused = { rowIndex, columnIndex };
-          console.log(this.focused);
+          // console.log(this.focused);
         }
       }
+    },
+
+    getPawnFromBoard(rowIndex, columnIndex) {
+      return this.board.values[rowIndex][columnIndex];
+    },
+
+    isUpperFieldSuitableToMove(rowIndex, columnIndex, movingPawn) {
+      if (rowIndex <= 0) return false;
+      const targetedField = this.getPawnFromBoard(rowIndex - 1, columnIndex);
+
+      if (targetedField.player) return false;
+      else if (
+        movingPawn.lastPosition &&
+        movingPawn.lastPosition.rowIndex === rowIndex - 1
+      ) {
+        return false;
+      }
+      return true;
+    },
+    isLowerFieldSuitableToMove(rowIndex, columnIndex, movingPawn) {
+      if (rowIndex + 1 >= this.board.rowsNumber) return false;
+      const targetedField = this.getPawnFromBoard(rowIndex + 1, columnIndex);
+
+      if (targetedField.player) return false;
+      else if (
+        movingPawn.lastPosition &&
+        movingPawn.lastPosition.rowIndex === rowIndex + 1
+      ) {
+        return false;
+      }
+      return true;
+    },
+    isLeftFieldSuitableToMove(rowIndex, columnIndex, movingPawn) {
+      if (columnIndex <= 0) return false;
+      const targetedField = this.getPawnFromBoard(rowIndex, columnIndex - 1);
+
+      if (targetedField.player) return false;
+      else if (
+        movingPawn.lastPosition &&
+        movingPawn.lastPosition.columnIndex === columnIndex - 1
+      ) {
+        return false;
+      }
+      return true;
+    },
+    isRightFieldSuitableToMove(rowIndex, columnIndex, movingPawn) {
+      if (columnIndex + 1 >= this.board.columnsNumber) return false;
+      const targetedField = this.getPawnFromBoard(rowIndex, columnIndex + 1);
+
+      if (targetedField.player) return false;
+      else if (
+        movingPawn.lastPosition &&
+        movingPawn.lastPosition.columnIndex === columnIndex + 1
+      ) {
+        return false;
+      }
+      return true;
     },
 
     drawAvailableMoves(rowIndex, columnIndex) {
       const element = document.getElementById(rowIndex * 10 + columnIndex);
       element.classList.add("darkgreen");
+      const movingPawn = this.getPawnFromBoard(rowIndex - 1, columnIndex - 1);
 
       if (
-        rowIndex - 1 >= 1 &&
-        this.board.values[rowIndex - 2][columnIndex - 1].player == null
+        this.isUpperFieldSuitableToMove(
+          rowIndex - 1,
+          columnIndex - 1,
+          movingPawn
+        )
       ) {
         const element = document.getElementById(
           (rowIndex - 1) * 10 + columnIndex
@@ -179,8 +262,11 @@ export default {
         element.classList.add("yellowgreen");
       }
       if (
-        rowIndex + 1 <= this.board.rowsNumber &&
-        this.board.values[rowIndex][columnIndex - 1].player == null
+        this.isLowerFieldSuitableToMove(
+          rowIndex - 1,
+          columnIndex - 1,
+          movingPawn
+        )
       ) {
         const element = document.getElementById(
           (rowIndex + 1) * 10 + columnIndex
@@ -188,8 +274,11 @@ export default {
         element.classList.add("yellowgreen");
       }
       if (
-        columnIndex - 1 >= 1 &&
-        this.board.values[rowIndex - 1][columnIndex - 2].player == null
+        this.isLeftFieldSuitableToMove(
+          rowIndex - 1,
+          columnIndex - 1,
+          movingPawn
+        )
       ) {
         const element = document.getElementById(
           rowIndex * 10 + (columnIndex - 1)
@@ -197,8 +286,11 @@ export default {
         element.classList.add("yellowgreen");
       }
       if (
-        columnIndex + 1 <= this.board.columnsNumber &&
-        this.board.values[rowIndex - 1][columnIndex].player == null
+        this.isRightFieldSuitableToMove(
+          rowIndex - 1,
+          columnIndex - 1,
+          movingPawn
+        )
       ) {
         const element = document.getElementById(
           rowIndex * 10 + (columnIndex + 1)
@@ -238,55 +330,138 @@ export default {
     },
 
     tryToMovePawnTo(rowIndex, columnIndex) {
-      console.log("Nowy ruch na:", rowIndex, columnIndex, this.focused);
       if (
-        (rowIndex == this.focused.rowIndex &&
-          (columnIndex == this.focused.columnIndex - 1 ||
-            columnIndex == this.focused.columnIndex + 1)) ||
-        (columnIndex == this.focused.columnIndex &&
-          (rowIndex == this.focused.rowIndex - 1 ||
-            rowIndex == this.focused.rowIndex + 1))
-      ) {
-        //if(true){//Tutaj czy spalone sprawdzić historie
-        let newRow = this.board.values[rowIndex - 1].slice(0);
-        newRow[columnIndex - 1] = {
-          player: this.board.values[this.focused.rowIndex - 1][
-            this.focused.columnIndex - 1
-          ].player,
-          pawnIndex: this.board.values[this.focused.rowIndex - 1][
-            this.focused.columnIndex - 1
-          ].pawnIndex,
-        };
-        this.$set(this.board.values, rowIndex - 1, newRow);
-        // console.log('player', this.board.values[this.focused.rowIndex-1][this.focused.columnIndex-1].player, this.focused);
-
-        let oldRow = this.board.values[this.focused.rowIndex - 1].slice(0);
-        oldRow[this.focused.columnIndex - 1] = {
-          player: null,
-          pawnIndex: null,
-        };
-        this.$set(this.board.values, this.focused.rowIndex - 1, oldRow);
-
-        this.removeAvailableMoves(
-          this.focused.rowIndex,
-          this.focused.columnIndex
-        );
-        this.focused = null;
-
-        if (
-          this.hasPlayerScored(
-            rowIndex,
-            columnIndex,
-            newRow[columnIndex - 1].player
-          )
+        !(
+          (rowIndex == this.focused.rowIndex &&
+            (columnIndex == this.focused.columnIndex - 1 ||
+              columnIndex == this.focused.columnIndex + 1)) ||
+          (columnIndex == this.focused.columnIndex &&
+            (rowIndex == this.focused.rowIndex - 1 ||
+              rowIndex == this.focused.rowIndex + 1))
         )
-          alert(
-            `Player ${newRow[columnIndex - 1].player} zdobył właśnie punkt!`
-          );
+      )
+        return;
 
-        this.tura = !this.tura;
-        this.moveCounter++;
+      let newRow = this.board.values[rowIndex - 1].slice(0);
+      const boardPawn = this.board.values[this.focused.rowIndex - 1][
+        this.focused.columnIndex - 1
+      ];
+
+      // Check if given field hasn't been last position of given pawn, is so end function
+      const pawn = this.getPawnById(boardPawn.pawnIndex);
+      if (
+        pawn.lastPosition &&
+        pawn.lastPosition.columnIndex == columnIndex - 1 &&
+        pawn.lastPosition.rowIndex == rowIndex - 1
+      ) {
+        return;
       }
+
+      pawn.lastPosition = pawn.currentPosition;
+      pawn.currentPosition = {
+        rowIndex: rowIndex - 1,
+        columnIndex: columnIndex - 1,
+      };
+
+      newRow[columnIndex - 1] = pawn;
+      this.$set(this.board.values, rowIndex - 1, newRow);
+
+      let oldRow = this.board.values[this.focused.rowIndex - 1].slice(0);
+      oldRow[this.focused.columnIndex - 1] = this.getEmptyBoardField();
+      this.$set(this.board.values, this.focused.rowIndex - 1, oldRow);
+
+      this.removeAvailableMoves(
+        this.focused.rowIndex,
+        this.focused.columnIndex
+      );
+      this.focused = null;
+
+      if (
+        this.hasPlayerScored(
+          rowIndex,
+          columnIndex,
+          newRow[columnIndex - 1].player
+        )
+      ) {
+        this.highlightEnemyPawns(pawn.player);
+        this.removeStagePlayer = pawn.player;
+        return;
+      }
+
+      this.tura = !this.tura;
+      this.moveCounter++;
+    },
+
+    highlightEnemyPawns(player) {
+      const enemyPawns = this.getEnemyPawns(player);
+      let element;
+      for (let i = 0; i < enemyPawns.length; i++) {
+        element = document.getElementById(
+          (enemyPawns[i].currentPosition.rowIndex + 1) * 10 +
+            enemyPawns[i].currentPosition.columnIndex +
+            1
+        );
+        element.classList.add("yellowgreen");
+      }
+    },
+
+    removeHighlightFromEnemyPawns(player) {
+      const enemyPawns = this.getEnemyPawns(player);
+      let element;
+      for (let i = 0; i < enemyPawns.length; i++) {
+        element = document.getElementById(
+          (enemyPawns[i].currentPosition.rowIndex + 1) * 10 +
+            enemyPawns[i].currentPosition.columnIndex +
+            1
+        );
+        element.classList.remove("yellowgreen");
+      }
+    },
+
+    removeEnemyPawn(rowIndex, columnIndex) {
+      const targetedPawn = this.board.values[rowIndex - 1][columnIndex - 1];
+      if (targetedPawn.player === this.removeStagePlayer) return;
+
+      this.removeHighlightFromEnemyPawns(this.removeStagePlayer);
+      this.removePawnById(targetedPawn.pawnIndex);
+      this.clearBoardField(rowIndex - 1, columnIndex - 1);
+      this.didPlayerWin(this.removeStagePlayer);
+      this.removeStagePlayer = null;
+      this.tura = !this.tura;
+      this.moveCounter++;
+    },
+
+    didPlayerWin(player) {
+      const enemyPawns = this.getEnemyPawns(player);
+      if (enemyPawns.length > 2) return;
+      alert(`Gratulacje, wygrał gracz: ${player}`);
+    },
+
+    clearBoardField(rowIndex, columnIndex) {
+      this.board.values[rowIndex][columnIndex] = this.getEmptyBoardField();
+    },
+
+    getEmptyBoardField() {
+      return {
+        player: null,
+        pawnIndex: null,
+        currentPosition: null,
+        lastPosition: null,
+      };
+    },
+
+    removePawnById(id) {
+      this.pawns = this.pawns.filter((item) => item.pawnIndex != id);
+    },
+
+    getPawnById(id) {
+      return this.pawns.find((item) => item.pawnIndex === id);
+    },
+
+    getEnemyPawns(player) {
+      return this.pawns.filter((item) => {
+        if (item.player != player) return item;
+      });
     },
 
     hasPlayerScored(rowIndex, columnIndex, player) {
@@ -325,7 +500,6 @@ export default {
     },
 
     checkLowerRows(rowIndex, columnIndex, player) {
-      console.log("lower");
       const firstNext = this.isThisPlayerField(
         rowIndex + 1,
         columnIndex,
@@ -345,7 +519,6 @@ export default {
     },
 
     checkUpperRows(rowIndex, columnIndex, player) {
-      console.log("upper");
       const firstNext = this.isThisPlayerField(
         rowIndex - 1,
         columnIndex,
@@ -392,7 +565,6 @@ export default {
     },
 
     checkRightColumns(rowIndex, columnIndex, player) {
-      console.log("lower");
       const firstNext = this.isThisPlayerField(
         rowIndex,
         columnIndex + 1,
@@ -412,7 +584,6 @@ export default {
     },
 
     checkLeftColumns(rowIndex, columnIndex, player) {
-      console.log("left side");
       const firstNext = this.isThisPlayerField(
         rowIndex,
         columnIndex - 1,
@@ -447,7 +618,14 @@ export default {
   beforeMount() {
     this.board.values = Array(8)
       .fill(null)
-      .map(() => Array(8).fill({ player: null, pawnIndex: null }));
+      .map(() =>
+        Array(8).fill({
+          player: null,
+          pawnIndex: null,
+          currentPosition: null,
+          lastPosition: null,
+        })
+      );
   },
 };
 </script>
