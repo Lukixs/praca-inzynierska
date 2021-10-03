@@ -127,7 +127,65 @@ export default {
         this.$set(this.board.values, rowIndex - 1, newRow);
 
         this.moveCounter++;
+        this.placePawnByAI();
       }
+    },
+
+    placePawnByAI() {
+      const availableFields = this.getEmptyFields(
+        this.board.values,
+        this.board.rowsNumber,
+        this.board.columnsNumber
+      );
+
+      const randomFieldAddress =
+        availableFields[Math.floor(Math.random() * availableFields.length)];
+
+      const newRow = this.board.values[randomFieldAddress.rowIndex].slice(0);
+      if (this.tura == true) {
+        const newPawn = {
+          player: "white",
+          pawnIndex: this.moveCounter,
+          currentPosition: {
+            rowIndex: randomFieldAddress.rowIndex,
+            columnIndex: randomFieldAddress.columnIndex,
+          },
+          lastPosition: null,
+        };
+        this.pawns.push(newPawn);
+        newRow[randomFieldAddress.columnIndex] = newPawn;
+      } else {
+        const newPawn = {
+          player: "black",
+          pawnIndex: this.moveCounter,
+          currentPosition: {
+            rowIndex: randomFieldAddress.rowIndex,
+            columnIndex: randomFieldAddress.columnIndex,
+          },
+          lastPosition: null,
+        };
+        this.pawns.push(newPawn);
+        newRow[randomFieldAddress.columnIndex] = newPawn;
+      }
+      this.tura = !this.tura;
+      this.$set(this.board.values, randomFieldAddress.rowIndex, newRow);
+
+      this.moveCounter++;
+    },
+
+    getEmptyFields(values, rowsNumber, columnsNumber) {
+      let emptyFields = [];
+      for (let i = 0; i < rowsNumber; i++) {
+        for (let j = 0; j < columnsNumber; j++) {
+          if (!values[i][j].player)
+            emptyFields.push({
+              rowIndex: i,
+              columnIndex: j,
+            });
+        }
+      }
+
+      return emptyFields;
     },
 
     selectPawn(rowIndex, columnIndex) {
@@ -390,6 +448,124 @@ export default {
 
       this.tura = !this.tura;
       this.moveCounter++;
+
+      this.movePawnByAI(pawn.player);
+    },
+
+    movePawnByAI(enemy) {
+      const myPawns = this.getEnemyPawns(enemy);
+      const pawnsWithAvailableMoves = this.getMovablePawn(myPawns);
+      if (pawnsWithAvailableMoves && pawnsWithAvailableMoves.length)
+        this.movePawnIntoRandomDirection(
+          pawnsWithAvailableMoves[
+            Math.floor(Math.random() * pawnsWithAvailableMoves.length)
+          ]
+        );
+      else {
+        alert("Komputer przegrał z powodu braku dostępnych ruchów.");
+      }
+    },
+
+    movePawnIntoRandomDirection(pawn) {
+      const availableDirections = this.getAvailableDirectionsForPawn(pawn);
+      const randomizedDirection =
+        availableDirections[
+          Math.floor(Math.random() * availableDirections.length)
+        ];
+
+      const rowIndex = randomizedDirection.rowIndex + 1;
+      const columnIndex = randomizedDirection.columnIndex + 1;
+
+      let newRow = this.board.values[rowIndex - 1].slice(0);
+
+      pawn.lastPosition = pawn.currentPosition;
+      pawn.currentPosition = {
+        rowIndex: rowIndex - 1,
+        columnIndex: columnIndex - 1,
+      };
+      newRow[columnIndex - 1] = pawn;
+      this.$set(this.board.values, rowIndex - 1, newRow);
+
+      console.log("rowIndex", pawn);
+      let oldRow = this.board.values[pawn.lastPosition.rowIndex].slice(0);
+      oldRow[pawn.lastPosition.columnIndex] = this.getEmptyBoardField();
+      console.log(oldRow, pawn.lastPosition.columnIndex);
+      this.$set(this.board.values, pawn.lastPosition.rowIndex, oldRow);
+      if (
+        this.hasPlayerScored(
+          rowIndex,
+          columnIndex,
+          newRow[columnIndex - 1].player
+        )
+      ) {
+        this.highlightEnemyPawns(pawn.player);
+        this.removeStagePlayer = pawn.player;
+        return;
+      }
+
+      this.tura = !this.tura;
+      this.moveCounter++;
+
+      // console.log(availableDirections);
+    },
+
+    getMovablePawn(pawns) {
+      let availablePawns = [];
+      for (let i = 0; i < pawns.length; i++) {
+        if (this.getAvailableDirectionsForPawn(pawns[i]).length)
+          availablePawns.push(pawns[i]);
+      }
+      return availablePawns;
+    },
+
+    getAvailableDirectionsForPawn(pawn) {
+      let availableDirections = [];
+      if (
+        this.isUpperFieldSuitableToMove(
+          pawn.currentPosition.rowIndex,
+          pawn.currentPosition.columnIndex,
+          pawn
+        )
+      )
+        availableDirections.push({
+          rowIndex: pawn.currentPosition.rowIndex - 1,
+          columnIndex: pawn.currentPosition.columnIndex,
+        });
+      else if (
+        this.isLowerFieldSuitableToMove(
+          pawn.currentPosition.rowIndex,
+          pawn.currentPosition.columnIndex,
+          pawn
+        )
+      )
+        availableDirections.push({
+          rowIndex: pawn.currentPosition.rowIndex + 1,
+          columnIndex: pawn.currentPosition.columnIndex,
+        });
+      else if (
+        this.isLeftFieldSuitableToMove(
+          pawn.currentPosition.rowIndex,
+          pawn.currentPosition.columnIndex,
+          pawn
+        )
+      )
+        availableDirections.push({
+          rowIndex: pawn.currentPosition.rowIndex,
+          columnIndex: pawn.currentPosition.columnIndex - 1,
+        });
+      else if (
+        this.isRightFieldSuitableToMove(
+          pawn.currentPosition.rowIndex,
+          pawn.currentPosition.columnIndex,
+          pawn
+        )
+      )
+        availableDirections.push({
+          rowIndex: pawn.currentPosition.rowIndex,
+          columnIndex: pawn.currentPosition.columnIndex + 1,
+        });
+
+      return availableDirections;
     },
 
     highlightEnemyPawns(player) {
@@ -426,9 +602,11 @@ export default {
       this.removePawnById(targetedPawn.pawnIndex);
       this.clearBoardField(rowIndex - 1, columnIndex - 1);
       this.didPlayerWin(this.removeStagePlayer);
+      const currentPlayer = this.removeStagePlayer;
       this.removeStagePlayer = null;
       this.tura = !this.tura;
       this.moveCounter++;
+      this.movePawnByAI(currentPlayer);
     },
 
     didPlayerWin(player) {
