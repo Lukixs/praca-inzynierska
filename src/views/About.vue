@@ -1,5 +1,14 @@
 <template>
   <div class="about">
-    <h1>This is an menu page</h1>
+    <ArtificialPlayer />
   </div>
 </template>
+<script>
+import ArtificialPlayer from "@/components/ArtificialPlayer.vue";
+export default {
+  name: "About",
+  components: {
+    ArtificialPlayer,
+  },
+};
+</script>
