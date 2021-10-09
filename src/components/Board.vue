@@ -63,36 +63,48 @@ export default {
   },
   methods: {
     cellOnClick(rowIndex, columnIndex) {
-      if (
-        this.moveCounter <= this.firstStageMovesLimit &&
-        this.board.values[rowIndex - 1][columnIndex - 1].player == null
-      ) {
-        this.placePawn(rowIndex, columnIndex);
-      } else if (
-        this.moveCounter > this.firstStageMovesLimit &&
-        this.removeStagePlayer &&
-        this.board.values[rowIndex - 1][columnIndex - 1].player != null
-      ) {
-        this.removeEnemyPawn(rowIndex, columnIndex);
-      } else if (
-        this.moveCounter > this.firstStageMovesLimit &&
-        this.focused == null &&
-        this.board.values[rowIndex - 1][columnIndex - 1].player != null
-      ) {
-        this.selectPawn(rowIndex, columnIndex);
-      } else if (
-        this.moveCounter > this.firstStageMovesLimit &&
-        this.focused != null &&
-        this.board.values[rowIndex - 1][columnIndex - 1].player != null
-      ) {
-        this.reSelectPawn(rowIndex, columnIndex);
-      } else if (
-        this.moveCounter > this.firstStageMovesLimit &&
-        this.focused != null &&
-        this.board.values[rowIndex - 1][columnIndex - 1].player == null
-      ) {
-        this.tryToMovePawnTo(rowIndex, columnIndex);
+      if (this.moveCounter <= this.firstStageMovesLimit) {
+        this.pawnsPlacingStageController(rowIndex, columnIndex);
+      } else {
+        this.pawnsMovingStageController(rowIndex, columnIndex);
       }
+    },
+
+    pawnsPlacingStageController(rowIndex, columnIndex) {
+      const isEmpty = this.isGivenFieldEmpty(rowIndex - 1, columnIndex - 1);
+      if (isEmpty) this.placePawn(rowIndex, columnIndex);
+    },
+
+    pawnsMovingStageController(rowIndex, columnIndex) {
+      const isEmpty = this.isGivenFieldEmpty(rowIndex - 1, columnIndex - 1);
+      if (isEmpty) {
+        this.pawnsMovingStageControllerEmptyField(rowIndex, columnIndex);
+      } else {
+        this.pawnsMovingStageControllerOccupiedField(rowIndex, columnIndex);
+      }
+    },
+
+    pawnsMovingStageControllerEmptyField(rowIndex, columnIndex) {
+      if (this.isAnyPawnFocused()) this.tryToMovePawnTo(rowIndex, columnIndex);
+    },
+
+    pawnsMovingStageControllerOccupiedField(rowIndex, columnIndex) {
+      if (this.removeStagePlayer) {
+        this.removeEnemyPawn(rowIndex, columnIndex);
+      } else if (!this.isAnyPawnFocused()) {
+        this.selectPawn(rowIndex, columnIndex);
+      } else {
+        this.reSelectPawn(rowIndex, columnIndex);
+      }
+    },
+
+    isGivenFieldEmpty(rowIndex, columnIndex) {
+      const pawn = this.board.values[rowIndex][columnIndex];
+      if (!pawn.player) return true;
+    },
+
+    isAnyPawnFocused() {
+      if (this.focused != null) return true;
     },
 
     placePawn(rowIndex, columnIndex) {
