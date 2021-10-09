@@ -167,10 +167,14 @@ export default {
     selectPawn(rowIndex, columnIndex) {
       const currentPlayer = this.whichPlayerTurnItIs(this.tura);
       const selectedPawn = this.getPawnFromBoard(rowIndex - 1, columnIndex - 1);
-      if (selectedPawn.player === currentPlayer) {
-        this.drawAvailableMoves(rowIndex, columnIndex);
-        this.focused = { rowIndex: rowIndex, columnIndex: columnIndex };
-      }
+      if (selectedPawn.player != currentPlayer) return;
+
+      this.drawAvailableMoves(rowIndex, columnIndex);
+      this.setFocused(rowIndex, columnIndex);
+    },
+
+    setFocused(rowIndex, columnIndex) {
+      this.focused = { rowIndex: rowIndex, columnIndex: columnIndex };
     },
 
     whichPlayerTurnItIs(tura) {
@@ -179,34 +183,26 @@ export default {
     },
 
     reSelectPawn(rowIndex, columnIndex) {
+      if (this.isThisFocusedPawn(rowIndex, columnIndex)) return;
+
+      const currentPlayer = this.whichPlayerTurnItIs(this.tura);
+      const selectedPawn = this.getPawnFromBoard(rowIndex - 1, columnIndex - 1);
+      if (selectedPawn.player != currentPlayer) return;
+
+      this.removeAvailableMoves(
+        this.focused.rowIndex,
+        this.focused.columnIndex
+      );
+      this.drawAvailableMoves(rowIndex, columnIndex);
+      this.setFocused(rowIndex, columnIndex);
+    },
+
+    isThisFocusedPawn(rowIndex, columnIndex) {
       if (
-        rowIndex != this.focused.rowIndex ||
-        columnIndex != this.focused.columnIndex
-      ) {
-        if (
-          this.board.values[rowIndex - 1][columnIndex - 1].player == "white" &&
-          this.tura % 2 == 1
-        ) {
-          this.removeAvailableMoves(
-            this.focused.rowIndex,
-            this.focused.columnIndex
-          );
-          this.drawAvailableMoves(rowIndex, columnIndex);
-          this.focused = { rowIndex, columnIndex };
-          // console.log(this.focused);
-        } else if (
-          this.board.values[rowIndex - 1][columnIndex - 1].player == "black" &&
-          this.tura % 2 == 0
-        ) {
-          this.removeAvailableMoves(
-            this.focused.rowIndex,
-            this.focused.columnIndex
-          );
-          this.drawAvailableMoves(rowIndex, columnIndex);
-          this.focused = { rowIndex, columnIndex };
-          // console.log(this.focused);
-        }
-      }
+        rowIndex === this.focused.rowIndex &&
+        columnIndex === this.focused.columnIndex
+      )
+        return true;
     },
 
     getPawnFromBoard(rowIndex, columnIndex) {
