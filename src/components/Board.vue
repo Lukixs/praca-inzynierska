@@ -134,7 +134,7 @@ export default {
     },
 
     createNewPawn(rowIndex, columnIndex) {
-      if (this.tura == true)
+      if (this.tura)
         return this.createWhitePawn(rowIndex, columnIndex, this.moveCounter);
 
       return this.createBlackPawn(rowIndex, columnIndex, this.moveCounter);
@@ -165,29 +165,17 @@ export default {
     },
 
     selectPawn(rowIndex, columnIndex) {
-      // const element = document.getElementById(rowIndex*10+columnIndex)
-      // element.classList.add("yellowgreen")
-      // console.log(rowIndex, columnIndex);
-      // console.log(element.children[0].textContent);
-      if (
-        this.board.values[rowIndex - 1][columnIndex - 1].player == "white" &&
-        this.tura % 2 == 1
-      ) {
+      const currentPlayer = this.whichPlayerTurnItIs(this.tura);
+      const selectedPawn = this.getPawnFromBoard(rowIndex - 1, columnIndex - 1);
+      if (selectedPawn.player === currentPlayer) {
         this.drawAvailableMoves(rowIndex, columnIndex);
-        // const element = document.getElementById(rowIndex*10+columnIndex)
-        // element.classList.add("yellowgreen")
         this.focused = { rowIndex: rowIndex, columnIndex: columnIndex };
-        // console.log(this.focused);
-      } else if (
-        this.board.values[rowIndex - 1][columnIndex - 1].player == "black" &&
-        this.tura % 2 == 0
-      ) {
-        this.drawAvailableMoves(rowIndex, columnIndex);
-        // const element = document.getElementById(rowIndex*10+columnIndex)
-        // element.classList.add("yellowgreen")
-        this.focused = { rowIndex: rowIndex, columnIndex: columnIndex };
-        // console.log(this.focused);
       }
+    },
+
+    whichPlayerTurnItIs(tura) {
+      if (tura) return "white";
+      return "black";
     },
 
     reSelectPawn(rowIndex, columnIndex) {
