@@ -108,38 +108,60 @@ export default {
     },
 
     placePawn(rowIndex, columnIndex) {
-      if (this.board.values[rowIndex - 1][columnIndex - 1].player == null) {
-        const newRow = this.board.values[rowIndex - 1].slice(0);
-        if (this.tura == true) {
-          const newPawn = {
-            player: "white",
-            pawnIndex: this.moveCounter,
-            currentPosition: {
-              rowIndex: rowIndex - 1,
-              columnIndex: columnIndex - 1,
-            },
-            lastPosition: null,
-          };
-          this.pawns.push(newPawn);
-          newRow[columnIndex - 1] = newPawn;
-        } else {
-          const newPawn = {
-            player: "black",
-            pawnIndex: this.moveCounter,
-            currentPosition: {
-              rowIndex: rowIndex - 1,
-              columnIndex: columnIndex - 1,
-            },
-            lastPosition: null,
-          };
-          this.pawns.push(newPawn);
-          newRow[columnIndex - 1] = newPawn;
-        }
-        this.tura = !this.tura;
-        this.$set(this.board.values, rowIndex - 1, newRow);
+      if (!this.isGivenFieldEmpty(rowIndex - 1, columnIndex - 1)) return;
 
-        this.moveCounter++;
-      }
+      const newPawn = this.createNewPawn(rowIndex - 1, columnIndex - 1);
+
+      this.addPawnToGame(newPawn, rowIndex, columnIndex);
+
+      this.tura = !this.tura;
+      this.moveCounter++;
+    },
+
+    addPawnToGame(pawn, rowIndex, columnIndex) {
+      this.addPawnToList(pawn);
+      this.addPawnToBoard(pawn, rowIndex, columnIndex);
+    },
+
+    addPawnToList(pawn) {
+      this.pawns.push(pawn);
+    },
+
+    addPawnToBoard(pawn, rowIndex, columnIndex) {
+      const newRow = this.board.values[rowIndex - 1].slice(0);
+      newRow[columnIndex - 1] = pawn;
+      this.$set(this.board.values, rowIndex - 1, newRow);
+    },
+
+    createNewPawn(rowIndex, columnIndex) {
+      if (this.tura == true)
+        return this.createWhitePawn(rowIndex, columnIndex, this.moveCounter);
+
+      return this.createBlackPawn(rowIndex, columnIndex, this.moveCounter);
+    },
+
+    createWhitePawn(rowIndex, columnIndex, moveCounter) {
+      return {
+        player: "white",
+        pawnIndex: moveCounter,
+        currentPosition: {
+          rowIndex: rowIndex,
+          columnIndex: columnIndex,
+        },
+        lastPosition: null,
+      };
+    },
+
+    createBlackPawn(rowIndex, columnIndex, moveCounter) {
+      return {
+        player: "black",
+        pawnIndex: moveCounter,
+        currentPosition: {
+          rowIndex: rowIndex,
+          columnIndex: columnIndex,
+        },
+        lastPosition: null,
+      };
     },
 
     selectPawn(rowIndex, columnIndex) {
