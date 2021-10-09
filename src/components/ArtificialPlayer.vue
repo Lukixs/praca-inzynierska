@@ -31,9 +31,7 @@
       </div>
     </div>
     <span>Tura {{ moveCounter }} |</span>
-    <span v-if="tura">
-      Ruch Białych
-    </span>
+    <span v-if="tura"> Ruch Białych </span>
     <span v-else>Ruch Czarnych</span>
   </div>
 </template>
@@ -489,7 +487,6 @@ export default {
       console.log("rowIndex", pawn);
       let oldRow = this.board.values[pawn.lastPosition.rowIndex].slice(0);
       oldRow[pawn.lastPosition.columnIndex] = this.getEmptyBoardField();
-      console.log(oldRow, pawn.lastPosition.columnIndex);
       this.$set(this.board.values, pawn.lastPosition.rowIndex, oldRow);
       if (
         this.hasPlayerScored(
@@ -498,15 +495,26 @@ export default {
           newRow[columnIndex - 1].player
         )
       ) {
-        this.highlightEnemyPawns(pawn.player);
-        this.removeStagePlayer = pawn.player;
+        this.removeRandomEnemyPawn(newRow[columnIndex - 1].player);
+        this.tura = !this.tura;
+        this.moveCounter++;
         return;
       }
 
       this.tura = !this.tura;
       this.moveCounter++;
+    },
 
-      // console.log(availableDirections);
+    removeRandomEnemyPawn(player) {
+      const enemyPawns = this.getEnemyPawns(player);
+      const pawnToRemove =
+        enemyPawns[Math.floor(Math.random() * enemyPawns.length)];
+      this.removePawnById(pawnToRemove.pawnIndex);
+      this.clearBoardField(
+        pawnToRemove.currentPosition.rowIndex,
+        pawnToRemove.currentPosition.columnIndex
+      );
+      this.didPlayerWin(player);
     },
 
     getMovablePawn(pawns) {
