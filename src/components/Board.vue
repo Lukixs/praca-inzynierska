@@ -210,6 +210,7 @@ export default {
     },
 
     isUpperFieldSuitableToMove(rowIndex, columnIndex, movingPawn) {
+      // let {rowIndex, columnIndex} = movingPawn.currentPosition;
       if (rowIndex <= 0) return false;
       const targetedField = this.getPawnFromBoard(rowIndex - 1, columnIndex);
 
@@ -222,6 +223,7 @@ export default {
       }
       return true;
     },
+
     isLowerFieldSuitableToMove(rowIndex, columnIndex, movingPawn) {
       if (rowIndex + 1 >= this.board.rowsNumber) return false;
       const targetedField = this.getPawnFromBoard(rowIndex + 1, columnIndex);
@@ -263,8 +265,7 @@ export default {
     },
 
     drawAvailableMoves(rowIndex, columnIndex) {
-      const element = document.getElementById(rowIndex * 10 + columnIndex);
-      element.classList.add("darkgreen");
+      this.highlightWithDarkGreen(rowIndex, columnIndex);
       const movingPawn = this.getPawnFromBoard(rowIndex - 1, columnIndex - 1);
 
       if (
@@ -274,10 +275,7 @@ export default {
           movingPawn
         )
       ) {
-        const element = document.getElementById(
-          (rowIndex - 1) * 10 + columnIndex
-        );
-        element.classList.add("yellowgreen");
+        this.highlightWithYellowGreen(rowIndex - 1, columnIndex);
       }
       if (
         this.isLowerFieldSuitableToMove(
@@ -286,10 +284,7 @@ export default {
           movingPawn
         )
       ) {
-        const element = document.getElementById(
-          (rowIndex + 1) * 10 + columnIndex
-        );
-        element.classList.add("yellowgreen");
+        this.highlightWithYellowGreen(rowIndex + 1, columnIndex);
       }
       if (
         this.isLeftFieldSuitableToMove(
@@ -298,10 +293,7 @@ export default {
           movingPawn
         )
       ) {
-        const element = document.getElementById(
-          rowIndex * 10 + (columnIndex - 1)
-        );
-        element.classList.add("yellowgreen");
+        this.highlightWithYellowGreen(rowIndex, columnIndex - 1);
       }
       if (
         this.isRightFieldSuitableToMove(
@@ -310,41 +302,45 @@ export default {
           movingPawn
         )
       ) {
-        const element = document.getElementById(
-          rowIndex * 10 + (columnIndex + 1)
-        );
-        element.classList.add("yellowgreen");
+        this.highlightWithYellowGreen(rowIndex, columnIndex + 1);
       }
     },
 
-    removeAvailableMoves(rowIndex, columnIndex) {
+    highlightWithYellowGreen(rowIndex, columnIndex) {
       const element = document.getElementById(rowIndex * 10 + columnIndex);
-      element.classList.remove("darkgreen");
+      element.classList.add("yellowgreen");
+    },
+
+    highlightWithDarkGreen(rowIndex, columnIndex) {
+      const element = document.getElementById(rowIndex * 10 + columnIndex);
+      element.classList.add("darkgreen");
+    },
+
+    removeAvailableMoves(rowIndex, columnIndex) {
+      this.removeDarkGreenHighlight(rowIndex, columnIndex);
 
       if (rowIndex - 1 >= 1) {
-        const element = document.getElementById(
-          (rowIndex - 1) * 10 + columnIndex
-        );
-        element.classList.remove("yellowgreen");
+        this.removeYellowGreenHighlight(rowIndex - 1, columnIndex);
       }
       if (rowIndex + 1 <= this.board.rowsNumber) {
-        const element = document.getElementById(
-          (rowIndex + 1) * 10 + columnIndex
-        );
-        element.classList.remove("yellowgreen");
+        this.removeYellowGreenHighlight(rowIndex + 1, columnIndex);
       }
       if (columnIndex - 1 >= 1) {
-        const element = document.getElementById(
-          rowIndex * 10 + (columnIndex - 1)
-        );
-        element.classList.remove("yellowgreen");
+        this.removeYellowGreenHighlight(rowIndex, columnIndex - 1);
       }
       if (columnIndex + 1 <= this.board.columnsNumber) {
-        const element = document.getElementById(
-          rowIndex * 10 + (columnIndex + 1)
-        );
-        element.classList.remove("yellowgreen");
+        this.removeYellowGreenHighlight(rowIndex, columnIndex + 1);
       }
+    },
+
+    removeDarkGreenHighlight(rowIndex, columnIndex) {
+      const element = document.getElementById(rowIndex * 10 + columnIndex);
+      element.classList.remove("darkgreen");
+    },
+
+    removeYellowGreenHighlight(rowIndex, columnIndex) {
+      const element = document.getElementById(rowIndex * 10 + columnIndex);
+      element.classList.remove("yellowgreen");
     },
 
     tryToMovePawnTo(rowIndex, columnIndex) {
