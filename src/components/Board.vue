@@ -2,28 +2,20 @@
   <div class="hello">
     Webowa Aplikacja do gry Dara
     <div class="board">
-      <div v-for="rowIndex in board.rowsNumber" :key="rowIndex">
+      <div v-for="(e, rowIndex) in board.rowsNumber" :key="e" class="row">
         <div
-          v-for="columnIndex in board.columnsNumber"
-          :key="columnIndex"
+          v-for="(f, columnIndex) in board.columnsNumber"
+          :key="f"
           @click="cellOnClick(rowIndex, columnIndex)"
         >
           <div
-            :id="rowIndex * 10 + columnIndex"
+            :id="`${rowIndex}${columnIndex}`"
             :class="[(rowIndex + columnIndex) % 2 === 0 ? 'white' : 'black']"
           >
-            <div
-              v-if="
-                board.values[rowIndex - 1][columnIndex - 1].player == 'white'
-              "
-            >
+            <div v-if="board.values[rowIndex][columnIndex].player == 'white'">
               &#9920;
             </div>
-            <div
-              v-if="
-                board.values[rowIndex - 1][columnIndex - 1].player == 'black'
-              "
-            >
+            <div v-if="board.values[rowIndex][columnIndex].player == 'black'">
               &#9922;
             </div>
           </div>
@@ -71,12 +63,12 @@ export default {
     },
 
     pawnsPlacingStageController(rowIndex, columnIndex) {
-      const isEmpty = this.isGivenFieldEmpty(rowIndex - 1, columnIndex - 1);
+      const isEmpty = this.isGivenFieldEmpty(rowIndex, columnIndex);
       if (isEmpty) this.placePawn(rowIndex, columnIndex);
     },
 
     pawnsMovingStageController(rowIndex, columnIndex) {
-      const isEmpty = this.isGivenFieldEmpty(rowIndex - 1, columnIndex - 1);
+      const isEmpty = this.isGivenFieldEmpty(rowIndex, columnIndex);
       if (isEmpty) {
         this.pawnsMovingStageControllerEmptyField(rowIndex, columnIndex);
       } else {
@@ -108,9 +100,9 @@ export default {
     },
 
     placePawn(rowIndex, columnIndex) {
-      if (!this.isGivenFieldEmpty(rowIndex - 1, columnIndex - 1)) return;
+      if (!this.isGivenFieldEmpty(rowIndex, columnIndex)) return;
 
-      const newPawn = this.createNewPawn(rowIndex - 1, columnIndex - 1);
+      const newPawn = this.createNewPawn(rowIndex, columnIndex);
 
       this.addPawnToGame(newPawn, rowIndex, columnIndex);
 
@@ -128,9 +120,9 @@ export default {
     },
 
     addPawnToBoard(pawn, rowIndex, columnIndex) {
-      const newRow = this.board.values[rowIndex - 1].slice(0);
-      newRow[columnIndex - 1] = pawn;
-      this.$set(this.board.values, rowIndex - 1, newRow);
+      const newRow = this.board.values[rowIndex].slice(0);
+      newRow[columnIndex] = pawn;
+      this.$set(this.board.values, rowIndex, newRow);
     },
 
     createNewPawn(rowIndex, columnIndex) {
@@ -166,7 +158,7 @@ export default {
 
     selectPawn(rowIndex, columnIndex) {
       const currentPlayer = this.whichPlayerTurnItIs(this.tura);
-      const selectedPawn = this.getPawnFromBoard(rowIndex - 1, columnIndex - 1);
+      const selectedPawn = this.getPawnFromBoard(rowIndex, columnIndex);
       if (selectedPawn.player != currentPlayer) return;
 
       this.drawAvailableMoves(rowIndex, columnIndex);
@@ -186,7 +178,7 @@ export default {
       if (this.isThisFocusedPawn(rowIndex, columnIndex)) return;
 
       const currentPlayer = this.whichPlayerTurnItIs(this.tura);
-      const selectedPawn = this.getPawnFromBoard(rowIndex - 1, columnIndex - 1);
+      const selectedPawn = this.getPawnFromBoard(rowIndex, columnIndex);
       if (selectedPawn.player != currentPlayer) return;
 
       this.removeAvailableMoves(
@@ -266,80 +258,56 @@ export default {
 
     drawAvailableMoves(rowIndex, columnIndex) {
       this.highlightWithDarkGreen(rowIndex, columnIndex);
-      const movingPawn = this.getPawnFromBoard(rowIndex - 1, columnIndex - 1);
+      const movingPawn = this.getPawnFromBoard(rowIndex, columnIndex);
 
-      if (
-        this.isUpperFieldSuitableToMove(
-          rowIndex - 1,
-          columnIndex - 1,
-          movingPawn
-        )
-      ) {
+      if (this.isUpperFieldSuitableToMove(rowIndex, columnIndex, movingPawn)) {
         this.highlightWithYellowGreen(rowIndex - 1, columnIndex);
       }
-      if (
-        this.isLowerFieldSuitableToMove(
-          rowIndex - 1,
-          columnIndex - 1,
-          movingPawn
-        )
-      ) {
+      if (this.isLowerFieldSuitableToMove(rowIndex, columnIndex, movingPawn)) {
         this.highlightWithYellowGreen(rowIndex + 1, columnIndex);
       }
-      if (
-        this.isLeftFieldSuitableToMove(
-          rowIndex - 1,
-          columnIndex - 1,
-          movingPawn
-        )
-      ) {
+      if (this.isLeftFieldSuitableToMove(rowIndex, columnIndex, movingPawn)) {
         this.highlightWithYellowGreen(rowIndex, columnIndex - 1);
       }
-      if (
-        this.isRightFieldSuitableToMove(
-          rowIndex - 1,
-          columnIndex - 1,
-          movingPawn
-        )
-      ) {
+      if (this.isRightFieldSuitableToMove(rowIndex, columnIndex, movingPawn)) {
         this.highlightWithYellowGreen(rowIndex, columnIndex + 1);
       }
     },
 
     highlightWithYellowGreen(rowIndex, columnIndex) {
-      const element = document.getElementById(rowIndex * 10 + columnIndex);
+      const element = document.getElementById(`${rowIndex}${columnIndex}`);
       element.classList.add("yellowgreen");
     },
 
     highlightWithDarkGreen(rowIndex, columnIndex) {
-      const element = document.getElementById(rowIndex * 10 + columnIndex);
+      const element = document.getElementById(`${rowIndex}${columnIndex}`);
       element.classList.add("darkgreen");
     },
 
     removeAvailableMoves(rowIndex, columnIndex) {
       this.removeDarkGreenHighlight(rowIndex, columnIndex);
 
-      if (rowIndex - 1 >= 1) {
+      if (rowIndex - 1 >= 0) {
         this.removeYellowGreenHighlight(rowIndex - 1, columnIndex);
       }
-      if (rowIndex + 1 <= this.board.rowsNumber) {
+      if (rowIndex + 1 < this.board.rowsNumber) {
         this.removeYellowGreenHighlight(rowIndex + 1, columnIndex);
       }
-      if (columnIndex - 1 >= 1) {
+      if (columnIndex - 1 >= 0) {
         this.removeYellowGreenHighlight(rowIndex, columnIndex - 1);
       }
-      if (columnIndex + 1 <= this.board.columnsNumber) {
+      if (columnIndex + 1 < this.board.columnsNumber) {
         this.removeYellowGreenHighlight(rowIndex, columnIndex + 1);
       }
     },
 
     removeDarkGreenHighlight(rowIndex, columnIndex) {
-      const element = document.getElementById(rowIndex * 10 + columnIndex);
+      const element = document.getElementById(`${rowIndex}${columnIndex}`);
       element.classList.remove("darkgreen");
     },
 
     removeYellowGreenHighlight(rowIndex, columnIndex) {
-      const element = document.getElementById(rowIndex * 10 + columnIndex);
+      const element = document.getElementById(`${rowIndex}${columnIndex}`);
       element.classList.remove("yellowgreen");
     },
 
@@ -356,33 +324,33 @@ export default {
       )
         return;
 
-      let newRow = this.board.values[rowIndex - 1].slice(0);
-      const boardPawn = this.board.values[this.focused.rowIndex - 1][
-        this.focused.columnIndex - 1
+      let newRow = this.board.values[rowIndex].slice(0);
+      const boardPawn = this.board.values[this.focused.rowIndex][
+        this.focused.columnIndex
       ];
 
       // Check if given field hasn't been last position of given pawn, is so end function
       const pawn = this.getPawnById(boardPawn.pawnIndex);
       if (
         pawn.lastPosition &&
-        pawn.lastPosition.columnIndex == columnIndex - 1 &&
-        pawn.lastPosition.rowIndex == rowIndex - 1
+        pawn.lastPosition.columnIndex == columnIndex &&
+        pawn.lastPosition.rowIndex == rowIndex
       ) {
         return;
       }
 
       pawn.lastPosition = pawn.currentPosition;
       pawn.currentPosition = {
-        rowIndex: rowIndex - 1,
-        columnIndex: columnIndex - 1,
+        rowIndex: rowIndex,
+        columnIndex: columnIndex,
       };
 
-      newRow[columnIndex - 1] = pawn;
-      this.$set(this.board.values, rowIndex - 1, newRow);
+      newRow[columnIndex] = pawn;
+      this.$set(this.board.values, rowIndex, newRow);
 
-      let oldRow = this.board.values[this.focused.rowIndex - 1].slice(0);
-      oldRow[this.focused.columnIndex - 1] = this.getEmptyBoardField();
-      this.$set(this.board.values, this.focused.rowIndex - 1, oldRow);
+      let oldRow = this.board.values[this.focused.rowIndex].slice(0);
+      oldRow[this.focused.columnIndex] = this.getEmptyBoardField();
+      this.$set(this.board.values, this.focused.rowIndex, oldRow);
 
       this.removeAvailableMoves(
         this.focused.rowIndex,
@@ -391,11 +359,7 @@ export default {
       this.focused = null;
 
       if (
-        this.hasPlayerScored(
-          rowIndex,
-          columnIndex,
-          newRow[columnIndex - 1].player
-        )
+        this.hasPlayerScored(rowIndex, columnIndex, newRow[columnIndex].player)
       ) {
         this.highlightEnemyPawns(pawn.player);
         this.removeStagePlayer = pawn.player;
@@ -411,9 +375,7 @@ export default {
       let element;
       for (let i = 0; i < enemyPawns.length; i++) {
         element = document.getElementById(
-          (enemyPawns[i].currentPosition.rowIndex + 1) * 10 +
-            enemyPawns[i].currentPosition.columnIndex +
-            1
+          `${enemyPawns[i].currentPosition.rowIndex}${enemyPawns[i].currentPosition.columnIndex}`
         );
         element.classList.add("yellowgreen");
       }
@@ -424,21 +386,19 @@ export default {
       let element;
       for (let i = 0; i < enemyPawns.length; i++) {
         element = document.getElementById(
-          (enemyPawns[i].currentPosition.rowIndex + 1) * 10 +
-            enemyPawns[i].currentPosition.columnIndex +
-            1
+          `${enemyPawns[i].currentPosition.rowIndex}${enemyPawns[i].currentPosition.columnIndex}`
         );
         element.classList.remove("yellowgreen");
       }
     },
 
     removeEnemyPawn(rowIndex, columnIndex) {
-      const targetedPawn = this.board.values[rowIndex - 1][columnIndex - 1];
+      const targetedPawn = this.board.values[rowIndex][columnIndex];
       if (targetedPawn.player === this.removeStagePlayer) return;
 
       this.removeHighlightFromEnemyPawns(this.removeStagePlayer);
       this.removePawnById(targetedPawn.pawnIndex);
-      this.clearBoardField(rowIndex - 1, columnIndex - 1);
+      this.clearBoardField(rowIndex, columnIndex);
       this.didPlayerWin(this.removeStagePlayer);
       this.removeStagePlayer = null;
       this.tura = !this.tura;
@@ -487,10 +447,10 @@ export default {
     },
 
     checkRowsForPoint(rowIndex, columnIndex, player) {
-      if (rowIndex === 1)
+      if (rowIndex === 0)
         return this.checkLowerRows(rowIndex, columnIndex, player);
 
-      if (rowIndex === this.rowsNumber)
+      if (rowIndex === this.rowsNumber - 1)
         return this.checkUpperRows(rowIndex, columnIndex, player);
 
       return this.checkAroundRow(rowIndex, columnIndex, player);
@@ -555,7 +515,7 @@ export default {
       if (columnIndex === 1)
         return this.checkRightColumns(rowIndex, columnIndex, player);
 
-      if (columnIndex === this.columnsNumber)
+      if (columnIndex === this.columnsNumber - 1)
         return this.checkLeftColumns(rowIndex, columnIndex, player);
 
       return this.checkAroundColumn(rowIndex, columnIndex, player);
@@ -618,15 +578,15 @@ export default {
 
     isThisPlayerField(rowIndex, columnIndex, player) {
       if (
-        rowIndex > this.rowsNumber ||
-        rowIndex < 1 ||
-        columnIndex > this.columnsNumber ||
-        columnIndex < 1
+        rowIndex >= this.rowsNumber ||
+        rowIndex < 0 ||
+        columnIndex >= this.columnsNumber ||
+        columnIndex < 0
       ) {
         return;
       }
 
-      return this.board.values[rowIndex - 1][columnIndex - 1].player === player;
+      return this.board.values[rowIndex][columnIndex].player === player;
     },
   },
   beforeMount() {
@@ -649,10 +609,18 @@ export default {
 .board {
   width: 720px;
   height: 600px;
+
+  display: flex;
+  flex-wrap: wrap-reverse;
+
   margin: 20px;
   border: 25px solid #333;
   margin-left: auto;
   margin-right: auto;
+}
+
+.row {
+  display: flex;
 }
 
 .black {
