@@ -180,9 +180,7 @@ export default {
       this.moveCounter++;
     },
 
-    //Do poprawki
     getEmptyFields(values, rowsNumber, columnsNumber) {
-      console.log("Popraw to");
       let emptyFields = [];
       for (let i = 0; i < rowsNumber; i++) {
         for (let j = 0; j < columnsNumber; j++) {
@@ -443,7 +441,6 @@ export default {
       newRow[columnIndex] = pawn;
       this.$set(this.board.values, rowIndex, newRow);
 
-      console.log("rowIndex", pawn);
       let oldRow = this.board.values[pawn.lastPosition.rowIndex].slice(0);
       oldRow[pawn.lastPosition.columnIndex] = this.getEmptyBoardField();
       this.$set(this.board.values, pawn.lastPosition.rowIndex, oldRow);
