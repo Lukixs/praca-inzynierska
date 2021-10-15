@@ -348,25 +348,12 @@ export default {
     },
 
     tryToMovePawnTo(rowIndex, columnIndex) {
-      if (
-        !(
-          (rowIndex == this.focused.rowIndex &&
-            (columnIndex == this.focused.columnIndex - 1 ||
-              columnIndex == this.focused.columnIndex + 1)) ||
-          (columnIndex == this.focused.columnIndex &&
-            (rowIndex == this.focused.rowIndex - 1 ||
-              rowIndex == this.focused.rowIndex + 1))
-        )
-      )
-        return;
+      const targetedField = { rowIndex, columnIndex };
+      const focused = this.focused;
+      if (!this.isMoveWithinReachForPawn(targetedField, focused)) return;
 
-      let newRow = this.board.values[rowIndex].slice(0);
-      const boardPawn = this.board.values[this.focused.rowIndex][
-        this.focused.columnIndex
-      ];
+      let pawn = this.getPawnFromBoard(focused.rowIndex, focused.columnIndex);
 
-      // Check if given field hasn't been last position of given pawn, is so end function
-      const pawn = this.getPawnById(boardPawn.pawnIndex);
       if (
         pawn.lastPosition &&
         pawn.lastPosition.columnIndex == columnIndex &&
@@ -380,23 +367,14 @@ export default {
         rowIndex: rowIndex,
         columnIndex: columnIndex,
       };
+      this.addPawnToGame(pawn, rowIndex, columnIndex);
 
-      newRow[columnIndex] = pawn;
-      this.$set(this.board.values, rowIndex, newRow);
+      this.emptyGivenField(focused.rowIndex, focused.columnIndex);
 
-      let oldRow = this.board.values[this.focused.rowIndex].slice(0);
-      oldRow[this.focused.columnIndex] = this.getEmptyBoardField();
-      this.$set(this.board.values, this.focused.rowIndex, oldRow);
+      this.removeAvailableMoves(focused.rowIndex, focused.columnIndex);
+      this.emptyFocused();
 
-      this.removeAvailableMoves(
-        this.focused.rowIndex,
-        this.focused.columnIndex
-      );
-      this.focused = null;
-
-      if (
-        this.hasPlayerScored(rowIndex, columnIndex, newRow[columnIndex].player)
-      ) {
+      if (this.hasPlayerScored(rowIndex, columnIndex, pawn.player)) {
         this.highlightEnemyPawns(pawn.player);
         this.removeStagePlayer = pawn.player;
         return;
@@ -405,6 +383,42 @@ export default {
       this.tura = !this.tura;
       this.moveCounter++;
       this.movePawnByAI(pawn.player);
+    },
+
+    emptyGivenField(rowIndex, columnIndex) {
+      let oldRow = this.board.values[rowIndex].slice(0);
+      oldRow[columnIndex] = this.getEmptyBoardField();
+      this.$set(this.board.values, rowIndex, oldRow);
+    },
+
+    emptyFocused() {
+      this.focused = null;
+    },
+
+    isMoveWithinReachForPawn(targetedField, focusedField) {
+      const rowsAreEqual = targetedField.rowIndex === focusedField.rowIndex;
+      if (rowsAreEqual) {
+        const isGreaterOrLower = this.isGreaterOrLowerByOne(
+          targetedField.columnIndex,
+          focusedField.columnIndex
+        );
+        if (isGreaterOrLower) return true;
+        return false;
+      }
+
+      const columnsAreEqual =
+        targetedField.columnIndex === focusedField.columnIndex;
+      if (columnsAreEqual) {
+        const isGreaterOrLower = this.isGreaterOrLowerByOne(
+          targetedField.rowIndex,
+          focusedField.rowIndex
+        );
+        if (isGreaterOrLower) return true;
+      }
+    },
+
+    isGreaterOrLowerByOne(aroundValue, coreValue) {
+      if ([coreValue + 1, coreValue - 1].includes(aroundValue)) return true;
     },
 
     movePawnByAI(enemy) {
