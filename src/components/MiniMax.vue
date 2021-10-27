@@ -32,7 +32,7 @@
 export default {
   // name: 'Board',
   props: {
-    msg: String
+    msg: String,
   },
   data: function() {
     return {
@@ -44,11 +44,11 @@ export default {
       board: {
         columnsNumber: 6,
         rowsNumber: 5,
-        values: null // { player: 'black', pawnIndex: '0' }
+        values: null, // { player: 'black', pawnIndex: '0' }
         // rows: Array(8).fill(null),
       },
       pawns: [], // { player: 'black', currentPosition: {rowIndex: 4, columnIndex: 4}, lastPosition:{rowIndex: 4, columnIndex: 3} }
-      history: [] // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
+      history: [], // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
     };
   },
   methods: {
@@ -137,9 +137,9 @@ export default {
         pawnIndex: moveCounter,
         currentPosition: {
           rowIndex: rowIndex,
-          columnIndex: columnIndex
+          columnIndex: columnIndex,
         },
-        lastPosition: null
+        lastPosition: null,
       };
     },
 
@@ -149,9 +149,9 @@ export default {
         pawnIndex: moveCounter,
         currentPosition: {
           rowIndex: rowIndex,
-          columnIndex: columnIndex
+          columnIndex: columnIndex,
         },
-        lastPosition: null
+        lastPosition: null,
       };
     },
 
@@ -187,7 +187,7 @@ export default {
           if (!values[i][j].player)
             emptyFields.push({
               rowIndex: i,
-              columnIndex: j
+              columnIndex: j,
             });
         }
       }
@@ -366,7 +366,7 @@ export default {
       pawn.lastPosition = pawn.currentPosition;
       pawn.currentPosition = {
         rowIndex: rowIndex,
-        columnIndex: columnIndex
+        columnIndex: columnIndex,
       };
       this.addPawnToGame(pawn, rowIndex, columnIndex);
 
@@ -384,7 +384,7 @@ export default {
       this.tura = !this.tura;
       this.moveCounter++;
       const board = this.board.values;
-      console.log("wywoluje movePawn z board:", board);
+      // console.log("wywoluje movePawn z board:", board);
       const currentPlayer = pawn.player;
       this.movePawnByAI(currentPlayer, board);
     },
@@ -410,52 +410,57 @@ export default {
     minimax(node, depth, maximizingPlayer) {
       // console.log({ minimaxExecution: { node, depth, maximizingPlayer } });
       if (depth == 0 || this.isTerminalNode(node, maximizingPlayer)) {
-        const evaluation = this.evaluateBoardState(node);
+        const evaluation = this.evaluateBoardState(node, maximizingPlayer);
         console.log("terminalNode", evaluation);
         return [evaluation, node.to];
       }
 
       if (maximizingPlayer == "white") {
         let best_move = null;
-        let boardState = null;
-        let value = this.MINIMUM();
+        let maxEval = this.MINIMUM();
 
-        const pawns = this.getEnemyPawns("black");
-        // const pawns = this.getEnemyPawns("white");
+        const pawns = this.getPlayerPawnsFromBoard(
+          maximizingPlayer,
+          node.boardState
+        );
         const pawnsWithMoves = this.getMovablePawnWithAvailableDirections(
           pawns
         );
-        console.log({ pawnsWithMoves: pawnsWithMoves });
         pawnsWithMoves.forEach((item) => {
           item.directions.forEach((direction) => {
-            boardState = node.boardState;
-            boardState[direction.rowIndex][direction.columnIndex] =
-              boardState[item.pawn.currentPosition.rowIndex][
+            let newBoardState = JSON.parse(JSON.stringify(node.boardState));
+            newBoardState[direction.rowIndex][direction.columnIndex] =
+              newBoardState[item.pawn.currentPosition.rowIndex][
                 item.pawn.currentPosition.columnIndex
               ];
-            boardState[item.pawn.currentPosition.rowIndex][
+            newBoardState[item.pawn.currentPosition.rowIndex][
               item.pawn.currentPosition.columnIndex
             ] = this.getEmptyBoardField();
-            const newBoardState = JSON.parse(JSON.stringify(boardState));
             const newNode = {
               movedPawn: {
                 pawn: item.pawn,
                 from: item.pawn.currentPosition,
-                to: direction
+                to: direction,
               },
-              boardState: newBoardState
+              boardState: newBoardState,
             };
             // console.log("minimaxEval", this.minimax(newNode, depth - 1, false));
             const evaluation = this.minimax(newNode, depth - 1, "black")[0];
-            value = Math.min(value, evaluation);
-            if (value == evaluation) {
+            if (evaluation > maxEval) {
+              maxEval = evaluation;
               best_move = { pawn: item.pawn, direction };
             }
+            // MINIMUM = Math.min(MINIMUM, evaluation);
+            // if (evaluation == MINIMUM) {
+            // best_move = { pawn: item.pawn, direction };
+            // }
           });
         });
         // console.log({ proba_zwrotu: [value, best_move] });
         // console.log([value, best_move], { depth: depth });
-        return [value - 1, best_move];
+        // if (MINIMUM > -5)
+        console.log({ Eval: maxEval, best_move: best_move });
+        return [maxEval, best_move];
       }
 
       // node = {
@@ -473,65 +478,89 @@ export default {
       //   boardState:{value[][]:{pawn}}
       // }
       else {
-        let value = this.MAXIMUM();
-        const pawns = this.getEnemyPawns("white");
+        let best_move = null;
+        let minEval = this.MAXIMUM();
+
+        const pawns = this.getPlayerPawnsFromBoard(
+          maximizingPlayer,
+          node.boardState
+        );
         const pawnsWithMoves = this.getMovablePawnWithAvailableDirections(
           pawns
         );
-
-        let best_move = null;
         pawnsWithMoves.forEach((item) => {
           item.directions.forEach((direction) => {
-            let boardState = node.boardState;
-            boardState[direction.rowIndex][direction.columnIndex] =
-              boardState[item.pawn.currentPosition.rowIndex][
+            let newBoardState = JSON.parse(JSON.stringify(node.boardState));
+            newBoardState[direction.rowIndex][direction.columnIndex] =
+              newBoardState[item.pawn.currentPosition.rowIndex][
                 item.pawn.currentPosition.columnIndex
               ];
-            boardState[item.pawn.currentPosition.rowIndex][
+            newBoardState[item.pawn.currentPosition.rowIndex][
               item.pawn.currentPosition.columnIndex
             ] = this.getEmptyBoardField();
 
-            const newBoardState = JSON.parse(JSON.stringify(boardState));
             const newNode = {
               movedPawn: {
                 pawn: item.pawn,
                 from: item.pawn.currentPosition,
-                to: direction
+                to: direction,
               },
-              boardState: newBoardState
+              boardState: newBoardState,
             };
             // console.log(this.minimax(newNode, depth - 1, true));
             const evaluation = this.minimax(newNode, depth - 1, "white")[0];
-            value = Math.min(value, evaluation);
-            if (value == evaluation) best_move = { pawn: item.pawn, direction };
+            // MAXIMUM = Math.min(MAXIMUM, evaluation);
+            // if (evaluation == MAXIMUM) {
+            //   best_move = { pawn: item.pawn, direction };
+            // }
+            if (evaluation < minEval) {
+              minEval = evaluation;
+              best_move = { pawn: item.pawn, direction };
+            }
           });
         });
 
-        return [value - 1, best_move];
+        // if (MAXIMUM < 5)
+        console.log({ Eval: minEval, best_move: best_move });
+        return [minEval, best_move];
       }
     },
 
-    evaluateBoardState(node) {
+    getPlayerPawnsFromBoard(player, board) {
+      let foundPawns = [];
+      board.forEach((row) => {
+        row.forEach((field) => {
+          if (field && field.player == player) foundPawns.push(field);
+        });
+      });
+      return foundPawns;
+    },
+
+    evaluateBoardState(node, maximizingPlayer) {
       // console.log("evaluateBoardState", node);
       const boardState = node.boardState;
       const movedPawn = node.movedPawn;
       // console.log({ boardState: boardState, movedPawn: movedPawn });
       if (boardState && movedPawn) {
-        let hasPlayerScored = this.hasPlayerScoredAI(movedPawn, boardState);
+        let hasPlayerScored = this.hasPlayerScoredAI(
+          movedPawn,
+          boardState,
+          maximizingPlayer
+        );
         if (hasPlayerScored) {
           // console.log({ hasScored: movedPawn.pawn.pawn.player });
-          if (movedPawn.pawn.pawn.player === "white") return 100;
-          else return -100;
+          if (maximizingPlayer === "white") return 100;
+          return -100;
         }
       }
       return 0;
     },
 
-    isTerminalNode(node) {
+    isTerminalNode(node, maximizingPlayer) {
       const boardState = node.boardState;
       const movedPawn = node.movedPawn;
       if (boardState && movedPawn) {
-        return this.hasPlayerScoredAI(movedPawn, boardState);
+        return this.hasPlayerScoredAI(movedPawn, boardState, maximizingPlayer);
       }
     },
 
@@ -562,32 +591,36 @@ export default {
     },
 
     getBoardStateWithPawns(board, pawns) {
-      const boardState = board.map((row) => {
-        return row.map((item) => {
-          if (item.pawnIndex) return this.getPawnById(item.pawnIndex, pawns);
-          return null;
-        });
-      });
+      let boardState = Array(board.length)
+        .fill(null)
+        .map(() => Array(this.board.columnsNumber).fill(null));
+      // const boardState = board.map((row) => {
+      //   return row.map((item) => {
+      //     if (item.pawnIndex) return this.getPawnById(item.pawnIndex, pawns);
+      //     return null;
+      //   });
+      // });
+      let i, j;
+      for (i = 0; i < board.length; i++) {
+        for (j = 0; j < board[i].length; j++) {
+          if (board[i][j].pawnIndex)
+            boardState[i][j] = this.getPawnById(board[i][j].pawnIndex, pawns);
+        }
+      }
       return boardState;
     },
 
-    movePawnByAI(enemy, board) {
-      // const boardSt = board;
-      // console.log(enemy);
-      const currentPlayer = enemy == "white" ? enemy : "black";
-      const boardState = this.getBoardStateWithPawns(board, this.pawns);
+    movePawnByAI(currentPlayer, board) {
+      // const currentPlayer = enemy == "white" ? enemy : "black";
+      const pawns = this.pawns;
+      const boardState = this.getBoardStateWithPawns(board, pawns);
       // const values = JSON.parse(JSON.stringify(board));
-      console.log("oldBoardState", this.board.values);
-      console.log("newBoardState", boardState);
-      const miniMaxResult = this.minimax(
-        { boardState: boardState },
-        3,
-        currentPlayer
-      )[1];
-      console.log({ miniMaxResult: miniMaxResult.direction });
+      const mini = this.minimax({ boardState: boardState }, 4, "black");
+      const miniMaxResult = mini[1];
+      console.log({ miniMaxResult: mini });
       // Wykoanie ruchu według miniMaxa
       let newRow = this.board.values[miniMaxResult.direction.rowIndex].slice(0);
-      let pawn = miniMaxResult.pawn.pawn;
+      let pawn = miniMaxResult.pawn;
       pawn.lastPosition = pawn.currentPosition;
       pawn.currentPosition = miniMaxResult.direction;
       newRow[miniMaxResult.direction.columnIndex] = pawn;
@@ -670,6 +703,7 @@ export default {
     },
 
     getMovablePawnWithAvailableDirections(pawns) {
+      // console.log("getMovablePawnWithAvailableDirections", pawns);
       let availablePawns = [];
       for (let i = 0; i < pawns.length; i++) {
         const directions = this.getAvailableDirectionsForPawn(pawns[i]);
@@ -690,7 +724,7 @@ export default {
       )
         availableDirections.push({
           rowIndex: pawn.currentPosition.rowIndex - 1,
-          columnIndex: pawn.currentPosition.columnIndex
+          columnIndex: pawn.currentPosition.columnIndex,
         });
       if (
         this.isLowerFieldSuitableToMove(
@@ -701,7 +735,7 @@ export default {
       )
         availableDirections.push({
           rowIndex: pawn.currentPosition.rowIndex + 1,
-          columnIndex: pawn.currentPosition.columnIndex
+          columnIndex: pawn.currentPosition.columnIndex,
         });
       if (
         this.isLeftFieldSuitableToMove(
@@ -712,7 +746,7 @@ export default {
       )
         availableDirections.push({
           rowIndex: pawn.currentPosition.rowIndex,
-          columnIndex: pawn.currentPosition.columnIndex - 1
+          columnIndex: pawn.currentPosition.columnIndex - 1,
         });
       if (
         this.isRightFieldSuitableToMove(
@@ -723,7 +757,7 @@ export default {
       )
         availableDirections.push({
           rowIndex: pawn.currentPosition.rowIndex,
-          columnIndex: pawn.currentPosition.columnIndex + 1
+          columnIndex: pawn.currentPosition.columnIndex + 1,
         });
 
       return availableDirections;
@@ -783,7 +817,7 @@ export default {
         player: null,
         pawnIndex: null,
         currentPosition: null,
-        lastPosition: null
+        lastPosition: null,
       };
     },
 
@@ -809,33 +843,32 @@ export default {
         return true;
     },
 
-    hasPlayerScoredAI(movedPawn, boardState) {
+    hasPlayerScoredAI(movedPawn, boardState, maximizingPlayer) {
       // console.log("hasPlayerScored", boardState);
       if (
-        this.checkRowsForPointAI(movedPawn, boardState) ||
-        this.checkColumnsForPointAI(movedPawn, boardState)
+        this.checkRowsForPointAI(movedPawn, boardState, maximizingPlayer) ||
+        this.checkColumnsForPointAI(movedPawn, boardState, maximizingPlayer)
       ) {
-        console.log("mamy punkt", movedPawn, boardState);
+        // console.log("mamy punkt", movedPawn, boardState);
         return true;
       }
       return false;
     },
 
-    checkRowsForPointAI(movedPawn, boardState) {
+    checkRowsForPointAI(movedPawn, boardState, player) {
       // console.log("Sprawdzamy wiersze ", {
       //   movedPawn: movedPawn,
       //   boardState: boardState
       // });
       const rowIndex = movedPawn.to.rowIndex;
       const columnIndex = movedPawn.to.rowIndex;
-      const player = movedPawn.pawn.player;
       if (rowIndex === 0)
-        return this.checkUpperRows(rowIndex, columnIndex, player, boardState);
+        return this.checkUpperRowsAI(rowIndex, columnIndex, player, boardState);
 
       if (rowIndex === this.rowsNumber - 1)
-        return this.checkLowerRows(rowIndex, columnIndex, player, boardState);
+        return this.checkLowerRowsAI(rowIndex, columnIndex, player, boardState);
 
-      return this.checkAroundRow(rowIndex, columnIndex, player, boardState);
+      return this.checkAroundRowAI(rowIndex, columnIndex, player, boardState);
     },
 
     checkAroundRowAI(rowIndex, columnIndex, currentPlayer, boardState) {
@@ -1186,7 +1219,10 @@ export default {
       if (this.isCoordinateOutOfBoundsAI(rowIndex, columnIndex)) {
         return false;
       }
-      return board[rowIndex][columnIndex].player === player;
+      // console.log(player, board, rowIndex, columnIndex);
+      const field = board[rowIndex][columnIndex];
+      if (field && field.player === player)
+        return field && field.player === player;
     },
     isCoordinateOutOfBoundsAI(rowIndex, columnIndex) {
       const rowOutOfBound = rowIndex < 0 || rowIndex >= this.board.rowsNumber;
@@ -1195,7 +1231,7 @@ export default {
       if (rowOutOfBound || columnOutOfBound) {
         return true;
       }
-    }
+    },
   },
   beforeMount() {
     this.board.values = Array(this.board.rowsNumber)
@@ -1205,10 +1241,10 @@ export default {
           player: null,
           pawnIndex: null,
           currentPosition: null,
-          lastPosition: null
+          lastPosition: null,
         })
       );
-  }
+  },
 };
 </script>
 
