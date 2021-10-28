@@ -29,6 +29,8 @@
 </template>
 
 <script>
+import minimax from "@/helpers/minimax.js";
+
 export default {
   // name: 'Board',
   props: {
@@ -386,6 +388,7 @@ export default {
       const board = this.board.values;
       // console.log("wywoluje movePawn z board:", board);
       const currentPlayer = pawn.player;
+      console.log("movePawnBy:", currentPlayer);
       this.movePawnByAI(currentPlayer, board);
     },
 
@@ -397,143 +400,6 @@ export default {
 
     emptyFocused() {
       this.focused = null;
-    },
-
-    MINIMUM() {
-      return -10000;
-    },
-
-    MAXIMUM() {
-      return 10000;
-    },
-
-    minimax(node, depth, maximizingPlayer) {
-      // console.log({ minimaxExecution: { node, depth, maximizingPlayer } });
-      if (depth == 0 || this.isTerminalNode(node, maximizingPlayer)) {
-        const evaluation = this.evaluateBoardState(node, maximizingPlayer);
-        console.log("terminalNode", evaluation);
-        return [evaluation, node.to];
-      }
-
-      if (maximizingPlayer == "white") {
-        let best_move = null;
-        let maxEval = this.MINIMUM();
-
-        const pawns = this.getPlayerPawnsFromBoard(
-          maximizingPlayer,
-          node.boardState
-        );
-        const pawnsWithMoves = this.getMovablePawnWithAvailableDirections(
-          pawns
-        );
-        pawnsWithMoves.forEach((item) => {
-          item.directions.forEach((direction) => {
-            let newBoardState = JSON.parse(JSON.stringify(node.boardState));
-            newBoardState[direction.rowIndex][direction.columnIndex] =
-              newBoardState[item.pawn.currentPosition.rowIndex][
-                item.pawn.currentPosition.columnIndex
-              ];
-            newBoardState[item.pawn.currentPosition.rowIndex][
-              item.pawn.currentPosition.columnIndex
-            ] = this.getEmptyBoardField();
-            const newNode = {
-              movedPawn: {
-                pawn: item.pawn,
-                from: item.pawn.currentPosition,
-                to: direction,
-              },
-              boardState: newBoardState,
-            };
-            // console.log("minimaxEval", this.minimax(newNode, depth - 1, false));
-            const evaluation = this.minimax(newNode, depth - 1, "black")[0];
-            if (evaluation > maxEval) {
-              maxEval = evaluation;
-              best_move = { pawn: item.pawn, direction };
-            }
-            // MINIMUM = Math.min(MINIMUM, evaluation);
-            // if (evaluation == MINIMUM) {
-            // best_move = { pawn: item.pawn, direction };
-            // }
-          });
-        });
-        // console.log({ proba_zwrotu: [value, best_move] });
-        // console.log([value, best_move], { depth: depth });
-        // if (MINIMUM > -5)
-        console.log({ Eval: maxEval, best_move: best_move });
-        return [maxEval, best_move];
-      }
-
-      // node = {
-      //   movedPawn = {
-      //     pawn: pawn
-      //     from:{
-      //       rowIndex,
-      //       columnIndex
-      //     },
-      //     to:{
-      //       rowIndex,
-      //       columnIndex
-      //     }
-      //   },
-      //   boardState:{value[][]:{pawn}}
-      // }
-      else {
-        let best_move = null;
-        let minEval = this.MAXIMUM();
-
-        const pawns = this.getPlayerPawnsFromBoard(
-          maximizingPlayer,
-          node.boardState
-        );
-        const pawnsWithMoves = this.getMovablePawnWithAvailableDirections(
-          pawns
-        );
-        pawnsWithMoves.forEach((item) => {
-          item.directions.forEach((direction) => {
-            let newBoardState = JSON.parse(JSON.stringify(node.boardState));
-            newBoardState[direction.rowIndex][direction.columnIndex] =
-              newBoardState[item.pawn.currentPosition.rowIndex][
-                item.pawn.currentPosition.columnIndex
-              ];
-            newBoardState[item.pawn.currentPosition.rowIndex][
-              item.pawn.currentPosition.columnIndex
-            ] = this.getEmptyBoardField();
-
-            const newNode = {
-              movedPawn: {
-                pawn: item.pawn,
-                from: item.pawn.currentPosition,
-                to: direction,
-              },
-              boardState: newBoardState,
-            };
-            // console.log(this.minimax(newNode, depth - 1, true));
-            const evaluation = this.minimax(newNode, depth - 1, "white")[0];
-            // MAXIMUM = Math.min(MAXIMUM, evaluation);
-            // if (evaluation == MAXIMUM) {
-            //   best_move = { pawn: item.pawn, direction };
-            // }
-            if (evaluation < minEval) {
-              minEval = evaluation;
-              best_move = { pawn: item.pawn, direction };
-            }
-          });
-        });
-
-        // if (MAXIMUM < 5)
-        console.log({ Eval: minEval, best_move: best_move });
-        return [minEval, best_move];
-      }
-    },
-
-    getPlayerPawnsFromBoard(player, board) {
-      let foundPawns = [];
-      board.forEach((row) => {
-        row.forEach((field) => {
-          if (field && field.player == player) foundPawns.push(field);
-        });
-      });
-      return foundPawns;
     },
 
     evaluateBoardState(node, maximizingPlayer) {
@@ -613,11 +479,14 @@ export default {
     movePawnByAI(currentPlayer, board) {
       // const currentPlayer = enemy == "white" ? enemy : "black";
       const pawns = this.pawns;
+      const enemy = currentPlayer == "white" ? "black" : "white";
       const boardState = this.getBoardStateWithPawns(board, pawns);
       // const values = JSON.parse(JSON.stringify(board));
-      const mini = this.minimax({ boardState: boardState }, 4, "black");
-      const miniMaxResult = mini[1];
-      console.log({ miniMaxResult: mini });
+      const mini = minimax.minimax({ boardState: boardState }, 1, enemy);
+      console.log("Wynik", mini);
+      const miniMaxResult = mini.bestMove;
+      const pawnToRemove = mini.pawnToRemove;
+
       // Wykoanie ruchu według miniMaxa
       let newRow = this.board.values[miniMaxResult.direction.rowIndex].slice(0);
       let pawn = miniMaxResult.pawn;
@@ -629,9 +498,11 @@ export default {
       let oldRow = this.board.values[pawn.lastPosition.rowIndex].slice(0);
       oldRow[pawn.lastPosition.columnIndex] = this.getEmptyBoardField();
       this.$set(this.board.values, pawn.lastPosition.rowIndex, oldRow);
+      if (pawnToRemove) this.removePawnById(this.pawnToRemove.id);
 
       this.tura = !this.tura;
       this.moveCounter++;
+
       // const myPawns = this.getEnemyPawns(enemy);
       // const pawnsWithAvailableMoves = this.getMovablePawn(myPawns);
       // if (pawnsWithAvailableMoves && pawnsWithAvailableMoves.length)
@@ -693,75 +564,14 @@ export default {
       this.didPlayerWin(player);
     },
 
-    getMovablePawn(pawns) {
-      let availablePawns = [];
-      for (let i = 0; i < pawns.length; i++) {
-        if (this.getAvailableDirectionsForPawn(pawns[i]).length)
-          availablePawns.push(pawns[i]);
-      }
-      return availablePawns;
-    },
-
-    getMovablePawnWithAvailableDirections(pawns) {
-      // console.log("getMovablePawnWithAvailableDirections", pawns);
-      let availablePawns = [];
-      for (let i = 0; i < pawns.length; i++) {
-        const directions = this.getAvailableDirectionsForPawn(pawns[i]);
-        if (directions.length)
-          availablePawns.push({ pawn: pawns[i], directions: directions });
-      }
-      return availablePawns;
-    },
-
-    getAvailableDirectionsForPawn(pawn) {
-      let availableDirections = [];
-      if (
-        this.isUpperFieldSuitableToMove(
-          pawn.currentPosition.rowIndex,
-          pawn.currentPosition.columnIndex,
-          pawn
-        )
-      )
-        availableDirections.push({
-          rowIndex: pawn.currentPosition.rowIndex - 1,
-          columnIndex: pawn.currentPosition.columnIndex,
-        });
-      if (
-        this.isLowerFieldSuitableToMove(
-          pawn.currentPosition.rowIndex,
-          pawn.currentPosition.columnIndex,
-          pawn
-        )
-      )
-        availableDirections.push({
-          rowIndex: pawn.currentPosition.rowIndex + 1,
-          columnIndex: pawn.currentPosition.columnIndex,
-        });
-      if (
-        this.isLeftFieldSuitableToMove(
-          pawn.currentPosition.rowIndex,
-          pawn.currentPosition.columnIndex,
-          pawn
-        )
-      )
-        availableDirections.push({
-          rowIndex: pawn.currentPosition.rowIndex,
-          columnIndex: pawn.currentPosition.columnIndex - 1,
-        });
-      if (
-        this.isRightFieldSuitableToMove(
-          pawn.currentPosition.rowIndex,
-          pawn.currentPosition.columnIndex,
-          pawn
-        )
-      )
-        availableDirections.push({
-          rowIndex: pawn.currentPosition.rowIndex,
-          columnIndex: pawn.currentPosition.columnIndex + 1,
-        });
-
-      return availableDirections;
-    },
+    // getMovablePawn(pawns) {
+    //   let availablePawns = [];
+    //   for (let i = 0; i < pawns.length; i++) {
+    //     if (this.getAvailableDirectionsForPawn(pawns[i]).length)
+    //       availablePawns.push(pawns[i]);
+    //   }
+    //   return availablePawns;
+    // },
 
     highlightEnemyPawns(player) {
       const enemyPawns = this.getEnemyPawns(player);
@@ -798,7 +608,7 @@ export default {
       this.tura = !this.tura;
       this.moveCounter++;
       const board = this.board.values;
-      console.log("wywoluje movePawn z board:", board);
+      console.log("movePawnBy:", currentPlayer);
       this.movePawnByAI(currentPlayer, board);
     },
 
@@ -853,225 +663,6 @@ export default {
         return true;
       }
       return false;
-    },
-
-    checkRowsForPointAI(movedPawn, boardState, player) {
-      // console.log("Sprawdzamy wiersze ", {
-      //   movedPawn: movedPawn,
-      //   boardState: boardState
-      // });
-      const rowIndex = movedPawn.to.rowIndex;
-      const columnIndex = movedPawn.to.rowIndex;
-      if (rowIndex === 0)
-        return this.checkUpperRowsAI(rowIndex, columnIndex, player, boardState);
-
-      if (rowIndex === this.rowsNumber - 1)
-        return this.checkLowerRowsAI(rowIndex, columnIndex, player, boardState);
-
-      return this.checkAroundRowAI(rowIndex, columnIndex, player, boardState);
-    },
-
-    checkAroundRowAI(rowIndex, columnIndex, currentPlayer, boardState) {
-      let under = this.isThisPlayerFieldAI(
-        rowIndex - 1,
-        columnIndex,
-        currentPlayer,
-        boardState
-      );
-      let over = this.isThisPlayerFieldAI(
-        rowIndex + 1,
-        columnIndex,
-        currentPlayer,
-        boardState
-      );
-
-      //Czy otaczające należą do gracza?
-      if (under && over) {
-        under = this.isThisPlayerFieldAI(
-          rowIndex - 2,
-          columnIndex,
-          currentPlayer,
-          boardState
-        );
-        over = this.isThisPlayerFieldAI(
-          rowIndex + 2,
-          columnIndex,
-          currentPlayer,
-          boardState
-        );
-
-        //Czy następne pola należą do gracza? (Zasada o mniej niż 4 w rzędzie)
-        if (under || over) return false;
-        return true;
-      }
-      if (under)
-        return this.checkLowerRowsAI(
-          rowIndex,
-          columnIndex,
-          currentPlayer,
-          boardState
-        );
-      return this.checkUpperRowsAI(
-        rowIndex,
-        columnIndex,
-        currentPlayer,
-        boardState
-      );
-    },
-
-    checkLowerRowsAI(rowIndex, columnIndex, currentPlayer, boardState) {
-      const firstNext = this.isThisPlayerFieldAI(
-        rowIndex - 1,
-        columnIndex,
-        currentPlayer,
-        boardState
-      );
-      const secondNext = this.isThisPlayerFieldAI(
-        rowIndex - 2,
-        columnIndex,
-        currentPlayer,
-        boardState
-      );
-      const thirdNext = this.isThisPlayerFieldAI(
-        rowIndex - 3,
-        columnIndex,
-        currentPlayer,
-        boardState
-      );
-      if (firstNext && secondNext && !thirdNext) return true;
-    },
-
-    checkUpperRowsAI(rowIndex, columnIndex, currentPlayer, boardState) {
-      const firstNext = this.isThisPlayerFieldAI(
-        rowIndex + 1,
-        columnIndex,
-        currentPlayer,
-        boardState
-      );
-      const secondNext = this.isThisPlayerFieldAI(
-        rowIndex + 2,
-        columnIndex,
-        currentPlayer,
-        boardState
-      );
-      const thirdNext = this.isThisPlayerFieldAI(
-        rowIndex + 3,
-        columnIndex,
-        currentPlayer,
-        boardState
-      );
-      if (firstNext && secondNext && !thirdNext) return true;
-    },
-
-    checkColumnsForPointAI(movedPawn, boardState) {
-      const columnIndex = movedPawn.to.rowIndex;
-      const rowIndex = movedPawn.to.rowIndex;
-      const player = movedPawn.pawn.player;
-      if (columnIndex === 0)
-        return this.checkRightColumnsAI(
-          rowIndex,
-          columnIndex,
-          player,
-          boardState
-        );
-
-      if (columnIndex === this.columnsNumber - 1)
-        return this.checkLeftColumnsAI(
-          rowIndex,
-          columnIndex,
-          player,
-          boardState
-        );
-
-      return this.checkAroundColumnAI(
-        rowIndex,
-        columnIndex,
-        player,
-        boardState
-      );
-    },
-
-    checkAroundColumnAI(rowIndex, columnIndex, currentPlayer, boardState) {
-      let right = this.isThisPlayerFieldAI(
-        rowIndex,
-        columnIndex + 1,
-        currentPlayer,
-        boardState
-      );
-      let left = this.isThisPlayerFieldAI(
-        rowIndex,
-        columnIndex - 1,
-        currentPlayer,
-        boardState
-      );
-
-      //Czy otaczające należą do gracza?
-      if (right && left) {
-        // Out Of bounds Error
-        right = this.isThisPlayerFieldAI(
-          rowIndex,
-          columnIndex + 2,
-          currentPlayer,
-          boardState
-        );
-        left = this.isThisPlayerFieldAI(
-          rowIndex,
-          columnIndex - 2,
-          currentPlayer,
-          boardState
-        );
-
-        //Czy następne pola należą do gracza? (Zasada o mniej niż 4 w rzędzie)
-        if (right || left) return false;
-        return true;
-      }
-      if (right)
-        return this.checkRightColumns(rowIndex, columnIndex, currentPlayer);
-      return this.checkLeftColumns(rowIndex, columnIndex, currentPlayer);
-    },
-
-    checkRightColumnsAI(rowIndex, columnIndex, currentPlayer, boardState) {
-      const firstNext = this.isThisPlayerFieldAI(
-        rowIndex,
-        columnIndex + 1,
-        currentPlayer,
-        boardState
-      );
-      const secondNext = this.isThisPlayerFieldAI(
-        rowIndex,
-        columnIndex + 2,
-        currentPlayer,
-        boardState
-      );
-      const thirdNext = this.isThisPlayerFieldAI(
-        rowIndex,
-        columnIndex + 3,
-        currentPlayer,
-        boardState
-      );
-      if (firstNext && secondNext && !thirdNext) return true;
-    },
-
-    checkLeftColumnsAI(rowIndex, columnIndex, currentPlayer, boardState) {
-      const firstNext = this.isThisPlayerFieldAI(
-        rowIndex,
-        columnIndex - 1,
-        currentPlayer,
-        boardState
-      );
-      const secondNext = this.isThisPlayerFieldAI(
-        rowIndex,
-        columnIndex - 2,
-        currentPlayer,
-        boardState
-      );
-      const thirdNext = this.isThisPlayerFieldAI(
-        rowIndex,
-        columnIndex - 3,
-        currentPlayer,
-        boardState
-      );
-      if (firstNext && secondNext && !thirdNext) return true;
     },
 
     checkRowsForPoint(rowIndex, columnIndex, player) {
@@ -1208,23 +799,6 @@ export default {
       return this.board.values[rowIndex][columnIndex].player === player;
     },
     isCoordinateOutOfBounds(rowIndex, columnIndex) {
-      const rowOutOfBound = rowIndex < 0 || rowIndex >= this.board.rowsNumber;
-      const columnOutOfBound =
-        columnIndex < 0 || columnIndex >= this.board.columnsNumber;
-      if (rowOutOfBound || columnOutOfBound) {
-        return true;
-      }
-    },
-    isThisPlayerFieldAI(rowIndex, columnIndex, player, board) {
-      if (this.isCoordinateOutOfBoundsAI(rowIndex, columnIndex)) {
-        return false;
-      }
-      // console.log(player, board, rowIndex, columnIndex);
-      const field = board[rowIndex][columnIndex];
-      if (field && field.player === player)
-        return field && field.player === player;
-    },
-    isCoordinateOutOfBoundsAI(rowIndex, columnIndex) {
       const rowOutOfBound = rowIndex < 0 || rowIndex >= this.board.rowsNumber;
       const columnOutOfBound =
         columnIndex < 0 || columnIndex >= this.board.columnsNumber;
