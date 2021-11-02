@@ -29,10 +29,12 @@
 </template>
 
 <script>
+import minimax from "@/helpers/minimax.js";
+
 export default {
   // name: 'Board',
   props: {
-    msg: String
+    msg: String,
   },
   data: function() {
     return {
@@ -44,11 +46,11 @@ export default {
       board: {
         columnsNumber: 6,
         rowsNumber: 5,
-        values: null // { player: 'black', pawnIndex: '0' }
+        values: null, // { player: 'black', pawnIndex: '0' }
         // rows: Array(8).fill(null),
       },
       pawns: [], // { player: 'black', currentPosition: {rowIndex: 4, columnIndex: 4}, lastPosition:{rowIndex: 4, columnIndex: 3} }
-      history: [] // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
+      history: [], // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
     };
   },
   methods: {
@@ -137,9 +139,9 @@ export default {
         pawnIndex: moveCounter,
         currentPosition: {
           rowIndex: rowIndex,
-          columnIndex: columnIndex
+          columnIndex: columnIndex,
         },
-        lastPosition: null
+        lastPosition: null,
       };
     },
 
@@ -149,9 +151,9 @@ export default {
         pawnIndex: moveCounter,
         currentPosition: {
           rowIndex: rowIndex,
-          columnIndex: columnIndex
+          columnIndex: columnIndex,
         },
-        lastPosition: null
+        lastPosition: null,
       };
     },
 
@@ -187,7 +189,7 @@ export default {
           if (!values[i][j].player)
             emptyFields.push({
               rowIndex: i,
-              columnIndex: j
+              columnIndex: j,
             });
         }
       }
@@ -252,6 +254,7 @@ export default {
       }
       return true;
     },
+
     isLowerFieldSuitableToMove(rowIndex, columnIndex, movingPawn) {
       if (rowIndex + 1 >= this.board.rowsNumber) return false;
       const targetedField = this.getPawnFromBoard(rowIndex + 1, columnIndex);
@@ -348,25 +351,12 @@ export default {
     },
 
     tryToMovePawnTo(rowIndex, columnIndex) {
-      if (
-        !(
-          (rowIndex == this.focused.rowIndex &&
-            (columnIndex == this.focused.columnIndex - 1 ||
-              columnIndex == this.focused.columnIndex + 1)) ||
-          (columnIndex == this.focused.columnIndex &&
-            (rowIndex == this.focused.rowIndex - 1 ||
-              rowIndex == this.focused.rowIndex + 1))
-        )
-      )
-        return;
+      const targetedField = { rowIndex, columnIndex };
+      const focused = this.focused;
+      if (!this.isMoveWithinReachForPawn(targetedField, focused)) return;
 
-      let newRow = this.board.values[rowIndex].slice(0);
-      const boardPawn = this.board.values[this.focused.rowIndex][
-        this.focused.columnIndex
-      ];
+      let pawn = this.getPawnFromBoard(focused.rowIndex, focused.columnIndex);
 
-      // Check if given field hasn't been last position of given pawn, is so end function
-      const pawn = this.getPawnById(boardPawn.pawnIndex);
       if (
         pawn.lastPosition &&
         pawn.lastPosition.columnIndex == columnIndex &&
@@ -378,25 +368,16 @@ export default {
       pawn.lastPosition = pawn.currentPosition;
       pawn.currentPosition = {
         rowIndex: rowIndex,
-        columnIndex: columnIndex
+        columnIndex: columnIndex,
       };
+      this.addPawnToGame(pawn, rowIndex, columnIndex);
 
-      newRow[columnIndex] = pawn;
-      this.$set(this.board.values, rowIndex, newRow);
+      this.emptyGivenField(focused.rowIndex, focused.columnIndex);
 
-      let oldRow = this.board.values[this.focused.rowIndex].slice(0);
-      oldRow[this.focused.columnIndex] = this.getEmptyBoardField();
-      this.$set(this.board.values, this.focused.rowIndex, oldRow);
+      this.removeAvailableMoves(focused.rowIndex, focused.columnIndex);
+      this.emptyFocused();
 
-      this.removeAvailableMoves(
-        this.focused.rowIndex,
-        this.focused.columnIndex
-      );
-      this.focused = null;
-
-      if (
-        this.hasPlayerScored(rowIndex, columnIndex, newRow[columnIndex].player)
-      ) {
+      if (this.hasPlayerScored(rowIndex, columnIndex, pawn.player)) {
         this.highlightEnemyPawns(pawn.player);
         this.removeStagePlayer = pawn.player;
         return;
@@ -404,58 +385,178 @@ export default {
 
       this.tura = !this.tura;
       this.moveCounter++;
-      this.movePawnByAI(pawn.player);
+      const board = this.board.values;
+      // console.log("wywoluje movePawn z board:", board);
+      const currentPlayer = pawn.player;
+      console.log("movePawnBy:", currentPlayer);
+      this.movePawnByAI(currentPlayer, board);
     },
 
-    movePawnByAI(enemy) {
-      const myPawns = this.getEnemyPawns(enemy);
-      const pawnsWithAvailableMoves = this.getMovablePawn(myPawns);
-      if (pawnsWithAvailableMoves && pawnsWithAvailableMoves.length)
-        this.movePawnIntoRandomDirection(
-          pawnsWithAvailableMoves[
-            Math.floor(Math.random() * pawnsWithAvailableMoves.length)
-          ]
+    emptyGivenField(rowIndex, columnIndex) {
+      let oldRow = this.board.values[rowIndex].slice(0);
+      oldRow[columnIndex] = this.getEmptyBoardField();
+      this.$set(this.board.values, rowIndex, oldRow);
+    },
+
+    emptyFocused() {
+      this.focused = null;
+    },
+
+    evaluateBoardState(node, maximizingPlayer) {
+      // console.log("evaluateBoardState", node);
+      const boardState = node.boardState;
+      const movedPawn = node.movedPawn;
+      // console.log({ boardState: boardState, movedPawn: movedPawn });
+      if (boardState && movedPawn) {
+        let hasPlayerScored = this.hasPlayerScoredAI(
+          movedPawn,
+          boardState,
+          maximizingPlayer
         );
-      else {
-        alert("Komputer przegrał z powodu braku dostępnych ruchów.");
+        if (hasPlayerScored) {
+          // console.log({ hasScored: movedPawn.pawn.pawn.player });
+          if (maximizingPlayer === "white") return 100;
+          return -100;
+        }
+      }
+      return 0;
+    },
+
+    isTerminalNode(node, maximizingPlayer) {
+      const boardState = node.boardState;
+      const movedPawn = node.movedPawn;
+      if (boardState && movedPawn) {
+        return this.hasPlayerScoredAI(movedPawn, boardState, maximizingPlayer);
       }
     },
 
-    movePawnIntoRandomDirection(pawn) {
-      const availableDirections = this.getAvailableDirectionsForPawn(pawn);
-      const randomizedDirection =
-        availableDirections[
-          Math.floor(Math.random() * availableDirections.length)
-        ];
+    isMoveWithinReachForPawn(targetedField, focusedField) {
+      const rowsAreEqual = targetedField.rowIndex === focusedField.rowIndex;
+      if (rowsAreEqual) {
+        const isGreaterOrLower = this.isGreaterOrLowerByOne(
+          targetedField.columnIndex,
+          focusedField.columnIndex
+        );
+        if (isGreaterOrLower) return true;
+        return false;
+      }
 
-      const rowIndex = randomizedDirection.rowIndex;
-      const columnIndex = randomizedDirection.columnIndex;
+      const columnsAreEqual =
+        targetedField.columnIndex === focusedField.columnIndex;
+      if (columnsAreEqual) {
+        const isGreaterOrLower = this.isGreaterOrLowerByOne(
+          targetedField.rowIndex,
+          focusedField.rowIndex
+        );
+        if (isGreaterOrLower) return true;
+      }
+    },
 
-      let newRow = this.board.values[rowIndex].slice(0);
+    isGreaterOrLowerByOne(aroundValue, coreValue) {
+      if ([coreValue + 1, coreValue - 1].includes(aroundValue)) return true;
+    },
 
+    getBoardStateWithPawns(board, pawns) {
+      let boardState = Array(board.length)
+        .fill(null)
+        .map(() => Array(this.board.columnsNumber).fill(null));
+      // const boardState = board.map((row) => {
+      //   return row.map((item) => {
+      //     if (item.pawnIndex) return this.getPawnById(item.pawnIndex, pawns);
+      //     return null;
+      //   });
+      // });
+      let i, j;
+      for (i = 0; i < board.length; i++) {
+        for (j = 0; j < board[i].length; j++) {
+          if (board[i][j].pawnIndex)
+            boardState[i][j] = this.getPawnById(board[i][j].pawnIndex, pawns);
+        }
+      }
+      return boardState;
+    },
+
+    movePawnByAI(currentPlayer, board) {
+      // const currentPlayer = enemy == "white" ? enemy : "black";
+      const pawns = this.pawns;
+      const enemy = currentPlayer == "white" ? "black" : "white";
+      const boardState = this.getBoardStateWithPawns(board, pawns);
+      // const values = JSON.parse(JSON.stringify(board));
+      const mini = minimax.minimax({ boardState: boardState }, 3, enemy);
+      console.log("Wynik", mini);
+      const miniMaxResult = mini.bestMove;
+      const pawnToRemove = mini.pawnToRemove;
+
+      // Wykoanie ruchu według miniMaxa
+      let newRow = this.board.values[miniMaxResult.direction.rowIndex].slice(0);
+      let pawn = miniMaxResult.pawn;
       pawn.lastPosition = pawn.currentPosition;
-      pawn.currentPosition = {
-        rowIndex: rowIndex,
-        columnIndex: columnIndex
-      };
-      newRow[columnIndex] = pawn;
-      this.$set(this.board.values, rowIndex, newRow);
+      pawn.currentPosition = miniMaxResult.direction;
+      newRow[miniMaxResult.direction.columnIndex] = pawn;
+      this.$set(this.board.values, miniMaxResult.direction.rowIndex, newRow);
 
       let oldRow = this.board.values[pawn.lastPosition.rowIndex].slice(0);
       oldRow[pawn.lastPosition.columnIndex] = this.getEmptyBoardField();
       this.$set(this.board.values, pawn.lastPosition.rowIndex, oldRow);
-      if (
-        this.hasPlayerScored(rowIndex, columnIndex, newRow[columnIndex].player)
-      ) {
-        this.removeRandomEnemyPawn(newRow[columnIndex].player);
-        this.tura = !this.tura;
-        this.moveCounter++;
-        return;
+      if (pawnToRemove) {
+        this.removePawnById(pawnToRemove.pawnIndex);
+        this.clearBoardField(
+          pawnToRemove.currentPosition.rowIndex,
+          pawnToRemove.currentPosition.columnIndex
+        );
       }
 
       this.tura = !this.tura;
       this.moveCounter++;
+
+      // const myPawns = this.getEnemyPawns(enemy);
+      // const pawnsWithAvailableMoves = this.getMovablePawn(myPawns);
+      // if (pawnsWithAvailableMoves && pawnsWithAvailableMoves.length)
+      //   this.movePawnIntoRandomDirection(
+      //     pawnsWithAvailableMoves[
+      //       Math.floor(Math.random() * pawnsWithAvailableMoves.length)
+      //     ]
+      //   );
+      // else {
+      //   alert("Komputer przegrał z powodu braku dostępnych ruchów.");
+      // }
     },
+
+    // movePawnIntoRandomDirection(pawn) {
+    //   const availableDirections = this.getAvailableDirectionsForPawn(pawn);
+    //   const randomizedDirection =
+    //     availableDirections[
+    //       Math.floor(Math.random() * availableDirections.length)
+    //     ];
+
+    //   const rowIndex = randomizedDirection.rowIndex;
+    //   const columnIndex = randomizedDirection.columnIndex;
+
+    //   let newRow = this.board.values[rowIndex].slice(0);
+
+    //   pawn.lastPosition = pawn.currentPosition;
+    //   pawn.currentPosition = {
+    //     rowIndex: rowIndex,
+    //     columnIndex: columnIndex
+    //   };
+    //   newRow[columnIndex] = pawn;
+    //   this.$set(this.board.values, rowIndex, newRow);
+
+    //   let oldRow = this.board.values[pawn.lastPosition.rowIndex].slice(0);
+    //   oldRow[pawn.lastPosition.columnIndex] = this.getEmptyBoardField();
+    //   this.$set(this.board.values, pawn.lastPosition.rowIndex, oldRow);
+    //   if (
+    //     this.hasPlayerScored(rowIndex, columnIndex, newRow[columnIndex].player)
+    //   ) {
+    //     this.removeRandomEnemyPawn(newRow[columnIndex].player);
+    //     this.tura = !this.tura;
+    //     this.moveCounter++;
+    //     return;
+    //   }
+
+    //   this.tura = !this.tura;
+    //   this.moveCounter++;
+    // },
 
     removeRandomEnemyPawn(player) {
       const enemyPawns = this.getEnemyPawns(player);
@@ -469,64 +570,14 @@ export default {
       this.didPlayerWin(player);
     },
 
-    getMovablePawn(pawns) {
-      let availablePawns = [];
-      for (let i = 0; i < pawns.length; i++) {
-        if (this.getAvailableDirectionsForPawn(pawns[i]).length)
-          availablePawns.push(pawns[i]);
-      }
-      return availablePawns;
-    },
-
-    getAvailableDirectionsForPawn(pawn) {
-      let availableDirections = [];
-      if (
-        this.isUpperFieldSuitableToMove(
-          pawn.currentPosition.rowIndex,
-          pawn.currentPosition.columnIndex,
-          pawn
-        )
-      )
-        availableDirections.push({
-          rowIndex: pawn.currentPosition.rowIndex - 1,
-          columnIndex: pawn.currentPosition.columnIndex
-        });
-      else if (
-        this.isLowerFieldSuitableToMove(
-          pawn.currentPosition.rowIndex,
-          pawn.currentPosition.columnIndex,
-          pawn
-        )
-      )
-        availableDirections.push({
-          rowIndex: pawn.currentPosition.rowIndex + 1,
-          columnIndex: pawn.currentPosition.columnIndex
-        });
-      else if (
-        this.isLeftFieldSuitableToMove(
-          pawn.currentPosition.rowIndex,
-          pawn.currentPosition.columnIndex,
-          pawn
-        )
-      )
-        availableDirections.push({
-          rowIndex: pawn.currentPosition.rowIndex,
-          columnIndex: pawn.currentPosition.columnIndex - 1
-        });
-      else if (
-        this.isRightFieldSuitableToMove(
-          pawn.currentPosition.rowIndex,
-          pawn.currentPosition.columnIndex,
-          pawn
-        )
-      )
-        availableDirections.push({
-          rowIndex: pawn.currentPosition.rowIndex,
-          columnIndex: pawn.currentPosition.columnIndex + 1
-        });
-
-      return availableDirections;
-    },
+    // getMovablePawn(pawns) {
+    //   let availablePawns = [];
+    //   for (let i = 0; i < pawns.length; i++) {
+    //     if (this.getAvailableDirectionsForPawn(pawns[i]).length)
+    //       availablePawns.push(pawns[i]);
+    //   }
+    //   return availablePawns;
+    // },
 
     highlightEnemyPawns(player) {
       const enemyPawns = this.getEnemyPawns(player);
@@ -562,7 +613,9 @@ export default {
       this.removeStagePlayer = null;
       this.tura = !this.tura;
       this.moveCounter++;
-      this.movePawnByAI(currentPlayer);
+      const board = this.board.values;
+      console.log("movePawnBy:", currentPlayer);
+      this.movePawnByAI(currentPlayer, board);
     },
 
     didPlayerWin(player) {
@@ -580,7 +633,7 @@ export default {
         player: null,
         pawnIndex: null,
         currentPosition: null,
-        lastPosition: null
+        lastPosition: null,
       };
     },
 
@@ -588,8 +641,8 @@ export default {
       this.pawns = this.pawns.filter((item) => item.pawnIndex != id);
     },
 
-    getPawnById(id) {
-      return this.pawns.find((item) => item.pawnIndex === id);
+    getPawnById(id, pawns) {
+      return pawns.find((item) => item.pawnIndex === id);
     },
 
     getEnemyPawns(player) {
@@ -606,6 +659,18 @@ export default {
         return true;
     },
 
+    hasPlayerScoredAI(movedPawn, boardState, maximizingPlayer) {
+      // console.log("hasPlayerScored", boardState);
+      if (
+        this.checkRowsForPointAI(movedPawn, boardState, maximizingPlayer) ||
+        this.checkColumnsForPointAI(movedPawn, boardState, maximizingPlayer)
+      ) {
+        // console.log("mamy punkt", movedPawn, boardState);
+        return true;
+      }
+      return false;
+    },
+
     checkRowsForPoint(rowIndex, columnIndex, player) {
       if (rowIndex === 0)
         return this.checkLowerRows(rowIndex, columnIndex, player);
@@ -615,15 +680,14 @@ export default {
 
       return this.checkAroundRow(rowIndex, columnIndex, player);
     },
-
     checkAroundRow(rowIndex, columnIndex, player) {
-      let under = this.isThisPlayerField(rowIndex + 1, columnIndex, player);
-      let over = this.isThisPlayerField(rowIndex - 1, columnIndex, player);
+      let under = this.isThisPlayerField(rowIndex - 1, columnIndex, player);
+      let over = this.isThisPlayerField(rowIndex + 1, columnIndex, player);
 
       //Czy otaczające należą do gracza?
       if (under && over) {
-        under = this.isThisPlayerField(rowIndex + 2, columnIndex, player);
-        over = this.isThisPlayerField(rowIndex - 2, columnIndex, player);
+        under = this.isThisPlayerField(rowIndex - 2, columnIndex, player);
+        over = this.isThisPlayerField(rowIndex + 2, columnIndex, player);
 
         //Czy następne pola należą do gracza? (Zasada o mniej niż 4 w rzędzie)
         if (under || over) return false;
@@ -632,8 +696,25 @@ export default {
       if (under) return this.checkLowerRows(rowIndex, columnIndex, player);
       return this.checkUpperRows(rowIndex, columnIndex, player);
     },
-
     checkLowerRows(rowIndex, columnIndex, player) {
+      const firstNext = this.isThisPlayerField(
+        rowIndex - 1,
+        columnIndex,
+        player
+      );
+      const secondNext = this.isThisPlayerField(
+        rowIndex - 2,
+        columnIndex,
+        player
+      );
+      const thirdNext = this.isThisPlayerField(
+        rowIndex - 3,
+        columnIndex,
+        player
+      );
+      if (firstNext && secondNext && !thirdNext) return true;
+    },
+    checkUpperRows(rowIndex, columnIndex, player) {
       const firstNext = this.isThisPlayerField(
         rowIndex + 1,
         columnIndex,
@@ -652,27 +733,8 @@ export default {
       if (firstNext && secondNext && !thirdNext) return true;
     },
 
-    checkUpperRows(rowIndex, columnIndex, player) {
-      const firstNext = this.isThisPlayerField(
-        rowIndex - 1,
-        columnIndex,
-        player
-      );
-      const secondNext = this.isThisPlayerField(
-        rowIndex - 2,
-        columnIndex,
-        player
-      );
-      const thirdNext = this.isThisPlayerField(
-        rowIndex - 3,
-        columnIndex,
-        player
-      );
-      if (firstNext && secondNext && !thirdNext) return true;
-    },
-
     checkColumnsForPoint(rowIndex, columnIndex, player) {
-      if (columnIndex === 1)
+      if (columnIndex === 0)
         return this.checkRightColumns(rowIndex, columnIndex, player);
 
       if (columnIndex === this.columnsNumber - 1)
@@ -737,30 +799,32 @@ export default {
     },
 
     isThisPlayerField(rowIndex, columnIndex, player) {
-      if (
-        rowIndex >= this.rowsNumber ||
-        rowIndex < 0 ||
-        columnIndex >= this.columnsNumber ||
-        columnIndex < 0
-      ) {
-        return;
+      if (this.isCoordinateOutOfBounds(rowIndex, columnIndex)) {
+        return false;
       }
-
       return this.board.values[rowIndex][columnIndex].player === player;
-    }
+    },
+    isCoordinateOutOfBounds(rowIndex, columnIndex) {
+      const rowOutOfBound = rowIndex < 0 || rowIndex >= this.board.rowsNumber;
+      const columnOutOfBound =
+        columnIndex < 0 || columnIndex >= this.board.columnsNumber;
+      if (rowOutOfBound || columnOutOfBound) {
+        return true;
+      }
+    },
   },
   beforeMount() {
-    this.board.values = Array(8)
+    this.board.values = Array(this.board.rowsNumber)
       .fill(null)
       .map(() =>
-        Array(8).fill({
+        Array(this.board.columnsNumber).fill({
           player: null,
           pawnIndex: null,
           currentPosition: null,
-          lastPosition: null
+          lastPosition: null,
         })
       );
-  }
+  },
 };
 </script>
 
