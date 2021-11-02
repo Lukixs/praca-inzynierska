@@ -1,17 +1,18 @@
 <template>
   <div class="home">
-    <Board/>
+    <Board />
   </div>
 </template>
 
-<script>
+<script lang="ts">
 // @ is an alias to /src
-import Board from '@/components/Board.vue'
+import Vue from "vue";
+import Board from "../components/Board.vue";
 
-export default {
-  name: 'Home',
+export default Vue.extend({
+  name: "Home",
   components: {
-    Board
-  }
-}
+    Board,
+  },
+});
 </script>
