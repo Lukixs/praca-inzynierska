@@ -482,7 +482,7 @@ export default {
       const enemy = currentPlayer == "white" ? "black" : "white";
       const boardState = this.getBoardStateWithPawns(board, pawns);
       // const values = JSON.parse(JSON.stringify(board));
-      const mini = minimax.minimax({ boardState: boardState }, 1, enemy);
+      const mini = minimax.minimax({ boardState: boardState }, 3, enemy);
       console.log("Wynik", mini);
       const miniMaxResult = mini.bestMove;
       const pawnToRemove = mini.pawnToRemove;
@@ -498,7 +498,13 @@ export default {
       let oldRow = this.board.values[pawn.lastPosition.rowIndex].slice(0);
       oldRow[pawn.lastPosition.columnIndex] = this.getEmptyBoardField();
       this.$set(this.board.values, pawn.lastPosition.rowIndex, oldRow);
-      if (pawnToRemove) this.removePawnById(this.pawnToRemove.id);
+      if (pawnToRemove) {
+        this.removePawnById(pawnToRemove.pawnIndex);
+        this.clearBoardField(
+          pawnToRemove.currentPosition.rowIndex,
+          pawnToRemove.currentPosition.columnIndex
+        );
+      }
 
       this.tura = !this.tura;
       this.moveCounter++;

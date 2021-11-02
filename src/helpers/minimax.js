@@ -17,24 +17,26 @@ export default {
     // }
     const previousPlayer = maximizingPlayer == "white" ? "black" : "white";
     if (depth == 0) {
-      const evaluation = this.evaluateBoardState(node, previousPlayer);
+      const evaluation = this.evaluateBoardState(node, depth, previousPlayer);
+      let bestMove = null;
+      if (node.movedPawn)
+        bestMove = { pawn: node.movedPawn, direction: node.movedPawn.to };
       return {
-        evaluation: evaluation,
-        bestMove: { pawn: node.movedPawn, direction: node.movedPawn.to },
-        pawnToRemove: null,
+        evaluation: evaluation.value,
+        bestMove: bestMove,
+        pawnToRemove: evaluation.pawnToRemove,
       };
     }
 
     const movedPawn = node.movedPawn;
     const boardState = node.boardState;
+    console.log(`rozważamy zdobycie punktu dla :`, node);
     if (boardState && movedPawn) {
-      console.log("rozważamy zdobycie punktu");
       const playerScored = this.hasPlayerScored(
         movedPawn,
         boardState,
         maximizingPlayer
       );
-      console.log("Czy punkt zdobyto?", playerScored);
       if (playerScored) {
         const terminalNode = this.isTerminalNode(
           node.boardState,
@@ -63,6 +65,7 @@ export default {
           { pawn: node.movedPawn, direction: node.movedPawn.to },
           result.pawnToRemove,
         ]);
+        console.log("Szukamy co usunąć", { pawnToRemove: result.pawnToRemove });
         return {
           evaluation: result.estimatedValue,
           bestMove: { pawn: node.movedPawn, direction: node.movedPawn.to },
@@ -81,6 +84,7 @@ export default {
     if (maximizingPlayer == "white") {
       let best_move = null;
       let maxEval = this.MINIMUM();
+      let pawnToRemove = null;
 
       const pawns = this.getPlayerPawnsFromBoard(
         maximizingPlayer,
@@ -109,8 +113,8 @@ export default {
             },
             boardState: newBoardState,
           };
-          const evaluation = this.minimax(newNode, depth - 1, "black")
-            .evaluation;
+          const result = this.minimax(newNode, depth - 1, "black");
+          const evaluation = result.evaluation;
           console.log(
             "Ewaluuje dla białych",
             evaluation,
@@ -121,6 +125,7 @@ export default {
           if (evaluation > maxEval) {
             maxEval = evaluation;
             best_move = { pawn: item.pawn, direction };
+            pawnToRemove = result.pawnToRemove;
           }
           // MINIMUM = Math.min(MINIMUM, evaluation);
           // if (evaluation == MINIMUM) {
@@ -131,7 +136,7 @@ export default {
       return {
         evaluation: maxEval,
         bestMove: best_move,
-        pawnToRemove: null,
+        pawnToRemove: pawnToRemove,
       };
     }
 
@@ -153,6 +158,7 @@ export default {
     else {
       let best_move = null;
       let minEval = this.MAXIMUM();
+      let pawnToRemove = null;
 
       const pawns = this.getPlayerPawnsFromBoard(
         maximizingPlayer,
@@ -181,15 +187,16 @@ export default {
             },
             boardState: newBoardState,
           };
-          const evaluation = this.minimax(newNode, depth - 1, "white")
-            .evaluation;
+          const result = this.minimax(newNode, depth - 1, "white");
+          const evaluation = result.evaluation;
+
           // MAXIMUM = Math.min(MAXIMUM, evaluation);
           // if (evaluation == MAXIMUM) {
           //   best_move = { pawn: item.pawn, direction };
           // }
           console.log(
             "Ewaluuje dla czarnych",
-            evaluation,
+            result,
             "<",
             minEval,
             direction,
@@ -198,6 +205,7 @@ export default {
           if (evaluation < minEval) {
             minEval = evaluation;
             best_move = { pawn: item.pawn, direction };
+            pawnToRemove = result.pawnToRemove;
           }
         });
       });
@@ -206,7 +214,7 @@ export default {
       return {
         evaluation: minEval,
         bestMove: best_move,
-        pawnToRemove: null,
+        pawnToRemove: pawnToRemove,
       };
     }
   },
@@ -249,7 +257,7 @@ export default {
     return { estimatedValue: bestValue - 20, pawnToRemove };
   },
 
-  evaluateBoardState(node, maximizingPlayer) {
+  evaluateBoardState(node, depth, maximizingPlayer) {
     const boardState = node.boardState;
     const movedPawn = node.movedPawn;
     if (boardState && movedPawn) {
@@ -259,12 +267,23 @@ export default {
         maximizingPlayer
       );
       if (hasPlayerScored) {
-        // console.log(`Player ${movedPawn.pawn.player} zescorował `, movedPawn);
-        if (movedPawn.pawn.player == "white") return 20;
-        return -20;
+        if (movedPawn.pawn.player == "white") {
+          const result = this.findMostProfitableEnemyPawnToRemove(
+            node,
+            depth,
+            maximizingPlayer
+          );
+          return { value: 20, pawnToRemove: result.pawnToRemove };
+        }
+        const result = this.findMostProfitableEnemyPawnToRemove(
+          node,
+          depth,
+          maximizingPlayer
+        );
+        return { value: -20, pawnToRemove: result.pawnToRemove };
       }
     }
-    return 0;
+    return { value: 0, pawnToRemove: null };
   },
 
   hasPlayerScored(movedPawn, boardState, maximizingPlayer) {
