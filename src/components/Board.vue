@@ -37,14 +37,14 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import { Coordinates, BoardField, BoardDimensions, Pawn } from "../types/board";
+import { Coordinates, BoardDimensions, Pawn } from "../types/board";
 
 @Component({
   props: {
     msg: {
-      type: String,
-    },
-  },
+      type: String
+    }
+  }
 })
 export default class Board extends Vue {
   tura = true;
@@ -54,32 +54,26 @@ export default class Board extends Vue {
   focused: Coordinates; // {rowIndex, columnIndex}   Aktualnie wybrany pionek
   boardDimensions: BoardDimensions = {
     columnsNumber: 6,
-    rowsNumber: 5,
+    rowsNumber: 5
     // { player: 'black', pawnIndex: '0' }
     // rows: Array(8).fill(null),
   };
-  boardState: BoardField[][] = new Array(this.boardDimensions.rowsNumber)
+  boardState: Pawn[][] = new Array(this.boardDimensions.rowsNumber)
     .fill(false)
     .map(() =>
-      new Array(this.boardDimensions.columnsNumber).fill({
-        player: null,
-        pawnIndex: null,
-        currentPosition: null,
-        lastPosition: null,
-      })
+      new Array(this.boardDimensions.columnsNumber).fill(this.emptyField)
     );
 
   pawns: Pawn[] = []; // { player: 'black', currentPosition: {rowIndex: 4, columnIndex: 4}, lastPosition:{rowIndex: 4, columnIndex: 3} }
   // history = []; // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
 
   cellOnClick(rowIndex: number, columnIndex: number): void {
-    const coordinate: Coordinates = { rowIndex, columnIndex };
+    const position: Coordinates = { rowIndex, columnIndex };
     if (this.moveCounter <= this.firstStageMovesLimit) {
-      this.pawnsPlacingStageController(coordinate);
+      this.pawnsPlacingStageController(position);
+    } else {
+      this.pawnsMovingStageController(position);
     }
-    // else {
-    //   this.pawnsMovingStageController(rowIndex, columnIndex);
-    // }
 
     // console.log("I am working on typeScript", rowIndex, columnIndex);
     // this.fillBoard({ rowIndex, columnIndex });
@@ -98,52 +92,50 @@ export default class Board extends Vue {
   //   );
   // }
 
-  pushToBoardStateOnPosition(field: BoardField, position: Coordinates): void {
+  pushToBoardStateOnPosition(pawn: Pawn, position: Coordinates): void {
     const newRow = this.boardState[position.rowIndex].slice(0);
-    newRow[position.columnIndex] = field;
+    newRow[position.columnIndex] = pawn;
     this.$set(this.boardState, position.rowIndex, newRow);
   }
 
-  pawnsPlacingStageController(position: Coordinates) {
+  pawnsPlacingStageController(position: Coordinates): void {
     const isTaken = this.isGivenFieldTaken(position);
     if (!isTaken) this.placePawn(position);
   }
 
-  // pawnsMovingStageController(rowIndex, columnIndex) {
-  //   const isEmpty = this.isGivenFieldEmpty(rowIndex, columnIndex);
-  //   if (isEmpty) {
-  //     this.pawnsMovingStageControllerEmptyField(rowIndex, columnIndex);
-  //   } else {
-  //     this.pawnsMovingStageControllerOccupiedField(rowIndex, columnIndex);
-  //   }
-  // },
+  pawnsMovingStageController(position: Coordinates): void {
+    const isTaken = this.isGivenFieldTaken(position);
+    if (isTaken) {
+      this.pawnsMovingStageControllerOccupiedField(position);
+    } else {
+      this.pawnsMovingStageControllerEmptyField(position);
+    }
+  }
 
-  // pawnsMovingStageControllerEmptyField(rowIndex, columnIndex) {
-  //   if (this.isAnyPawnFocused()) this.tryToMovePawnTo(rowIndex, columnIndex);
-  // },
+  pawnsMovingStageControllerEmptyField(position: Coordinates): void {
+    if (this.isAnyPawnFocused()) this.tryToMovePawnTo(position);
+  }
 
-  // pawnsMovingStageControllerOccupiedField(rowIndex, columnIndex) {
-  //   if (this.removeStagePlayer) {
-  //     this.removeEnemyPawn(rowIndex, columnIndex);
-  //   } else if (!this.isAnyPawnFocused()) {
-  //     this.selectPawn(rowIndex, columnIndex);
-  //   } else {
-  //     this.reSelectPawn(rowIndex, columnIndex);
-  //   }
-  // },
+  pawnsMovingStageControllerOccupiedField(position: Coordinates): void {
+    if (this.removeStagePlayer) {
+      this.removeEnemyPawn(position);
+    } else if (!this.isAnyPawnFocused()) {
+      this.selectPawn(position);
+    } else {
+      this.reSelectPawn(position);
+    }
+  }
 
-  isGivenFieldTaken(position: Coordinates) {
+  isGivenFieldTaken(position: Coordinates): string {
     const field = this.boardState[position.rowIndex][position.columnIndex];
     if (field.player) return field.player;
   }
 
-  // isAnyPawnFocused() {
-  //   if (this.focused != null) return true;
-  // },
+  isAnyPawnFocused(): boolean {
+    if (this.focused != null) return true;
+  }
 
-  placePawn(position: Coordinates) {
-    if (this.isGivenFieldTaken(position)) return;
-
+  placePawn(position: Coordinates): void {
     const newPawn = this.createNewPawn(position);
 
     this.addPawnToGame(newPawn, position);
@@ -152,18 +144,18 @@ export default class Board extends Vue {
     this.moveCounter++;
   }
 
-  addPawnToGame(pawn:Pawn, position: Coordinates) {
+  addPawnToGame(pawn: Pawn, position: Coordinates): void {
     this.addPawnToList(pawn);
     this.addPawnToBoard(pawn, position);
   }
 
-  addPawnToList(pawn: Pawn) {
+  addPawnToList(pawn: Pawn): void {
     this.pawns.push(pawn);
   }
 
-  addPawnToBoard(pawn:Pawn, position:Coordinates) {
-    this.pushToBoardStateOnPosition(pawn,position)
-  },
+  addPawnToBoard(pawn: Pawn, position: Coordinates): void {
+    this.pushToBoardStateOnPosition(pawn, position);
+  }
 
   createNewPawn(position: Coordinates): Pawn {
     if (this.tura) return this.createWhitePawn(position, this.moveCounter);
@@ -177,8 +169,8 @@ export default class Board extends Vue {
       pawnIndex: moveCounter,
       currentPosition: {
         rowIndex: position.rowIndex,
-        columnIndex: position.columnIndex,
-      },
+        columnIndex: position.columnIndex
+      }
     };
   }
 
@@ -188,269 +180,299 @@ export default class Board extends Vue {
       pawnIndex: moveCounter,
       currentPosition: {
         rowIndex: position.rowIndex,
-        columnIndex: position.columnIndex,
-      },
+        columnIndex: position.columnIndex
+      }
     };
   }
 
-  // selectPawn(rowIndex, columnIndex) {
-  //   const currentPlayer = this.whichPlayerTurnItIs(this.tura);
-  //   const selectedPawn = this.getPawnFromBoard(rowIndex, columnIndex);
-  //   if (selectedPawn.player != currentPlayer) return;
+  selectPawn(position: Coordinates): void {
+    const currentPlayer = this.whichPlayerTurnItIs(this.tura);
+    const selectedPawn = this.getPawnFromBoard(position);
+    if (selectedPawn.player != currentPlayer) return;
 
-  //   this.drawAvailableMoves(rowIndex, columnIndex);
-  //   this.setFocused(rowIndex, columnIndex);
-  // },
+    this.drawAvailableMoves(position);
+    this.setFocused(position);
+  }
 
-  // setFocused(rowIndex, columnIndex) {
-  //   this.focused = { rowIndex: rowIndex, columnIndex: columnIndex };
-  // },
+  setFocused(position: Coordinates): void {
+    this.focused = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex
+    };
+  }
 
-  // whichPlayerTurnItIs(tura) {
-  //   if (tura) return "white";
-  //   return "black";
-  // },
+  whichPlayerTurnItIs(tura: boolean): string {
+    if (tura) return "white";
+    return "black";
+  }
 
-  // reSelectPawn(rowIndex, columnIndex) {
-  //   if (this.isThisFocusedPawn(rowIndex, columnIndex)) return;
+  reSelectPawn(position: Coordinates): void {
+    if (this.isThisFocusedPawn(position)) return;
 
-  //   const currentPlayer = this.whichPlayerTurnItIs(this.tura);
-  //   const selectedPawn = this.getPawnFromBoard(rowIndex, columnIndex);
-  //   if (selectedPawn.player != currentPlayer) return;
+    const currentPlayer = this.whichPlayerTurnItIs(this.tura);
+    const selectedPawn = this.getPawnFromBoard(position);
+    if (selectedPawn.player != currentPlayer) return;
 
-  //   this.removeAvailableMoves(
-  //     this.focused.rowIndex,
-  //     this.focused.columnIndex
-  //   );
-  //   this.drawAvailableMoves(rowIndex, columnIndex);
-  //   this.setFocused(rowIndex, columnIndex);
-  // },
+    this.removeAvailableMoves({
+      rowIndex: this.focused.rowIndex,
+      columnIndex: this.focused.columnIndex
+    });
+    this.drawAvailableMoves(position);
+    this.setFocused(position);
+  }
 
-  // isThisFocusedPawn(rowIndex, columnIndex) {
-  //   if (
-  //     rowIndex === this.focused.rowIndex &&
-  //     columnIndex === this.focused.columnIndex
-  //   )
-  //     return true;
-  // },
+  isThisFocusedPawn(position: Coordinates): boolean {
+    if (
+      position.rowIndex === this.focused.rowIndex &&
+      position.columnIndex === this.focused.columnIndex
+    )
+      return true;
+  }
 
-  // getPawnFromBoard(rowIndex, columnIndex) {
-  //   return this.board.values[rowIndex][columnIndex];
-  // },
+  getPawnFromBoard(position: Coordinates): Pawn {
+    return this.boardState[position.rowIndex][position.columnIndex];
+  }
 
-  // isUpperFieldSuitableToMove(rowIndex, columnIndex, movingPawn) {
-  //   // let {rowIndex, columnIndex} = movingPawn.currentPosition;
-  //   if (rowIndex <= 0) return false;
-  //   const targetedField = this.getPawnFromBoard(rowIndex - 1, columnIndex);
+  isFieldSuitableToMoveForGivenPawn(
+    position: Coordinates,
+    movingPawn: Pawn
+  ): boolean {
+    if (this.isCoordinateOutOfBounds(position)) return false;
+    if (this.isFieldEmpty(position)) return false;
+    if (
+      movingPawn.lastPosition &&
+      this.isCoordinateEqual(movingPawn.lastPosition, position)
+    )
+      return false;
 
-  //   if (targetedField.player) return false;
-  //   else if (
-  //     movingPawn.lastPosition &&
-  //     movingPawn.lastPosition.rowIndex === rowIndex - 1
-  //   ) {
-  //     return false;
-  //   }
-  //   return true;
-  // },
+    return true;
+  }
 
-  // isLowerFieldSuitableToMove(rowIndex, columnIndex, movingPawn) {
-  //   if (rowIndex + 1 >= this.board.rowsNumber) return false;
-  //   const targetedField = this.getPawnFromBoard(rowIndex + 1, columnIndex);
+  isFieldEmpty(position: Coordinates): boolean {
+    const targetedField: Pawn = this.getPawnFromBoard(position);
+    return targetedField.player ? true : false;
+  }
 
-  //   if (targetedField.player) return false;
-  //   else if (
-  //     movingPawn.lastPosition &&
-  //     movingPawn.lastPosition.rowIndex === rowIndex + 1
-  //   ) {
-  //     return false;
-  //   }
-  //   return true;
-  // },
-  // isLeftFieldSuitableToMove(rowIndex, columnIndex, movingPawn) {
-  //   if (columnIndex <= 0) return false;
-  //   const targetedField = this.getPawnFromBoard(rowIndex, columnIndex - 1);
+  isCoordinateEqual(
+    firstPosition: Coordinates,
+    secondPosition: Coordinates
+  ): boolean {
+    const columnsEqual =
+      firstPosition.columnIndex === secondPosition.columnIndex;
 
-  //   if (targetedField.player) return false;
-  //   else if (
-  //     movingPawn.lastPosition &&
-  //     movingPawn.lastPosition.columnIndex === columnIndex - 1
-  //   ) {
-  //     return false;
-  //   }
-  //   return true;
-  // },
-  // isRightFieldSuitableToMove(rowIndex, columnIndex, movingPawn) {
-  //   if (columnIndex + 1 >= this.board.columnsNumber) return false;
-  //   const targetedField = this.getPawnFromBoard(rowIndex, columnIndex + 1);
+    const rowsEqual = firstPosition.rowIndex === secondPosition.rowIndex;
 
-  //   if (targetedField.player) return false;
-  //   else if (
-  //     movingPawn.lastPosition &&
-  //     movingPawn.lastPosition.columnIndex === columnIndex + 1
-  //   ) {
-  //     return false;
-  //   }
-  //   return true;
-  // },
+    return columnsEqual && rowsEqual;
+  }
 
-  // drawAvailableMoves(rowIndex, columnIndex) {
-  //   this.highlightWithDarkGreen(rowIndex, columnIndex);
-  //   const movingPawn = this.getPawnFromBoard(rowIndex, columnIndex);
+  drawAvailableMoves(position: Coordinates): void {
+    this.highlightWithDarkGreen(position);
+    const movingPawn: Pawn = this.getPawnFromBoard(position);
 
-  //   if (this.isUpperFieldSuitableToMove(rowIndex, columnIndex, movingPawn)) {
-  //     this.highlightWithYellowGreen(rowIndex - 1, columnIndex);
-  //   }
-  //   if (this.isLowerFieldSuitableToMove(rowIndex, columnIndex, movingPawn)) {
-  //     this.highlightWithYellowGreen(rowIndex + 1, columnIndex);
-  //   }
-  //   if (this.isLeftFieldSuitableToMove(rowIndex, columnIndex, movingPawn)) {
-  //     this.highlightWithYellowGreen(rowIndex, columnIndex - 1);
-  //   }
-  //   if (this.isRightFieldSuitableToMove(rowIndex, columnIndex, movingPawn)) {
-  //     this.highlightWithYellowGreen(rowIndex, columnIndex + 1);
-  //   }
-  // },
+    const upperPosition: Coordinates = {
+      rowIndex: position.rowIndex + 1,
+      columnIndex: position.columnIndex
+    };
+    const lowerPosition: Coordinates = {
+      rowIndex: position.rowIndex - 1,
+      columnIndex: position.columnIndex
+    };
+    const leftPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex + 1
+    };
+    const rightPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex - 1
+    };
 
-  // highlightWithYellowGreen(rowIndex, columnIndex) {
-  //   const element = document.getElementById(`${rowIndex}${columnIndex}`);
-  //   element.classList.add("yellowgreen");
-  // },
+    if (this.isFieldSuitableToMoveForGivenPawn(upperPosition, movingPawn)) {
+      this.highlightWithYellowGreen(upperPosition);
+    }
+    if (this.isFieldSuitableToMoveForGivenPawn(lowerPosition, movingPawn)) {
+      this.highlightWithYellowGreen(lowerPosition);
+    }
+    if (this.isFieldSuitableToMoveForGivenPawn(leftPosition, movingPawn)) {
+      this.highlightWithYellowGreen(leftPosition);
+    }
+    if (this.isFieldSuitableToMoveForGivenPawn(rightPosition, movingPawn)) {
+      this.highlightWithYellowGreen(rightPosition);
+    }
+  }
 
-  // highlightWithDarkGreen(rowIndex, columnIndex) {
-  //   const element = document.getElementById(`${rowIndex}${columnIndex}`);
-  //   element.classList.add("darkgreen");
-  // },
+  highlightWithYellowGreen(position: Coordinates): void {
+    const element = document.getElementById(
+      `${position.rowIndex}${position.columnIndex}`
+    );
+    element.classList.add("yellowgreen");
+  }
 
-  // removeAvailableMoves(rowIndex, columnIndex) {
-  //   this.removeDarkGreenHighlight(rowIndex, columnIndex);
+  highlightWithDarkGreen(position: Coordinates): void {
+    const element = document.getElementById(
+      `${position.rowIndex}${position.columnIndex}`
+    );
+    element.classList.add("darkgreen");
+  }
 
-  //   if (rowIndex - 1 >= 0) {
-  //     this.removeYellowGreenHighlight(rowIndex - 1, columnIndex);
-  //   }
-  //   if (rowIndex + 1 < this.board.rowsNumber) {
-  //     this.removeYellowGreenHighlight(rowIndex + 1, columnIndex);
-  //   }
-  //   if (columnIndex - 1 >= 0) {
-  //     this.removeYellowGreenHighlight(rowIndex, columnIndex - 1);
-  //   }
-  //   if (columnIndex + 1 < this.board.columnsNumber) {
-  //     this.removeYellowGreenHighlight(rowIndex, columnIndex + 1);
-  //   }
-  // },
+  removeAvailableMoves(position: Coordinates): void {
+    this.removeDarkGreenHighlight(position);
 
-  // removeDarkGreenHighlight(rowIndex, columnIndex) {
-  //   const element = document.getElementById(`${rowIndex}${columnIndex}`);
-  //   element.classList.remove("darkgreen");
-  // },
+    if (position.rowIndex + 1 < this.boardDimensions.rowsNumber) {
+      const upperPosition: Coordinates = {
+        rowIndex: position.rowIndex + 1,
+        columnIndex: position.columnIndex
+      };
+      this.removeYellowGreenHighlight(upperPosition);
+    }
+    if (position.rowIndex - 1 >= 0) {
+      const lowerPosition: Coordinates = {
+        rowIndex: position.rowIndex - 1,
+        columnIndex: position.columnIndex
+      };
+      this.removeYellowGreenHighlight(lowerPosition);
+    }
+    if (position.columnIndex + 1 < this.boardDimensions.columnsNumber) {
+      const leftPosition: Coordinates = {
+        rowIndex: position.rowIndex,
+        columnIndex: position.columnIndex + 1
+      };
+      this.removeYellowGreenHighlight(leftPosition);
+    }
+    if (position.columnIndex - 1 >= 0) {
+      const rightPosition: Coordinates = {
+        rowIndex: position.rowIndex,
+        columnIndex: position.columnIndex - 1
+      };
+      this.removeYellowGreenHighlight(rightPosition);
+    }
+  }
 
-  // removeYellowGreenHighlight(rowIndex, columnIndex) {
-  //   const element = document.getElementById(`${rowIndex}${columnIndex}`);
-  //   element.classList.remove("yellowgreen");
-  // },
+  removeDarkGreenHighlight(position: Coordinates): void {
+    const element = document.getElementById(
+      `${position.rowIndex}${position.columnIndex}`
+    );
+    element.classList.remove("darkgreen");
+  }
 
-  // tryToMovePawnTo(rowIndex, columnIndex) {
-  //   if (
-  //     !(
-  //       (rowIndex == this.focused.rowIndex &&
-  //         (columnIndex == this.focused.columnIndex - 1 ||
-  //           columnIndex == this.focused.columnIndex + 1)) ||
-  //       (columnIndex == this.focused.columnIndex &&
-  //         (rowIndex == this.focused.rowIndex - 1 ||
-  //           rowIndex == this.focused.rowIndex + 1))
-  //     )
-  //   )
-  //     return;
+  removeYellowGreenHighlight(position: Coordinates): void {
+    const element = document.getElementById(
+      `${position.rowIndex}${position.columnIndex}`
+    );
+    element.classList.remove("yellowgreen");
+  }
 
-  //   let newRow = this.board.values[rowIndex].slice(0);
-  //   const boardPawn = this.board.values[this.focused.rowIndex][
-  //     this.focused.columnIndex
-  //   ];
+  tryToMovePawnTo(position: Coordinates): void {
+    if (
+      !(
+        (position.rowIndex == this.focused.rowIndex &&
+          (position.columnIndex == this.focused.columnIndex - 1 ||
+            position.columnIndex == this.focused.columnIndex + 1)) ||
+        (position.columnIndex == this.focused.columnIndex &&
+          (position.rowIndex == this.focused.rowIndex - 1 ||
+            position.rowIndex == this.focused.rowIndex + 1))
+      )
+    )
+      return;
 
-  //   // Check if given field hasn't been last position of given pawn, is so end function
-  //   const pawn = this.getPawnById(boardPawn.pawnIndex);
-  //   if (
-  //     pawn.lastPosition &&
-  //     pawn.lastPosition.columnIndex == columnIndex &&
-  //     pawn.lastPosition.rowIndex == rowIndex
-  //   ) {
-  //     return;
-  //   }
+    let newRow = this.boardState[position.rowIndex].slice(0);
+    const boardPawn = this.boardState[this.focused.rowIndex][
+      this.focused.columnIndex
+    ];
 
-  //   pawn.lastPosition = pawn.currentPosition;
-  //   pawn.currentPosition = {
-  //     rowIndex: rowIndex,
-  //     columnIndex: columnIndex,
-  //   };
+    // Check if given field hasn't been last position of given pawn, is so end function
+    const pawn = this.getPawnById(boardPawn.pawnIndex);
+    if (
+      pawn.lastPosition &&
+      pawn.lastPosition.columnIndex == position.columnIndex &&
+      pawn.lastPosition.rowIndex == position.rowIndex
+    ) {
+      return;
+    }
 
-  //   newRow[columnIndex] = pawn;
-  //   this.$set(this.board.values, rowIndex, newRow);
+    pawn.lastPosition = pawn.currentPosition;
+    pawn.currentPosition = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex
+    };
 
-  //   let oldRow = this.board.values[this.focused.rowIndex].slice(0);
-  //   oldRow[this.focused.columnIndex] = this.getEmptyBoardField();
-  //   this.$set(this.board.values, this.focused.rowIndex, oldRow);
+    newRow[position.columnIndex] = pawn;
+    this.$set(this.boardState, position.rowIndex, newRow);
 
-  //   this.removeAvailableMoves(
-  //     this.focused.rowIndex,
-  //     this.focused.columnIndex
-  //   );
-  //   this.focused = null;
+    let oldRow = this.boardState[this.focused.rowIndex].slice(0);
+    oldRow[this.focused.columnIndex] = this.emptyField;
+    this.$set(this.boardState, this.focused.rowIndex, oldRow);
 
-  //   if (
-  //     this.hasPlayerScored(rowIndex, columnIndex, newRow[columnIndex].player)
-  //   ) {
-  //     this.highlightEnemyPawns(pawn.player);
-  //     this.removeStagePlayer = pawn.player;
-  //     return;
-  //   }
+    this.removeAvailableMoves({
+      rowIndex: this.focused.rowIndex,
+      columnIndex: this.focused.columnIndex
+    });
+    this.focused = null;
 
-  //   this.tura = !this.tura;
-  //   this.moveCounter++;
-  // },
+    if (this.hasPlayerScored(position, newRow[position.columnIndex].player)) {
+      this.highlightEnemyPawns(pawn.player);
+      this.removeStagePlayer = pawn.player;
+      return;
+    }
 
-  // highlightEnemyPawns(player) {
-  //   const enemyPawns = this.getEnemyPawns(player);
-  //   let element;
-  //   for (let i = 0; i < enemyPawns.length; i++) {
-  //     element = document.getElementById(
-  //       `${enemyPawns[i].currentPosition.rowIndex}${enemyPawns[i].currentPosition.columnIndex}`
-  //     );
-  //     element.classList.add("yellowgreen");
-  //   }
-  // },
+    this.tura = !this.tura;
+    this.moveCounter++;
+  }
 
-  // removeHighlightFromEnemyPawns(player) {
-  //   const enemyPawns = this.getEnemyPawns(player);
-  //   let element;
-  //   for (let i = 0; i < enemyPawns.length; i++) {
-  //     element = document.getElementById(
-  //       `${enemyPawns[i].currentPosition.rowIndex}${enemyPawns[i].currentPosition.columnIndex}`
-  //     );
-  //     element.classList.remove("yellowgreen");
-  //   }
-  // },
+  highlightEnemyPawns(player: string): void {
+    const enemyPawns = this.getEnemyPawns(player);
+    let element;
+    for (let i = 0; i < enemyPawns.length; i++) {
+      element = document.getElementById(
+        `${enemyPawns[i].currentPosition.rowIndex}${enemyPawns[i].currentPosition.columnIndex}`
+      );
+      element.classList.add("yellowgreen");
+    }
+  }
 
-  // removeEnemyPawn(rowIndex, columnIndex) {
-  //   const targetedPawn = this.board.values[rowIndex][columnIndex];
-  //   if (targetedPawn.player === this.removeStagePlayer) return;
+  removeHighlightFromEnemyPawns(player: string): void {
+    const enemyPawns = this.getEnemyPawns(player);
+    let element;
+    for (let i = 0; i < enemyPawns.length; i++) {
+      element = document.getElementById(
+        `${enemyPawns[i].currentPosition.rowIndex}${enemyPawns[i].currentPosition.columnIndex}`
+      );
+      element.classList.remove("yellowgreen");
+    }
+  }
 
-  //   this.removeHighlightFromEnemyPawns(this.removeStagePlayer);
-  //   this.removePawnById(targetedPawn.pawnIndex);
-  //   this.clearBoardField(rowIndex, columnIndex);
-  //   this.didPlayerWin(this.removeStagePlayer);
-  //   this.removeStagePlayer = null;
-  //   this.tura = !this.tura;
-  //   this.moveCounter++;
-  // },
+  removeEnemyPawn(position: Coordinates): void {
+    const targetedPawn = this.boardState[position.rowIndex][
+      position.columnIndex
+    ];
+    if (targetedPawn.player === this.removeStagePlayer) return;
 
-  // didPlayerWin(player) {
-  //   const enemyPawns = this.getEnemyPawns(player);
-  //   if (enemyPawns.length > 2) return;
-  //   alert(`Gratulacje, wygrał gracz: ${player}`);
-  // },
+    this.removeHighlightFromEnemyPawns(this.removeStagePlayer);
+    this.removePawnById(targetedPawn.pawnIndex);
+    this.clearBoardField(position);
+    this.didPlayerWin(this.removeStagePlayer);
+    this.removeStagePlayer = null;
+    this.tura = !this.tura;
+    this.moveCounter++;
+  }
 
-  // clearBoardField(rowIndex, columnIndex) {
-  //   this.board.values[rowIndex][columnIndex] = this.getEmptyBoardField();
-  // },
+  didPlayerWin(player: string): void {
+    const enemyPawns = this.getEnemyPawns(player);
+    if (enemyPawns.length > 2) return;
+    alert(`Gratulacje, wygrał gracz: ${player}`);
+  }
+
+  clearBoardField(position: Coordinates): void {
+    this.boardState[position.rowIndex][position.columnIndex] = this.emptyField;
+  }
+
+  get emptyField(): Pawn {
+    return {
+      player: null,
+      pawnIndex: null,
+      currentPosition: null,
+      lastPosition: null
+    };
+  }
 
   // getEmptyBoardField() {
   //   return {
@@ -461,167 +483,209 @@ export default class Board extends Vue {
   //   };
   // },
 
-  // removePawnById(id) {
-  //   this.pawns = this.pawns.filter((item) => item.pawnIndex != id);
-  // },
+  removePawnById(id: number): void {
+    this.pawns = this.pawns.filter((item) => item.pawnIndex != id);
+  }
 
-  // getPawnById(id) {
-  //   return this.pawns.find((item) => item.pawnIndex === id);
-  // },
+  getPawnById(id: number): Pawn {
+    return this.pawns.find((item) => item.pawnIndex === id);
+  }
 
-  // getEnemyPawns(player) {
-  //   return this.pawns.filter((item) => {
-  //     if (item.player != player) return item;
-  //   });
-  // },
+  getEnemyPawns(player: string): Pawn[] {
+    return this.pawns.filter((item) => {
+      if (item.player != player) return item;
+    });
+  }
 
-  // hasPlayerScored(rowIndex, columnIndex, player) {
-  //   if (
-  //     this.checkRowsForPoint(rowIndex, columnIndex, player) ||
-  //     this.checkColumnsForPoint(rowIndex, columnIndex, player)
-  //   )
-  //     return true;
-  // },
+  hasPlayerScored(position: Coordinates, player: string): boolean {
+    if (
+      this.checkRowsForPoint(position, player) ||
+      this.checkColumnsForPoint(position, player)
+    )
+      return true;
+  }
 
-  // checkRowsForPoint(rowIndex, columnIndex, player) {
-  //   if (rowIndex === 0)
-  //     return this.checkLowerRows(rowIndex, columnIndex, player);
+  checkRowsForPoint(position: Coordinates, player: string): boolean {
+    if (position.rowIndex === 0) return this.checkUpperRows(position, player);
+    if (position.rowIndex === this.boardDimensions.rowsNumber - 1)
+      return this.checkLowerRows(position, player);
 
-  //   if (rowIndex === this.rowsNumber - 1)
-  //     return this.checkUpperRows(rowIndex, columnIndex, player);
+    return this.checkAroundRow(position, player);
+  }
 
-  //   return this.checkAroundRow(rowIndex, columnIndex, player);
-  // },
+  checkAroundRow(position: Coordinates, player: string): boolean {
+    let positionUnder: Coordinates = {
+      rowIndex: position.rowIndex - 1,
+      columnIndex: position.columnIndex
+    };
+    let positionOver: Coordinates = {
+      rowIndex: position.rowIndex + 1,
+      columnIndex: position.columnIndex
+    };
+    let under = this.isThisPlayerField(positionUnder, player);
+    let over = this.isThisPlayerField(positionOver, player);
 
-  // checkAroundRow(rowIndex, columnIndex, player) {
-  //   let under = this.isThisPlayerField(rowIndex + 1, columnIndex, player);
-  //   let over = this.isThisPlayerField(rowIndex - 1, columnIndex, player);
+    //Czy otaczające należą do gracza?
+    if (under && over) {
+      positionUnder = {
+        rowIndex: position.rowIndex - 2,
+        columnIndex: position.columnIndex
+      };
+      positionOver = {
+        rowIndex: position.rowIndex + 2,
+        columnIndex: position.columnIndex
+      };
+      under = this.isThisPlayerField(positionUnder, player);
+      over = this.isThisPlayerField(positionOver, player);
 
-  //   //Czy otaczające należą do gracza?
-  //   if (under && over) {
-  //     under = this.isThisPlayerField(rowIndex + 2, columnIndex, player);
-  //     over = this.isThisPlayerField(rowIndex - 2, columnIndex, player);
+      //Czy następne pola należą do gracza? (Zasada o mniej niż 4 w rzędzie)
+      if (under || over) return false;
+      return true;
+    }
+    if (under) return this.checkLowerRows(position, player);
+    return this.checkUpperRows(position, player);
+  }
 
-  //     //Czy następne pola należą do gracza? (Zasada o mniej niż 4 w rzędzie)
-  //     if (under || over) return false;
-  //     return true;
-  //   }
-  //   if (under) return this.checkLowerRows(rowIndex, columnIndex, player);
-  //   return this.checkUpperRows(rowIndex, columnIndex, player);
-  // },
+  checkLowerRows(position: Coordinates, player: string): boolean {
+    const firstPosition: Coordinates = {
+      rowIndex: position.rowIndex - 1,
+      columnIndex: position.columnIndex
+    };
+    const secondPosition: Coordinates = {
+      rowIndex: position.rowIndex - 2,
+      columnIndex: position.columnIndex
+    };
+    const thirdPosition: Coordinates = {
+      rowIndex: position.rowIndex - 3,
+      columnIndex: position.columnIndex
+    };
 
-  // checkLowerRows(rowIndex, columnIndex, player) {
-  //   const firstNext = this.isThisPlayerField(
-  //     rowIndex + 1,
-  //     columnIndex,
-  //     player
-  //   );
-  //   const secondNext = this.isThisPlayerField(
-  //     rowIndex + 2,
-  //     columnIndex,
-  //     player
-  //   );
-  //   const thirdNext = this.isThisPlayerField(
-  //     rowIndex + 3,
-  //     columnIndex,
-  //     player
-  //   );
-  //   if (firstNext && secondNext && !thirdNext) return true;
-  // },
+    const firstNext = this.isThisPlayerField(firstPosition, player);
+    const secondNext = this.isThisPlayerField(secondPosition, player);
+    const thirdNext = this.isThisPlayerField(thirdPosition, player);
+    if (firstNext && secondNext && !thirdNext) return true;
+  }
 
-  // checkUpperRows(rowIndex, columnIndex, player) {
-  //   const firstNext = this.isThisPlayerField(
-  //     rowIndex - 1,
-  //     columnIndex,
-  //     player
-  //   );
-  //   const secondNext = this.isThisPlayerField(
-  //     rowIndex - 2,
-  //     columnIndex,
-  //     player
-  //   );
-  //   const thirdNext = this.isThisPlayerField(
-  //     rowIndex - 3,
-  //     columnIndex,
-  //     player
-  //   );
-  //   if (firstNext && secondNext && !thirdNext) return true;
-  // },
+  checkUpperRows(position: Coordinates, player: string): boolean {
+    const firstPosition: Coordinates = {
+      rowIndex: position.rowIndex + 1,
+      columnIndex: position.columnIndex
+    };
+    const secondPosition: Coordinates = {
+      rowIndex: position.rowIndex + 2,
+      columnIndex: position.columnIndex
+    };
+    const thirdPosition: Coordinates = {
+      rowIndex: position.rowIndex + 3,
+      columnIndex: position.columnIndex
+    };
+    const firstNext = this.isThisPlayerField(firstPosition, player);
+    const secondNext = this.isThisPlayerField(secondPosition, player);
+    const thirdNext = this.isThisPlayerField(thirdPosition, player);
+    if (firstNext && secondNext && !thirdNext) return true;
+  }
 
-  // checkColumnsForPoint(rowIndex, columnIndex, player) {
-  //   if (columnIndex === 1)
-  //     return this.checkRightColumns(rowIndex, columnIndex, player);
+  checkColumnsForPoint(position: Coordinates, player: string): boolean {
+    if (position.columnIndex === 0)
+      return this.checkRightColumns(position, player);
 
-  //   if (columnIndex === this.columnsNumber - 1)
-  //     return this.checkLeftColumns(rowIndex, columnIndex, player);
+    if (position.columnIndex === this.boardDimensions.columnsNumber - 1)
+      return this.checkLeftColumns(position, player);
 
-  //   return this.checkAroundColumn(rowIndex, columnIndex, player);
-  // },
+    return this.checkAroundColumn(position, player);
+  }
 
-  // checkAroundColumn(rowIndex, columnIndex, player) {
-  //   let right = this.isThisPlayerField(rowIndex, columnIndex + 1, player);
-  //   let left = this.isThisPlayerField(rowIndex, columnIndex - 1, player);
+  checkAroundColumn(position: Coordinates, player: string): boolean {
+    let rightPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex + 1
+    };
+    let leftPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex - 1
+    };
+    let right = this.isThisPlayerField(rightPosition, player);
+    let left = this.isThisPlayerField(leftPosition, player);
 
-  //   //Czy otaczające należą do gracza?
-  //   if (right && left) {
-  //     right = this.isThisPlayerField(rowIndex, columnIndex + 2, player);
-  //     left = this.isThisPlayerField(rowIndex, columnIndex - 2, player);
+    //Czy otaczające należą do gracza?
+    if (right && left) {
+      rightPosition = {
+        rowIndex: position.rowIndex,
+        columnIndex: position.columnIndex + 2
+      };
+      leftPosition = {
+        rowIndex: position.rowIndex,
+        columnIndex: position.columnIndex - 2
+      };
+      right = this.isThisPlayerField(rightPosition, player);
+      left = this.isThisPlayerField(leftPosition, player);
 
-  //     //Czy następne pola należą do gracza? (Zasada o mniej niż 4 w rzędzie)
-  //     if (right || left) return false;
-  //     return true;
-  //   }
-  //   if (right) return this.checkRightColumns(rowIndex, columnIndex, player);
-  //   return this.checkLeftColumns(rowIndex, columnIndex, player);
-  // },
+      //Czy następne pola należą do gracza? (Zasada o mniej niż 4 w rzędzie)
+      if (right || left) return false;
+      return true;
+    }
+    if (right) return this.checkRightColumns(position, player);
+    return this.checkLeftColumns(position, player);
+  }
 
-  // checkRightColumns(rowIndex, columnIndex, player) {
-  //   const firstNext = this.isThisPlayerField(
-  //     rowIndex,
-  //     columnIndex + 1,
-  //     player
-  //   );
-  //   const secondNext = this.isThisPlayerField(
-  //     rowIndex,
-  //     columnIndex + 2,
-  //     player
-  //   );
-  //   const thirdNext = this.isThisPlayerField(
-  //     rowIndex,
-  //     columnIndex + 3,
-  //     player
-  //   );
-  //   if (firstNext && secondNext && !thirdNext) return true;
-  // },
+  checkRightColumns(position: Coordinates, player: string): boolean {
+    const firstPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex + 1
+    };
+    const secondPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex + 2
+    };
+    const thirdPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex + 3
+    };
 
-  // checkLeftColumns(rowIndex, columnIndex, player) {
-  //   const firstNext = this.isThisPlayerField(
-  //     rowIndex,
-  //     columnIndex - 1,
-  //     player
-  //   );
-  //   const secondNext = this.isThisPlayerField(
-  //     rowIndex,
-  //     columnIndex - 2,
-  //     player
-  //   );
-  //   const thirdNext = this.isThisPlayerField(
-  //     rowIndex,
-  //     columnIndex - 3,
-  //     player
-  //   );
-  //   if (firstNext && secondNext && !thirdNext) return true;
-  // },
+    const firstNext = this.isThisPlayerField(firstPosition, player);
+    const secondNext = this.isThisPlayerField(secondPosition, player);
+    const thirdNext = this.isThisPlayerField(thirdPosition, player);
+    if (firstNext && secondNext && !thirdNext) return true;
+  }
 
-  // isThisPlayerField(rowIndex, columnIndex, player) {
-  //   if (
-  //     rowIndex >= this.rowsNumber ||
-  //     rowIndex < 0 ||
-  //     columnIndex >= this.columnsNumber ||
-  //     columnIndex < 0
-  //   ) {
-  //     return;
-  //   }
+  checkLeftColumns(position: Coordinates, player: string): boolean {
+    const firstPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex - 1
+    };
+    const secondPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex - 2
+    };
+    const thirdPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex - 3
+    };
+    const firstNext = this.isThisPlayerField(firstPosition, player);
+    const secondNext = this.isThisPlayerField(secondPosition, player);
+    const thirdNext = this.isThisPlayerField(thirdPosition, player);
+    if (firstNext && secondNext && !thirdNext) return true;
+  }
+
+  isCoordinateOutOfBounds(position: Coordinates): boolean {
+    const rowOutOfBound =
+      position.rowIndex < 0 ||
+      position.rowIndex >= this.boardDimensions.rowsNumber;
+    const columnOutOfBound =
+      position.columnIndex < 0 ||
+      position.columnIndex >= this.boardDimensions.columnsNumber;
+    if (rowOutOfBound || columnOutOfBound) {
+      return true;
+    }
+  }
+
+  isThisPlayerField(position: Coordinates, player: string): boolean {
+    if (this.isCoordinateOutOfBounds(position)) {
+      return false;
+    }
+    const field = this.boardState[position.rowIndex][position.columnIndex];
+    return field && field.player === player;
+  }
 
   //   return this.board.values[rowIndex][columnIndex].player === player;
   // },
