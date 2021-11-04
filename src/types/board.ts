@@ -10,12 +10,12 @@ export interface BoardDimensions {
   rowsNumber: number;
 }
 
-export interface BoardField {
-  player: player;
-  pawnIndex: number;
-  currentPosition: Coordinates;
-  lastPosition?: Coordinates;
-}
+// export interface BoardField {
+//   player: player;
+//   pawnIndex: number;
+//   currentPosition: Coordinates;
+//   lastPosition?: Coordinates;
+// }
 
 export interface Pawn {
   player: string;
