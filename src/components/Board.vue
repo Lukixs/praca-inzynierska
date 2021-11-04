@@ -103,11 +103,8 @@ export default class Board extends Vue {
 
   pawnsMovingStageController(position: Coordinates): void {
     const isTaken = this.isGivenFieldTaken(position);
-    if (isTaken) {
-      this.pawnsMovingStageControllerOccupiedField(position);
-    } else {
-      this.pawnsMovingStageControllerEmptyField(position);
-    }
+    if (isTaken) this.pawnsMovingStageControllerOccupiedField(position);
+    else this.pawnsMovingStageControllerEmptyField(position);
   }
 
   pawnsMovingStageControllerEmptyField(position: Coordinates): void {
