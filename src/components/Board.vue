@@ -161,7 +161,7 @@ export default class Board extends Vue {
   createWhitePawn(position: Coordinates, moveCounter: number): Pawn {
     return {
       player: "white",
-      pawnIndex: moveCounter,
+      index: moveCounter,
       currentPosition: {
         rowIndex: position.rowIndex,
         columnIndex: position.columnIndex,
@@ -172,7 +172,7 @@ export default class Board extends Vue {
   createBlackPawn(position: Coordinates, moveCounter: number): Pawn {
     return {
       player: "black",
-      pawnIndex: moveCounter,
+      index: moveCounter,
       currentPosition: {
         rowIndex: position.rowIndex,
         columnIndex: position.columnIndex,
@@ -375,7 +375,7 @@ export default class Board extends Vue {
     ];
 
     // Check if given field hasn't been last position of given pawn, is so end function
-    const pawn = this.getPawnById(boardPawn.pawnIndex);
+    const pawn = this.getPawnById(boardPawn.index);
     if (
       pawn.lastPosition &&
       pawn.lastPosition.columnIndex == position.columnIndex &&
@@ -442,7 +442,7 @@ export default class Board extends Vue {
     if (targetedPawn.player === this.removeStagePlayer) return;
 
     this.removeHighlightFromEnemyPawns(this.removeStagePlayer);
-    this.removePawnById(targetedPawn.pawnIndex);
+    this.removePawnById(targetedPawn.index);
     this.clearBoardField(position);
     this.didPlayerWin(this.removeStagePlayer);
     this.removeStagePlayer = null;
@@ -463,7 +463,7 @@ export default class Board extends Vue {
   get emptyField(): Pawn {
     return {
       player: null,
-      pawnIndex: null,
+      index: null,
       currentPosition: null,
       lastPosition: null,
     };
@@ -479,11 +479,11 @@ export default class Board extends Vue {
   // },
 
   removePawnById(id: number): void {
-    this.pawns = this.pawns.filter((item) => item.pawnIndex != id);
+    this.pawns = this.pawns.filter((item) => item.index != id);
   }
 
   getPawnById(id: number): Pawn {
-    return this.pawns.find((item) => item.pawnIndex === id);
+    return this.pawns.find((item) => item.index === id);
   }
 
   getEnemyPawns(player: string): Pawn[] {

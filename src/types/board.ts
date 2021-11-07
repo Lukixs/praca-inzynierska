@@ -1,4 +1,4 @@
-type player = "white" | "black";
+export type Player = "white" | "black";
 
 export interface Coordinates {
   rowIndex: number;
@@ -18,8 +18,10 @@ export interface BoardDimensions {
 // }
 
 export interface Pawn {
-  player: string;
-  pawnIndex: number;
+  player: Player;
+  index: number;
   currentPosition: Coordinates;
   lastPosition?: Coordinates;
 }
+
+export type BoardState = Pawn[][];

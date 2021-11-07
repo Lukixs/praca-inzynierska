@@ -35,8 +35,8 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import { Coordinates, BoardDimensions, Pawn } from "../types/board";
-// import minimax from "../helpers/minimax.js";
+import { Coordinates, BoardDimensions, Pawn, Player } from "../types/board";
+import minimaxHelper from "../helpers/minimaxHelper";
 
 @Component({
   props: {
@@ -71,7 +71,7 @@ export default class Board extends Vue {
   get emptyField(): Pawn {
     return {
       player: null,
-      pawnIndex: null,
+      index: null,
       currentPosition: null,
       lastPosition: null,
     };
@@ -158,7 +158,7 @@ export default class Board extends Vue {
   createWhitePawn(position: Coordinates, moveCounter: number): Pawn {
     return {
       player: "white",
-      pawnIndex: moveCounter,
+      index: moveCounter,
       currentPosition: {
         rowIndex: position.rowIndex,
         columnIndex: position.columnIndex,
@@ -169,7 +169,7 @@ export default class Board extends Vue {
   createBlackPawn(position: Coordinates, moveCounter: number): Pawn {
     return {
       player: "black",
-      pawnIndex: moveCounter,
+      index: moveCounter,
       currentPosition: {
         rowIndex: position.rowIndex,
         columnIndex: position.columnIndex,
@@ -415,9 +415,9 @@ export default class Board extends Vue {
 
     this.tura = !this.tura;
     this.moveCounter++;
-    // const board = this.board.values;
-    // const currentPlayer = pawn.player;
-    // this.movePawnByAI(currentPlayer, board);
+    const board = this.boardState;
+    const currentPlayer = pawn.player;
+    this.movePawnByAI(currentPlayer, board);
   }
 
   emptyGivenField(position: Coordinates): void {
@@ -487,7 +487,7 @@ export default class Board extends Vue {
     if ([coreValue + 1, coreValue - 1].includes(aroundValue)) return true;
   }
 
-  // getBoardStateWithPawns(board, pawns) {
+  // getBoardStateWithPawns(board: Pawn[][], pawns: Pawn[]) {
   //   let boardState = Array(board.length)
   //     .fill(null)
   //     .map(() => Array(this.board.columnsNumber).fill(null));
@@ -505,53 +505,53 @@ export default class Board extends Vue {
   //     }
   //   }
   //   return boardState;
-  // },
+  // }
 
-  // movePawnByAI(currentPlayer, board) {
-  //   // const currentPlayer = enemy == "white" ? enemy : "black";
-  //   const pawns = this.pawns;
-  //   const enemy = currentPlayer == "white" ? "black" : "white";
-  //   const boardState = this.getBoardStateWithPawns(board, pawns);
-  //   // const values = JSON.parse(JSON.stringify(board));
-  //   const mini = minimax.minimax({ boardState: boardState }, 3, enemy);
-  //   console.log("Wynik", mini);
-  //   const miniMaxResult = mini.bestMove;
-  //   const pawnToRemove = mini.pawnToRemove;
+  movePawnByAI(currentPlayer: string, board: Pawn[][]): void {
+    // const currentPlayer = enemy == "white" ? enemy : "black";
+    // const pawns = this.pawns;
+    // const enemy = currentPlayer == "white" ? "black" : "white";
+    const player: Player = currentPlayer == "white" ? "black" : "white";
+    // const boardState = this.getBoardStateWithPawns(board, pawns);
+    const boardState = JSON.parse(JSON.stringify(board));
+    const mini = minimaxHelper.minimax({ boardState: boardState }, 5, player);
+    console.log("Wynik dla gracza " + player, mini);
+    // const miniMaxResult = mini.bestMove;
+    // const pawnToRemove = mini.pawnToRemove;
 
-  //   // Wykoanie ruchu według miniMaxa
-  //   let newRow = this.board.values[miniMaxResult.direction.rowIndex].slice(0);
-  //   let pawn = miniMaxResult.pawn;
-  //   pawn.lastPosition = pawn.currentPosition;
-  //   pawn.currentPosition = miniMaxResult.direction;
-  //   newRow[miniMaxResult.direction.columnIndex] = pawn;
-  //   this.$set(this.board.values, miniMaxResult.direction.rowIndex, newRow);
+    // // Wykoanie ruchu według miniMaxa
+    // let newRow = this.boardState[miniMaxResult.currentPosition.rowIndex].slice(
+    //   0
+    // );
+    // let pawn = miniMaxResult;
+    // pawn.lastPosition = pawn.currentPosition;
+    // pawn.currentPosition = miniMaxResult.direction;
+    // newRow[miniMaxResult.direction.columnIndex] = pawn;
+    // this.$set(this.boardState, miniMaxResult.direction.rowIndex, newRow);
 
-  //   let oldRow = this.board.values[pawn.lastPosition.rowIndex].slice(0);
-  //   oldRow[pawn.lastPosition.columnIndex] = this.getEmptyBoardField();
-  //   this.$set(this.board.values, pawn.lastPosition.rowIndex, oldRow);
-  //   if (pawnToRemove) {
-  //     this.removePawnById(pawnToRemove.pawnIndex);
-  //     this.clearBoardField(
-  //       pawnToRemove.currentPosition.rowIndex,
-  //       pawnToRemove.currentPosition.columnIndex
-  //     );
-  //   }
+    // let oldRow = this.boardState[pawn.lastPosition.rowIndex].slice(0);
+    // oldRow[pawn.lastPosition.columnIndex] = this.emptyField;
+    // this.$set(this.boardState, pawn.lastPosition.rowIndex, oldRow);
+    // if (pawnToRemove) {
+    //   this.removePawnById(pawnToRemove.pawnIndex);
+    //   this.clearBoardField(pawnToRemove.currentPosition);
+    // }
 
-  //   this.tura = !this.tura;
-  //   this.moveCounter++;
+    this.tura = !this.tura;
+    this.moveCounter++;
 
-  //   // const myPawns = this.getEnemyPawns(enemy);
-  //   // const pawnsWithAvailableMoves = this.getMovablePawn(myPawns);
-  //   // if (pawnsWithAvailableMoves && pawnsWithAvailableMoves.length)
-  //   //   this.movePawnIntoRandomDirection(
-  //   //     pawnsWithAvailableMoves[
-  //   //       Math.floor(Math.random() * pawnsWithAvailableMoves.length)
-  //   //     ]
-  //   //   );
-  //   // else {
-  //   //   alert("Komputer przegrał z powodu braku dostępnych ruchów.");
-  //   // }
-  // },
+    // const myPawns = this.getEnemyPawns(enemy);
+    // const pawnsWithAvailableMoves = this.getMovablePawn(myPawns);
+    // if (pawnsWithAvailableMoves && pawnsWithAvailableMoves.length)
+    //   this.movePawnIntoRandomDirection(
+    //     pawnsWithAvailableMoves[
+    //       Math.floor(Math.random() * pawnsWithAvailableMoves.length)
+    //     ]
+    //   );
+    // else {
+    //   alert("Komputer przegrał z powodu braku dostępnych ruchów.");
+    // }
+  }
 
   // // movePawnIntoRandomDirection(pawn) {
   // //   const availableDirections = this.getAvailableDirectionsForPawn(pawn);
@@ -639,7 +639,7 @@ export default class Board extends Vue {
     if (targetedPawn.player === this.removeStagePlayer) return;
 
     this.removeHighlightFromEnemyPawns(this.removeStagePlayer);
-    this.removePawnById(targetedPawn.pawnIndex);
+    this.removePawnById(targetedPawn.index);
     this.clearBoardField(position);
     this.didPlayerWin(this.removeStagePlayer);
     this.removeStagePlayer = null;
@@ -656,7 +656,9 @@ export default class Board extends Vue {
   }
 
   clearBoardField(position: Coordinates): void {
-    this.boardState[position.rowIndex][position.columnIndex] = this.emptyField;
+    let changedRow = this.boardState[position.rowIndex].slice(0);
+    changedRow[position.columnIndex] = this.emptyField;
+    this.$set(this.boardState, position.rowIndex, changedRow);
   }
 
   // getEmptyBoardField() {
@@ -669,7 +671,7 @@ export default class Board extends Vue {
   // },
 
   removePawnById(id: number): void {
-    this.pawns = this.pawns.filter((item) => item.pawnIndex != id);
+    this.pawns = this.pawns.filter((item) => item.index != id);
   }
 
   // getPawnById(id, pawns) {
