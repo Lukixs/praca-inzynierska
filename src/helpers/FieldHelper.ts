@@ -72,17 +72,17 @@ export default class {
     pawns: Pawn[],
     boardState: BoardState
   ): PawnWithAvailableMoves[] {
-    const availablePawns = [];
+    const availablePawns:PawnWithAvailableMoves[] = [];
 
-    for (let i = 0; i < pawns.length; i++) {
+    pawns.forEach(pawn => {
       const directions = this.getAvailableDirectionsForPawn(
-        pawns[i],
+        pawn,
         boardState
       );
       if (directions.length) {
-        availablePawns.push({ pawn: pawns[i], directions: directions });
+        availablePawns.push({ pawn, directions });
       }
-    }
+    })
     return availablePawns;
   }
 
@@ -90,22 +90,23 @@ export default class {
     pawn: Pawn,
     boardState: BoardState
   ): Coordinates[] {
+    const position = pawn.currentPosition
     const availableDirections: Coordinates[] = [];
     const upDirection: Coordinates = {
-      rowIndex: pawn.currentPosition.rowIndex + 1,
-      columnIndex: pawn.currentPosition.columnIndex,
+      rowIndex: position.rowIndex + 1,
+      columnIndex: position.columnIndex,
     };
     const downDirection: Coordinates = {
-      rowIndex: pawn.currentPosition.rowIndex - 1,
-      columnIndex: pawn.currentPosition.columnIndex,
+      rowIndex: position.rowIndex - 1,
+      columnIndex: position.columnIndex,
     };
     const rightDirection: Coordinates = {
-      rowIndex: pawn.currentPosition.rowIndex,
-      columnIndex: pawn.currentPosition.columnIndex + 1,
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex + 1,
     };
     const leftDirection: Coordinates = {
-      rowIndex: pawn.currentPosition.rowIndex,
-      columnIndex: pawn.currentPosition.columnIndex - 1,
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex - 1,
     };
 
     if (this.isFieldSuitableForPawnToMove(upDirection, pawn, boardState))

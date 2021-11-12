@@ -7,7 +7,6 @@ import FieldHelper from "./FieldHelper";
 
 export default class {
   static findBlackPawnToRemove(node: MinimaxNode, depth: number): Minimax {
-    const newNode: MinimaxNode = { boardState: null };
     let maxEval = minimaxValues.MIN;
     const enemyPawns = FieldHelper.getEnemyPlayerPawnsFromBoard(
       node.movedPawn.player,
@@ -17,13 +16,13 @@ export default class {
     let pawnToRemove: Pawn;
 
     enemyPawns.forEach((pawn) => {
-      newNode.boardState = JSON.parse(JSON.stringify(node.boardState));
-      newNode.boardState = fieldHelper.removePawnFromBoard(
+       let boardState = JSON.parse(JSON.stringify(node.boardState));
+       boardState = fieldHelper.removePawnFromBoard(
         pawn,
-        newNode.boardState
+        boardState
       );
-      const evaluation: number = minimaxHelper.minimax(
-        newNode,
+      const evaluation: number = minimaxHelper.minimaxAfterScoring(
+        {boardState, movedPawn: node.movedPawn},
         depth,
         pawn.player
       ).value;
@@ -32,11 +31,10 @@ export default class {
         maxEval = evaluation;
       }
     });
-    return { value: maxEval, pawnToRemove };
+    return { value: maxEval, pawnToRemove:pawnToRemove, bestMove:node.movedPawn };
   }
 
   static findWhitePawnToRemove(node: MinimaxNode, depth: number): Minimax {
-    const newNode: MinimaxNode = { boardState: null };
     let minEval = minimaxValues.MAX;
     const enemyPawns = FieldHelper.getEnemyPlayerPawnsFromBoard(
       node.movedPawn.player,
@@ -46,13 +44,13 @@ export default class {
     let pawnToRemove: Pawn;
 
     enemyPawns.forEach((pawn) => {
-      newNode.boardState = JSON.parse(JSON.stringify(node.boardState));
-      newNode.boardState = fieldHelper.removePawnFromBoard(
+      let boardState = JSON.parse(JSON.stringify(node.boardState));
+       boardState = fieldHelper.removePawnFromBoard(
         pawn,
-        newNode.boardState
+        boardState
       );
-      const evaluation: number = minimaxHelper.minimax(
-        newNode,
+      const evaluation: number = minimaxHelper.minimaxAfterScoring(
+        {boardState, movedPawn: node.movedPawn},
         depth,
         pawn.player
       ).value;
@@ -61,6 +59,6 @@ export default class {
         minEval = evaluation;
       }
     });
-    return { value: minEval, pawnToRemove };
+    return { value: minEval, pawnToRemove, bestMove:node.movedPawn };
   }
 }

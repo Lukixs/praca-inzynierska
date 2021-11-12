@@ -41,9 +41,9 @@ import minimaxHelper from "../helpers/minimaxHelper";
 @Component({
   props: {
     msg: {
-      type: String,
-    },
-  },
+      type: String
+    }
+  }
 })
 export default class Board extends Vue {
   // name: 'Board',
@@ -55,7 +55,7 @@ export default class Board extends Vue {
   focused: Coordinates; // {rowIndex, columnIndex}   Aktualnie wybrany pionek
   boardDimensions: BoardDimensions = {
     columnsNumber: 6,
-    rowsNumber: 5,
+    rowsNumber: 5
     // { player: 'black', pawnIndex: '0' }
     // rows: Array(8).fill(null),
   };
@@ -73,7 +73,7 @@ export default class Board extends Vue {
       player: null,
       index: null,
       currentPosition: null,
-      lastPosition: null,
+      lastPosition: null
     };
   }
 
@@ -161,8 +161,8 @@ export default class Board extends Vue {
       index: moveCounter,
       currentPosition: {
         rowIndex: position.rowIndex,
-        columnIndex: position.columnIndex,
-      },
+        columnIndex: position.columnIndex
+      }
     };
   }
 
@@ -172,8 +172,8 @@ export default class Board extends Vue {
       index: moveCounter,
       currentPosition: {
         rowIndex: position.rowIndex,
-        columnIndex: position.columnIndex,
-      },
+        columnIndex: position.columnIndex
+      }
     };
   }
 
@@ -204,7 +204,7 @@ export default class Board extends Vue {
         if (!boardState[i][j].player)
           emptyFields.push({
             rowIndex: i,
-            columnIndex: j,
+            columnIndex: j
           });
       }
     }
@@ -224,7 +224,7 @@ export default class Board extends Vue {
   setFocused(position: Coordinates): void {
     this.focused = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex,
+      columnIndex: position.columnIndex
     };
   }
 
@@ -242,7 +242,7 @@ export default class Board extends Vue {
 
     this.removeAvailableMoves({
       rowIndex: this.focused.rowIndex,
-      columnIndex: this.focused.columnIndex,
+      columnIndex: this.focused.columnIndex
     });
     this.drawAvailableMoves(position);
     this.setFocused(position);
@@ -298,19 +298,19 @@ export default class Board extends Vue {
 
     const upperPosition: Coordinates = {
       rowIndex: position.rowIndex + 1,
-      columnIndex: position.columnIndex,
+      columnIndex: position.columnIndex
     };
     const lowerPosition: Coordinates = {
       rowIndex: position.rowIndex - 1,
-      columnIndex: position.columnIndex,
+      columnIndex: position.columnIndex
     };
     const leftPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex + 1,
+      columnIndex: position.columnIndex + 1
     };
     const rightPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex - 1,
+      columnIndex: position.columnIndex - 1
     };
 
     if (this.isFieldSuitableToMoveForGivenPawn(upperPosition, movingPawn)) {
@@ -347,28 +347,28 @@ export default class Board extends Vue {
     if (position.rowIndex + 1 < this.boardDimensions.rowsNumber) {
       const upperPosition: Coordinates = {
         rowIndex: position.rowIndex + 1,
-        columnIndex: position.columnIndex,
+        columnIndex: position.columnIndex
       };
       this.removeYellowGreenHighlight(upperPosition);
     }
     if (position.rowIndex - 1 >= 0) {
       const lowerPosition: Coordinates = {
         rowIndex: position.rowIndex - 1,
-        columnIndex: position.columnIndex,
+        columnIndex: position.columnIndex
       };
       this.removeYellowGreenHighlight(lowerPosition);
     }
     if (position.columnIndex + 1 < this.boardDimensions.columnsNumber) {
       const leftPosition: Coordinates = {
         rowIndex: position.rowIndex,
-        columnIndex: position.columnIndex + 1,
+        columnIndex: position.columnIndex + 1
       };
       this.removeYellowGreenHighlight(leftPosition);
     }
     if (position.columnIndex - 1 >= 0) {
       const rightPosition: Coordinates = {
         rowIndex: position.rowIndex,
-        columnIndex: position.columnIndex - 1,
+        columnIndex: position.columnIndex - 1
       };
       this.removeYellowGreenHighlight(rightPosition);
     }
@@ -407,7 +407,10 @@ export default class Board extends Vue {
     this.removeAvailableMoves(focused);
     this.emptyFocused();
 
-    if (this.hasPlayerScored(pawn.currentPosition, pawn.player)) {
+    if (
+      pawn.player == "white" &&
+      this.hasPlayerScored(pawn.currentPosition, pawn.player)
+    ) {
       this.highlightEnemyPawns(pawn.player);
       this.removeStagePlayer = pawn.player;
       return;
@@ -507,35 +510,47 @@ export default class Board extends Vue {
   //   return boardState;
   // }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   movePawnByAI(currentPlayer: string, board: Pawn[][]): void {
+    console.log({ StanPlanszyOtrzymany: this.boardState });
     // const currentPlayer = enemy == "white" ? enemy : "black";
     // const pawns = this.pawns;
     // const enemy = currentPlayer == "white" ? "black" : "white";
     const player: Player = currentPlayer == "white" ? "black" : "white";
     // const boardState = this.getBoardStateWithPawns(board, pawns);
-    const boardState = JSON.parse(JSON.stringify(board));
+    const boardState = JSON.parse(JSON.stringify(this.boardState));
     const mini = minimaxHelper.minimax({ boardState: boardState }, 5, player);
-    console.log("Wynik dla gracza " + player, mini);
+    console.log(player, mini);
+    // console.log({
+    //   info:
+    //     "Ruszył pionek o id: " +
+    //     mini.bestMove.index +
+    //     " w ruchu gracza *" +
+    //     player,
+    //   z: mini.bestMove.lastPosition,
+    //   do: mini.bestMove.currentPosition,
+    //   stanPlanszyPrzed: boardState
+    // });
     // const miniMaxResult = mini.bestMove;
     // const pawnToRemove = mini.pawnToRemove;
 
-    // // Wykoanie ruchu według miniMaxa
-    // let newRow = this.boardState[miniMaxResult.currentPosition.rowIndex].slice(
-    //   0
-    // );
-    // let pawn = miniMaxResult;
-    // pawn.lastPosition = pawn.currentPosition;
-    // pawn.currentPosition = miniMaxResult.direction;
-    // newRow[miniMaxResult.direction.columnIndex] = pawn;
-    // this.$set(this.boardState, miniMaxResult.direction.rowIndex, newRow);
+    // Wykoanie ruchu według miniMaxa
 
-    // let oldRow = this.boardState[pawn.lastPosition.rowIndex].slice(0);
-    // oldRow[pawn.lastPosition.columnIndex] = this.emptyField;
-    // this.$set(this.boardState, pawn.lastPosition.rowIndex, oldRow);
-    // if (pawnToRemove) {
-    //   this.removePawnById(pawnToRemove.pawnIndex);
-    //   this.clearBoardField(pawnToRemove.currentPosition);
-    // }
+    let oldRow = this.boardState[mini.bestMove.lastPosition.rowIndex].slice(0);
+    oldRow[mini.bestMove.lastPosition.columnIndex] = this.emptyField;
+    this.$set(this.boardState, mini.bestMove.lastPosition.rowIndex, oldRow);
+
+    let newRow = this.boardState[mini.bestMove.currentPosition.rowIndex].slice(
+      0
+    );
+    newRow[mini.bestMove.currentPosition.columnIndex] = mini.bestMove;
+    this.$set(this.boardState, mini.bestMove.currentPosition.rowIndex, newRow);
+
+    if (mini.pawnToRemove && mini.pawnToRemove.player != player) {
+      this.removePawnById(mini.pawnToRemove.index);
+      this.clearBoardField(mini.pawnToRemove.currentPosition);
+      this.didPlayerWin(mini.bestMove.player);
+    }
 
     this.tura = !this.tura;
     this.moveCounter++;
@@ -645,7 +660,9 @@ export default class Board extends Vue {
     this.removeStagePlayer = null;
     this.tura = !this.tura;
     this.moveCounter++;
-    // this.movePawnByAI(currentPlayer, board);
+    const board = this.boardState;
+    const currentPlayer = "white";
+    this.movePawnByAI(currentPlayer, board);
   }
 
   didPlayerWin(player: string): void {
@@ -714,11 +731,11 @@ export default class Board extends Vue {
   checkAroundRow(position: Coordinates, player: string): boolean {
     let positionUnder: Coordinates = {
       rowIndex: position.rowIndex - 1,
-      columnIndex: position.columnIndex,
+      columnIndex: position.columnIndex
     };
     let positionOver: Coordinates = {
       rowIndex: position.rowIndex + 1,
-      columnIndex: position.columnIndex,
+      columnIndex: position.columnIndex
     };
     let under = this.isThisPlayerField(positionUnder, player);
     let over = this.isThisPlayerField(positionOver, player);
@@ -727,11 +744,11 @@ export default class Board extends Vue {
     if (under && over) {
       positionUnder = {
         rowIndex: position.rowIndex - 2,
-        columnIndex: position.columnIndex,
+        columnIndex: position.columnIndex
       };
       positionOver = {
         rowIndex: position.rowIndex + 2,
-        columnIndex: position.columnIndex,
+        columnIndex: position.columnIndex
       };
       under = this.isThisPlayerField(positionUnder, player);
       over = this.isThisPlayerField(positionOver, player);
@@ -746,15 +763,15 @@ export default class Board extends Vue {
   checkLowerRows(position: Coordinates, player: string): boolean {
     const firstPosition: Coordinates = {
       rowIndex: position.rowIndex - 1,
-      columnIndex: position.columnIndex,
+      columnIndex: position.columnIndex
     };
     const secondPosition: Coordinates = {
       rowIndex: position.rowIndex - 2,
-      columnIndex: position.columnIndex,
+      columnIndex: position.columnIndex
     };
     const thirdPosition: Coordinates = {
       rowIndex: position.rowIndex - 3,
-      columnIndex: position.columnIndex,
+      columnIndex: position.columnIndex
     };
 
     const firstNext = this.isThisPlayerField(firstPosition, player);
@@ -765,15 +782,15 @@ export default class Board extends Vue {
   checkUpperRows(position: Coordinates, player: string): boolean {
     const firstPosition: Coordinates = {
       rowIndex: position.rowIndex + 1,
-      columnIndex: position.columnIndex,
+      columnIndex: position.columnIndex
     };
     const secondPosition: Coordinates = {
       rowIndex: position.rowIndex + 2,
-      columnIndex: position.columnIndex,
+      columnIndex: position.columnIndex
     };
     const thirdPosition: Coordinates = {
       rowIndex: position.rowIndex + 3,
-      columnIndex: position.columnIndex,
+      columnIndex: position.columnIndex
     };
     const firstNext = this.isThisPlayerField(firstPosition, player);
     const secondNext = this.isThisPlayerField(secondPosition, player);
@@ -794,11 +811,11 @@ export default class Board extends Vue {
   checkAroundColumn(position: Coordinates, player: string): boolean {
     let rightPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex + 1,
+      columnIndex: position.columnIndex + 1
     };
     let leftPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex - 1,
+      columnIndex: position.columnIndex - 1
     };
     let right = this.isThisPlayerField(rightPosition, player);
     let left = this.isThisPlayerField(leftPosition, player);
@@ -807,11 +824,11 @@ export default class Board extends Vue {
     if (right && left) {
       rightPosition = {
         rowIndex: position.rowIndex,
-        columnIndex: position.columnIndex + 2,
+        columnIndex: position.columnIndex + 2
       };
       leftPosition = {
         rowIndex: position.rowIndex,
-        columnIndex: position.columnIndex - 2,
+        columnIndex: position.columnIndex - 2
       };
       right = this.isThisPlayerField(rightPosition, player);
       left = this.isThisPlayerField(leftPosition, player);
@@ -827,15 +844,15 @@ export default class Board extends Vue {
   checkRightColumns(position: Coordinates, player: string): boolean {
     const firstPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex + 1,
+      columnIndex: position.columnIndex + 1
     };
     const secondPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex + 2,
+      columnIndex: position.columnIndex + 2
     };
     const thirdPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex + 3,
+      columnIndex: position.columnIndex + 3
     };
 
     const firstNext = this.isThisPlayerField(firstPosition, player);
@@ -847,15 +864,15 @@ export default class Board extends Vue {
   checkLeftColumns(position: Coordinates, player: string): boolean {
     const firstPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex - 1,
+      columnIndex: position.columnIndex - 1
     };
     const secondPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex - 2,
+      columnIndex: position.columnIndex - 2
     };
     const thirdPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex - 3,
+      columnIndex: position.columnIndex - 3
     };
     const firstNext = this.isThisPlayerField(firstPosition, player);
     const secondNext = this.isThisPlayerField(secondPosition, player);

@@ -1,5 +1,5 @@
 import { Minimax, MinimaxNode, PawnWithAvailableMoves } from "../types/minimax";
-import { Player } from "../types/board";
+import { Coordinates, Pawn, Player } from "../types/board";
 import PlayerScoreHelper from "./PlayerScoreHelper";
 import PawnToRemoveHelper from "./PawnToRemoveHelper";
 import { minimaxValues } from "./BoardInfo";
@@ -29,6 +29,21 @@ export default class {
     return result;
   }
 
+  public static minimaxAfterScoring(
+    node: MinimaxNode,
+    depth: number,
+    maximizingPlayer: Player
+  ): Minimax {
+    if (depth == 0) return this.evaluateFinalBoardState(node);
+
+    if (maximizingPlayer == "white") {
+      const result: Minimax = this.handleWhitePlayerTurn(node, depth);
+      return result;
+    }
+    const result: Minimax = this.handleBlackPlayerTurn(node, depth);
+    return result;
+  }
+
   static handlePreviousPlayerScored(node: MinimaxNode, depth: number): Minimax {
     const isTerminal = PlayerScoreHelper.isGameOver(node);
     if (isTerminal) {
@@ -36,19 +51,24 @@ export default class {
       return { value: -10000 };
     }
 
+    const newNode: MinimaxNode = node;
+    newNode.boardState = JSON.parse(JSON.stringify(node.boardState))
+
     if (node.movedPawn.player == "white") {
       const optimalPawnToRemove: Minimax = PawnToRemoveHelper.findBlackPawnToRemove(
-        node,
+        newNode,
         depth
       );
       optimalPawnToRemove.value = optimalPawnToRemove.value + 20;
+      optimalPawnToRemove.isPawnToRemoveFresh = true;
       return optimalPawnToRemove;
     }
     const optimalPawnToRemove: Minimax = PawnToRemoveHelper.findWhitePawnToRemove(
-      node,
+      newNode,
       depth
     );
     optimalPawnToRemove.value = optimalPawnToRemove.value - 20;
+    optimalPawnToRemove.isPawnToRemoveFresh = true;
     return optimalPawnToRemove;
   }
 
@@ -58,7 +78,9 @@ export default class {
   ): Minimax {
     const maximizingPlayer: Player = "white";
 
-    let result: Minimax;
+    let givenResult: Minimax;
+    let pawnToMove: Pawn;
+    let intoDirection: Coordinates;
     let maxEval = minimaxValues.MIN;
 
     const playerPawns = FieldHelper.getPlayerPawnsFromBoard(
@@ -84,10 +106,16 @@ export default class {
         );
         if (minimaxResult.value > maxEval) {
           maxEval = minimaxResult.value;
-          result = minimaxResult;
+          givenResult = minimaxResult;
+          pawnToMove = pawnWithMoves.pawn;
+          intoDirection = direction;
         }
       });
     });
+    const resultBoardState: Pawn[][] = JSON.parse(JSON.stringify(node.boardState));
+    const resultNode:MinimaxNode = FieldHelper.nodeAfterPawnMoveIntoDirection(pawnToMove,intoDirection,resultBoardState)
+
+    const result:Minimax = {bestMove:resultNode.movedPawn, value: maxEval, pawnToRemove:givenResult.isPawnToRemoveFresh?givenResult.pawnToRemove:undefined}
     return result;
   }
 
@@ -97,7 +125,9 @@ export default class {
   ): Minimax {
     const maximizingPlayer: Player = "black";
 
-    let result: Minimax;
+    let givenResult:Minimax;
+    let pawnToMove: Pawn;
+    let intoDirection: Coordinates;
     let minEval = minimaxValues.MAX;
 
     const playerPawns = FieldHelper.getPlayerPawnsFromBoard(
@@ -123,10 +153,15 @@ export default class {
         );
         if (minimaxResult.value < minEval) {
           minEval = minimaxResult.value;
-          result = minimaxResult;
+          givenResult = minimaxResult;
+          pawnToMove = pawnWithMoves.pawn;
+          intoDirection = direction;
         }
       });
     });
+    const resultBoardState: Pawn[][] = JSON.parse(JSON.stringify(node.boardState));
+    const resultNode:MinimaxNode = FieldHelper.nodeAfterPawnMoveIntoDirection(pawnToMove,intoDirection,resultBoardState)
+    const result:Minimax = {bestMove:resultNode.movedPawn, value: minEval, pawnToRemove:givenResult.isPawnToRemoveFresh?givenResult.pawnToRemove:undefined}
     return result;
   }
 

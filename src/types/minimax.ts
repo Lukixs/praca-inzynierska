@@ -10,6 +10,7 @@ export interface Minimax {
   value: number;
   bestMove?: Pawn;
   pawnToRemove?: Pawn;
+  isPawnToRemoveFresh?:boolean;
 }
 
 export interface PawnWithAvailableMoves {
