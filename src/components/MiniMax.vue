@@ -37,13 +37,14 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Coordinates, BoardDimensions, Pawn, Player } from "../types/board";
 import minimaxHelper from "../helpers/minimaxHelper";
+import FieldHelper from "../helpers/FieldHelper";
 
 @Component({
   props: {
     msg: {
-      type: String
-    }
-  }
+      type: String,
+    },
+  },
 })
 export default class Board extends Vue {
   // name: 'Board',
@@ -51,11 +52,11 @@ export default class Board extends Vue {
   tura = true;
   removeStagePlayer: string;
   moveCounter = 1;
-  firstStageMovesLimit = 8;
+  firstStageMovesLimit = 24;
   focused: Coordinates; // {rowIndex, columnIndex}   Aktualnie wybrany pionek
   boardDimensions: BoardDimensions = {
     columnsNumber: 6,
-    rowsNumber: 5
+    rowsNumber: 5,
     // { player: 'black', pawnIndex: '0' }
     // rows: Array(8).fill(null),
   };
@@ -73,7 +74,7 @@ export default class Board extends Vue {
       player: null,
       index: null,
       currentPosition: null,
-      lastPosition: null
+      lastPosition: null,
     };
   }
 
@@ -161,8 +162,8 @@ export default class Board extends Vue {
       index: moveCounter,
       currentPosition: {
         rowIndex: position.rowIndex,
-        columnIndex: position.columnIndex
-      }
+        columnIndex: position.columnIndex,
+      },
     };
   }
 
@@ -172,8 +173,8 @@ export default class Board extends Vue {
       index: moveCounter,
       currentPosition: {
         rowIndex: position.rowIndex,
-        columnIndex: position.columnIndex
-      }
+        columnIndex: position.columnIndex,
+      },
     };
   }
 
@@ -204,7 +205,7 @@ export default class Board extends Vue {
         if (!boardState[i][j].player)
           emptyFields.push({
             rowIndex: i,
-            columnIndex: j
+            columnIndex: j,
           });
       }
     }
@@ -224,7 +225,7 @@ export default class Board extends Vue {
   setFocused(position: Coordinates): void {
     this.focused = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex
+      columnIndex: position.columnIndex,
     };
   }
 
@@ -242,7 +243,7 @@ export default class Board extends Vue {
 
     this.removeAvailableMoves({
       rowIndex: this.focused.rowIndex,
-      columnIndex: this.focused.columnIndex
+      columnIndex: this.focused.columnIndex,
     });
     this.drawAvailableMoves(position);
     this.setFocused(position);
@@ -298,19 +299,19 @@ export default class Board extends Vue {
 
     const upperPosition: Coordinates = {
       rowIndex: position.rowIndex + 1,
-      columnIndex: position.columnIndex
+      columnIndex: position.columnIndex,
     };
     const lowerPosition: Coordinates = {
       rowIndex: position.rowIndex - 1,
-      columnIndex: position.columnIndex
+      columnIndex: position.columnIndex,
     };
     const leftPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex + 1
+      columnIndex: position.columnIndex + 1,
     };
     const rightPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex - 1
+      columnIndex: position.columnIndex - 1,
     };
 
     if (this.isFieldSuitableToMoveForGivenPawn(upperPosition, movingPawn)) {
@@ -347,28 +348,28 @@ export default class Board extends Vue {
     if (position.rowIndex + 1 < this.boardDimensions.rowsNumber) {
       const upperPosition: Coordinates = {
         rowIndex: position.rowIndex + 1,
-        columnIndex: position.columnIndex
+        columnIndex: position.columnIndex,
       };
       this.removeYellowGreenHighlight(upperPosition);
     }
     if (position.rowIndex - 1 >= 0) {
       const lowerPosition: Coordinates = {
         rowIndex: position.rowIndex - 1,
-        columnIndex: position.columnIndex
+        columnIndex: position.columnIndex,
       };
       this.removeYellowGreenHighlight(lowerPosition);
     }
     if (position.columnIndex + 1 < this.boardDimensions.columnsNumber) {
       const leftPosition: Coordinates = {
         rowIndex: position.rowIndex,
-        columnIndex: position.columnIndex + 1
+        columnIndex: position.columnIndex + 1,
       };
       this.removeYellowGreenHighlight(leftPosition);
     }
     if (position.columnIndex - 1 >= 0) {
       const rightPosition: Coordinates = {
         rowIndex: position.rowIndex,
-        columnIndex: position.columnIndex - 1
+        columnIndex: position.columnIndex - 1,
       };
       this.removeYellowGreenHighlight(rightPosition);
     }
@@ -420,6 +421,13 @@ export default class Board extends Vue {
     this.moveCounter++;
     const board = this.boardState;
     const currentPlayer = pawn.player;
+    const enemyPlayer: Player = pawn.player == "white" ? "black" : "white";
+    if (FieldHelper.isPlayerOutOfMoves(enemyPlayer, this.boardState)) {
+      alert(
+        `Niestety graczowi ${enemyPlayer} nie posiada możliwości ruchu, przez co następuje remis`
+      );
+      return;
+    }
     this.movePawnByAI(currentPlayer, board);
   }
 
@@ -513,43 +521,42 @@ export default class Board extends Vue {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   movePawnByAI(currentPlayer: string, board: Pawn[][]): void {
     console.log({ StanPlanszyOtrzymany: this.boardState });
-    // const currentPlayer = enemy == "white" ? enemy : "black";
-    // const pawns = this.pawns;
-    // const enemy = currentPlayer == "white" ? "black" : "white";
     const player: Player = currentPlayer == "white" ? "black" : "white";
+    const enemyPlayer: Player = player == "white" ? "black" : "white";
     // const boardState = this.getBoardStateWithPawns(board, pawns);
     const boardState = JSON.parse(JSON.stringify(this.boardState));
-    const mini = minimaxHelper.minimax({ boardState: boardState }, 5, player);
+    const mini = minimaxHelper.minimax({ boardState: boardState }, 3, player);
     console.log(player, mini);
-    // console.log({
-    //   info:
-    //     "Ruszył pionek o id: " +
-    //     mini.bestMove.index +
-    //     " w ruchu gracza *" +
-    //     player,
-    //   z: mini.bestMove.lastPosition,
-    //   do: mini.bestMove.currentPosition,
-    //   stanPlanszyPrzed: boardState
-    // });
-    // const miniMaxResult = mini.bestMove;
-    // const pawnToRemove = mini.pawnToRemove;
-
+    if (!mini.bestMove) {
+      alert(`Gratulacje, wygrał gracz: ${currentPlayer}`);
+      return;
+    }
     // Wykoanie ruchu według miniMaxa
 
-    let oldRow = this.boardState[mini.bestMove.lastPosition.rowIndex].slice(0);
-    oldRow[mini.bestMove.lastPosition.columnIndex] = this.emptyField;
-    this.$set(this.boardState, mini.bestMove.lastPosition.rowIndex, oldRow);
+    // let oldRow = this.boardState[mini.bestMove.lastPosition.rowIndex].slice(0);
+    // oldRow[mini.bestMove.lastPosition.columnIndex] = this.emptyField;
+    // this.$set(this.boardState, mini.bestMove.lastPosition.rowIndex, oldRow);
+    this.updatePawnById(mini.bestMove);
+    // let newRow = this.boardState[mini.bestMove.currentPosition.rowIndex].slice(
+    //   0
+    // );
+    // newRow[mini.bestMove.currentPosition.columnIndex] = mini.bestMove;
+    // this.$set(this.boardState, mini.bestMove.currentPosition.rowIndex, newRow);
 
-    let newRow = this.boardState[mini.bestMove.currentPosition.rowIndex].slice(
-      0
-    );
-    newRow[mini.bestMove.currentPosition.columnIndex] = mini.bestMove;
-    this.$set(this.boardState, mini.bestMove.currentPosition.rowIndex, newRow);
+    this.placePawnOnBoard(mini.bestMove, mini.bestMove.currentPosition);
+    this.emptyGivenField(mini.bestMove.lastPosition);
 
     if (mini.pawnToRemove && mini.pawnToRemove.player != player) {
       this.removePawnById(mini.pawnToRemove.index);
       this.clearBoardField(mini.pawnToRemove.currentPosition);
-      this.didPlayerWin(mini.bestMove.player);
+      this.hasPlayerWon(mini.bestMove.player);
+    }
+
+    if (FieldHelper.isPlayerOutOfMoves(enemyPlayer, board)) {
+      alert(
+        `Niestety graczowi ${enemyPlayer} nie posiada możliwości ruchu, przez co następuje remis`
+      );
+      return;
     }
 
     this.tura = !this.tura;
@@ -568,53 +575,15 @@ export default class Board extends Vue {
     // }
   }
 
-  // // movePawnIntoRandomDirection(pawn) {
-  // //   const availableDirections = this.getAvailableDirectionsForPawn(pawn);
-  // //   const randomizedDirection =
-  // //     availableDirections[
-  // //       Math.floor(Math.random() * availableDirections.length)
-  // //     ];
-
-  // //   const rowIndex = randomizedDirection.rowIndex;
-  // //   const columnIndex = randomizedDirection.columnIndex;
-
-  // //   let newRow = this.board.values[rowIndex].slice(0);
-
-  // //   pawn.lastPosition = pawn.currentPosition;
-  // //   pawn.currentPosition = {
-  // //     rowIndex: rowIndex,
-  // //     columnIndex: columnIndex
-  // //   };
-  // //   newRow[columnIndex] = pawn;
-  // //   this.$set(this.board.values, rowIndex, newRow);
-
-  // //   let oldRow = this.board.values[pawn.lastPosition.rowIndex].slice(0);
-  // //   oldRow[pawn.lastPosition.columnIndex] = this.getEmptyBoardField();
-  // //   this.$set(this.board.values, pawn.lastPosition.rowIndex, oldRow);
-  // //   if (
-  // //     this.hasPlayerScored(rowIndex, columnIndex, newRow[columnIndex].player)
-  // //   ) {
-  // //     this.removeRandomEnemyPawn(newRow[columnIndex].player);
-  // //     this.tura = !this.tura;
-  // //     this.moveCounter++;
-  // //     return;
-  // //   }
-
-  // //   this.tura = !this.tura;
-  // //   this.moveCounter++;
-  // // },
-
-  // removeRandomEnemyPawn(player) {
-  //   const enemyPawns = this.getEnemyPawns(player);
-  //   const pawnToRemove =
-  //     enemyPawns[Math.floor(Math.random() * enemyPawns.length)];
-  //   this.removePawnById(pawnToRemove.pawnIndex);
-  //   this.clearBoardField(
-  //     pawnToRemove.currentPosition.rowIndex,
-  //     pawnToRemove.currentPosition.columnIndex
-  //   );
-  //   this.didPlayerWin(player);
-  // },
+  getPawnById(id: number): Pawn {
+    return this.pawns.find((item) => item.index === id);
+  }
+  updatePawnById(updatedPawn: Pawn): void {
+    const idFromArray = this.pawns.findIndex(
+      (item) => item.index === updatedPawn.index
+    );
+    this.pawns[idFromArray] = updatedPawn;
+  }
 
   // // getMovablePawn(pawns) {
   // //   let availablePawns = [];
@@ -656,7 +625,7 @@ export default class Board extends Vue {
     this.removeHighlightFromEnemyPawns(this.removeStagePlayer);
     this.removePawnById(targetedPawn.index);
     this.clearBoardField(position);
-    this.didPlayerWin(this.removeStagePlayer);
+    this.hasPlayerWon(this.removeStagePlayer);
     this.removeStagePlayer = null;
     this.tura = !this.tura;
     this.moveCounter++;
@@ -665,7 +634,7 @@ export default class Board extends Vue {
     this.movePawnByAI(currentPlayer, board);
   }
 
-  didPlayerWin(player: string): void {
+  hasPlayerWon(player: string): void {
     const enemyPawns = this.getEnemyPawns(player);
     console.log("Did Player win", enemyPawns);
     if (enemyPawns.length > 2) return;
@@ -731,11 +700,11 @@ export default class Board extends Vue {
   checkAroundRow(position: Coordinates, player: string): boolean {
     let positionUnder: Coordinates = {
       rowIndex: position.rowIndex - 1,
-      columnIndex: position.columnIndex
+      columnIndex: position.columnIndex,
     };
     let positionOver: Coordinates = {
       rowIndex: position.rowIndex + 1,
-      columnIndex: position.columnIndex
+      columnIndex: position.columnIndex,
     };
     let under = this.isThisPlayerField(positionUnder, player);
     let over = this.isThisPlayerField(positionOver, player);
@@ -744,11 +713,11 @@ export default class Board extends Vue {
     if (under && over) {
       positionUnder = {
         rowIndex: position.rowIndex - 2,
-        columnIndex: position.columnIndex
+        columnIndex: position.columnIndex,
       };
       positionOver = {
         rowIndex: position.rowIndex + 2,
-        columnIndex: position.columnIndex
+        columnIndex: position.columnIndex,
       };
       under = this.isThisPlayerField(positionUnder, player);
       over = this.isThisPlayerField(positionOver, player);
@@ -763,15 +732,15 @@ export default class Board extends Vue {
   checkLowerRows(position: Coordinates, player: string): boolean {
     const firstPosition: Coordinates = {
       rowIndex: position.rowIndex - 1,
-      columnIndex: position.columnIndex
+      columnIndex: position.columnIndex,
     };
     const secondPosition: Coordinates = {
       rowIndex: position.rowIndex - 2,
-      columnIndex: position.columnIndex
+      columnIndex: position.columnIndex,
     };
     const thirdPosition: Coordinates = {
       rowIndex: position.rowIndex - 3,
-      columnIndex: position.columnIndex
+      columnIndex: position.columnIndex,
     };
 
     const firstNext = this.isThisPlayerField(firstPosition, player);
@@ -782,15 +751,15 @@ export default class Board extends Vue {
   checkUpperRows(position: Coordinates, player: string): boolean {
     const firstPosition: Coordinates = {
       rowIndex: position.rowIndex + 1,
-      columnIndex: position.columnIndex
+      columnIndex: position.columnIndex,
     };
     const secondPosition: Coordinates = {
       rowIndex: position.rowIndex + 2,
-      columnIndex: position.columnIndex
+      columnIndex: position.columnIndex,
     };
     const thirdPosition: Coordinates = {
       rowIndex: position.rowIndex + 3,
-      columnIndex: position.columnIndex
+      columnIndex: position.columnIndex,
     };
     const firstNext = this.isThisPlayerField(firstPosition, player);
     const secondNext = this.isThisPlayerField(secondPosition, player);
@@ -811,11 +780,11 @@ export default class Board extends Vue {
   checkAroundColumn(position: Coordinates, player: string): boolean {
     let rightPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex + 1
+      columnIndex: position.columnIndex + 1,
     };
     let leftPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex - 1
+      columnIndex: position.columnIndex - 1,
     };
     let right = this.isThisPlayerField(rightPosition, player);
     let left = this.isThisPlayerField(leftPosition, player);
@@ -824,11 +793,11 @@ export default class Board extends Vue {
     if (right && left) {
       rightPosition = {
         rowIndex: position.rowIndex,
-        columnIndex: position.columnIndex + 2
+        columnIndex: position.columnIndex + 2,
       };
       leftPosition = {
         rowIndex: position.rowIndex,
-        columnIndex: position.columnIndex - 2
+        columnIndex: position.columnIndex - 2,
       };
       right = this.isThisPlayerField(rightPosition, player);
       left = this.isThisPlayerField(leftPosition, player);
@@ -844,15 +813,15 @@ export default class Board extends Vue {
   checkRightColumns(position: Coordinates, player: string): boolean {
     const firstPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex + 1
+      columnIndex: position.columnIndex + 1,
     };
     const secondPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex + 2
+      columnIndex: position.columnIndex + 2,
     };
     const thirdPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex + 3
+      columnIndex: position.columnIndex + 3,
     };
 
     const firstNext = this.isThisPlayerField(firstPosition, player);
@@ -864,15 +833,15 @@ export default class Board extends Vue {
   checkLeftColumns(position: Coordinates, player: string): boolean {
     const firstPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex - 1
+      columnIndex: position.columnIndex - 1,
     };
     const secondPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex - 2
+      columnIndex: position.columnIndex - 2,
     };
     const thirdPosition: Coordinates = {
       rowIndex: position.rowIndex,
-      columnIndex: position.columnIndex - 3
+      columnIndex: position.columnIndex - 3,
     };
     const firstNext = this.isThisPlayerField(firstPosition, player);
     const secondNext = this.isThisPlayerField(secondPosition, player);

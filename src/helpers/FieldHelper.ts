@@ -72,17 +72,14 @@ export default class {
     pawns: Pawn[],
     boardState: BoardState
   ): PawnWithAvailableMoves[] {
-    const availablePawns:PawnWithAvailableMoves[] = [];
+    const availablePawns: PawnWithAvailableMoves[] = [];
 
-    pawns.forEach(pawn => {
-      const directions = this.getAvailableDirectionsForPawn(
-        pawn,
-        boardState
-      );
+    pawns.forEach((pawn) => {
+      const directions = this.getAvailableDirectionsForPawn(pawn, boardState);
       if (directions.length) {
         availablePawns.push({ pawn, directions });
       }
-    })
+    });
     return availablePawns;
   }
 
@@ -90,7 +87,7 @@ export default class {
     pawn: Pawn,
     boardState: BoardState
   ): Coordinates[] {
-    const position = pawn.currentPosition
+    const position = pawn.currentPosition;
     const availableDirections: Coordinates[] = [];
     const upDirection: Coordinates = {
       rowIndex: position.rowIndex + 1,
@@ -175,5 +172,18 @@ export default class {
 
   private static deepCopyBoardState(boardState: BoardState): BoardState {
     return JSON.parse(JSON.stringify(boardState));
+  }
+
+  public static isPlayerOutOfMoves(
+    player: Player,
+    boardState: Pawn[][]
+  ): boolean {
+    const playerPawns = this.getPlayerPawnsFromBoard(player, boardState);
+    const playerPawnsWithAvailableMoves: PawnWithAvailableMoves[] = this.getMovablePawnWithAvailableDirections(
+      playerPawns,
+      boardState
+    );
+
+    if (playerPawnsWithAvailableMoves.length == 0) return true;
   }
 }

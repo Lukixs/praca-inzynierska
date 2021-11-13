@@ -52,7 +52,7 @@ export default class {
     }
 
     const newNode: MinimaxNode = node;
-    newNode.boardState = JSON.parse(JSON.stringify(node.boardState))
+    newNode.boardState = JSON.parse(JSON.stringify(node.boardState));
 
     if (node.movedPawn.player == "white") {
       const optimalPawnToRemove: Minimax = PawnToRemoveHelper.findBlackPawnToRemove(
@@ -92,6 +92,13 @@ export default class {
       node.boardState
     );
 
+    if (playerPawnsWithAvailableMoves.length == 0)
+      return {
+        bestMove: undefined,
+        value: maxEval,
+        pawnToRemove: undefined,
+      };
+
     playerPawnsWithAvailableMoves.forEach((pawnWithMoves) => {
       pawnWithMoves.directions.forEach((direction) => {
         const newNode = FieldHelper.nodeAfterPawnMoveIntoDirection(
@@ -112,10 +119,22 @@ export default class {
         }
       });
     });
-    const resultBoardState: Pawn[][] = JSON.parse(JSON.stringify(node.boardState));
-    const resultNode:MinimaxNode = FieldHelper.nodeAfterPawnMoveIntoDirection(pawnToMove,intoDirection,resultBoardState)
+    const resultBoardState: Pawn[][] = JSON.parse(
+      JSON.stringify(node.boardState)
+    );
+    const resultNode: MinimaxNode = FieldHelper.nodeAfterPawnMoveIntoDirection(
+      pawnToMove,
+      intoDirection,
+      resultBoardState
+    );
 
-    const result:Minimax = {bestMove:resultNode.movedPawn, value: maxEval, pawnToRemove:givenResult.isPawnToRemoveFresh?givenResult.pawnToRemove:undefined}
+    const result: Minimax = {
+      bestMove: resultNode.movedPawn,
+      value: maxEval,
+      pawnToRemove: givenResult.isPawnToRemoveFresh
+        ? givenResult.pawnToRemove
+        : undefined,
+    };
     return result;
   }
 
@@ -125,7 +144,7 @@ export default class {
   ): Minimax {
     const maximizingPlayer: Player = "black";
 
-    let givenResult:Minimax;
+    let givenResult: Minimax;
     let pawnToMove: Pawn;
     let intoDirection: Coordinates;
     let minEval = minimaxValues.MAX;
@@ -138,6 +157,13 @@ export default class {
       playerPawns,
       node.boardState
     );
+
+    if (playerPawnsWithAvailableMoves.length == 0)
+      return {
+        bestMove: undefined,
+        value: minEval,
+        pawnToRemove: undefined,
+      };
 
     playerPawnsWithAvailableMoves.forEach((pawnWithMoves) => {
       pawnWithMoves.directions.forEach((direction) => {
@@ -159,9 +185,21 @@ export default class {
         }
       });
     });
-    const resultBoardState: Pawn[][] = JSON.parse(JSON.stringify(node.boardState));
-    const resultNode:MinimaxNode = FieldHelper.nodeAfterPawnMoveIntoDirection(pawnToMove,intoDirection,resultBoardState)
-    const result:Minimax = {bestMove:resultNode.movedPawn, value: minEval, pawnToRemove:givenResult.isPawnToRemoveFresh?givenResult.pawnToRemove:undefined}
+    const resultBoardState: Pawn[][] = JSON.parse(
+      JSON.stringify(node.boardState)
+    );
+    const resultNode: MinimaxNode = FieldHelper.nodeAfterPawnMoveIntoDirection(
+      pawnToMove,
+      intoDirection,
+      resultBoardState
+    );
+    const result: Minimax = {
+      bestMove: resultNode.movedPawn,
+      value: minEval,
+      pawnToRemove: givenResult.isPawnToRemoveFresh
+        ? givenResult.pawnToRemove
+        : undefined,
+    };
     return result;
   }
 
