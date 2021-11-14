@@ -9,6 +9,8 @@ export default class {
   public static minimax(
     node: MinimaxNode,
     depth: number,
+    alpha: number,
+    beta: number,
     maximizingPlayer: Player
   ): Minimax {
     if (depth == 0) return this.evaluateFinalBoardState(node);
@@ -18,33 +20,61 @@ export default class {
         node.movedPawn,
         node.boardState
       );
-      if (hasPlayerScored) return this.handlePreviousPlayerScored(node, depth);
+      if (hasPlayerScored)
+        return this.handlePreviousPlayerScored(node, depth, alpha, beta);
     }
 
     if (maximizingPlayer == "white") {
-      const result: Minimax = this.handleWhitePlayerTurn(node, depth);
+      const result: Minimax = this.handleWhitePlayerTurn(
+        node,
+        depth,
+        alpha,
+        beta
+      );
       return result;
     }
-    const result: Minimax = this.handleBlackPlayerTurn(node, depth);
+    const result: Minimax = this.handleBlackPlayerTurn(
+      node,
+      depth,
+      alpha,
+      beta
+    );
     return result;
   }
 
   public static minimaxAfterScoring(
     node: MinimaxNode,
     depth: number,
+    alpha: number,
+    beta: number,
     maximizingPlayer: Player
   ): Minimax {
     if (depth == 0) return this.evaluateFinalBoardState(node);
 
     if (maximizingPlayer == "white") {
-      const result: Minimax = this.handleWhitePlayerTurn(node, depth);
+      const result: Minimax = this.handleWhitePlayerTurn(
+        node,
+        depth,
+        alpha,
+        beta
+      );
       return result;
     }
-    const result: Minimax = this.handleBlackPlayerTurn(node, depth);
+    const result: Minimax = this.handleBlackPlayerTurn(
+      node,
+      depth,
+      alpha,
+      beta
+    );
     return result;
   }
 
-  static handlePreviousPlayerScored(node: MinimaxNode, depth: number): Minimax {
+  static handlePreviousPlayerScored(
+    node: MinimaxNode,
+    depth: number,
+    alpha: number,
+    beta: number
+  ): Minimax {
     const isTerminal = PlayerScoreHelper.isGameOver(node);
     if (isTerminal) {
       if (node.movedPawn.player == "white") return { value: 10000 };
@@ -57,7 +87,9 @@ export default class {
     if (node.movedPawn.player == "white") {
       const optimalPawnToRemove: Minimax = PawnToRemoveHelper.findBlackPawnToRemove(
         newNode,
-        depth
+        depth,
+        alpha,
+        beta
       );
       optimalPawnToRemove.value = optimalPawnToRemove.value + 20;
       optimalPawnToRemove.isPawnToRemoveFresh = true;
@@ -65,7 +97,9 @@ export default class {
     }
     const optimalPawnToRemove: Minimax = PawnToRemoveHelper.findWhitePawnToRemove(
       newNode,
-      depth
+      depth,
+      alpha,
+      beta
     );
     optimalPawnToRemove.value = optimalPawnToRemove.value - 20;
     optimalPawnToRemove.isPawnToRemoveFresh = true;
@@ -74,8 +108,13 @@ export default class {
 
   private static handleWhitePlayerTurn(
     node: MinimaxNode,
-    depth: number
+    depth: number,
+    alpha: number,
+    beta: number
   ): Minimax {
+    let currentAlpha = alpha;
+    const currentBeta = beta;
+
     const maximizingPlayer: Player = "white";
 
     let givenResult: Minimax;
@@ -87,6 +126,14 @@ export default class {
       maximizingPlayer,
       node.boardState
     );
+
+    if (playerPawns.length == 0)
+      return {
+        bestMove: undefined,
+        value: maxEval,
+        pawnToRemove: undefined,
+      };
+
     const playerPawnsWithAvailableMoves: PawnWithAvailableMoves[] = FieldHelper.getMovablePawnWithAvailableDirections(
       playerPawns,
       node.boardState
@@ -99,8 +146,8 @@ export default class {
         pawnToRemove: undefined,
       };
 
-    playerPawnsWithAvailableMoves.forEach((pawnWithMoves) => {
-      pawnWithMoves.directions.forEach((direction) => {
+    moves: for (const pawnWithMoves of playerPawnsWithAvailableMoves) {
+      for (const direction of pawnWithMoves.directions) {
         const newNode = FieldHelper.nodeAfterPawnMoveIntoDirection(
           pawnWithMoves.pawn,
           direction,
@@ -109,6 +156,8 @@ export default class {
         const minimaxResult: Minimax = this.minimax(
           newNode,
           depth - 1,
+          currentAlpha,
+          currentBeta,
           "black"
         );
         if (minimaxResult.value > maxEval) {
@@ -116,9 +165,14 @@ export default class {
           givenResult = minimaxResult;
           pawnToMove = pawnWithMoves.pawn;
           intoDirection = direction;
+
+          if (maxEval > currentAlpha) {
+            currentAlpha = maxEval;
+          }
+          if (currentBeta <= currentAlpha) break moves;
         }
-      });
-    });
+      }
+    }
     const resultBoardState: Pawn[][] = JSON.parse(
       JSON.stringify(node.boardState)
     );
@@ -140,8 +194,12 @@ export default class {
 
   private static handleBlackPlayerTurn(
     node: MinimaxNode,
-    depth: number
+    depth: number,
+    alpha: number,
+    beta: number
   ): Minimax {
+    const currentAlpha = alpha;
+    let currentBeta = beta;
     const maximizingPlayer: Player = "black";
 
     let givenResult: Minimax;
@@ -153,6 +211,14 @@ export default class {
       maximizingPlayer,
       node.boardState
     );
+
+    if (playerPawns.length == 0)
+      return {
+        bestMove: undefined,
+        value: minEval,
+        pawnToRemove: undefined,
+      };
+
     const playerPawnsWithAvailableMoves: PawnWithAvailableMoves[] = FieldHelper.getMovablePawnWithAvailableDirections(
       playerPawns,
       node.boardState
@@ -165,8 +231,8 @@ export default class {
         pawnToRemove: undefined,
       };
 
-    playerPawnsWithAvailableMoves.forEach((pawnWithMoves) => {
-      pawnWithMoves.directions.forEach((direction) => {
+    moves: for (const pawnWithMoves of playerPawnsWithAvailableMoves) {
+      for (const direction of pawnWithMoves.directions) {
         const newNode = FieldHelper.nodeAfterPawnMoveIntoDirection(
           pawnWithMoves.pawn,
           direction,
@@ -175,6 +241,8 @@ export default class {
         const minimaxResult: Minimax = this.minimax(
           newNode,
           depth - 1,
+          currentAlpha,
+          currentBeta,
           "white"
         );
         if (minimaxResult.value < minEval) {
@@ -182,9 +250,14 @@ export default class {
           givenResult = minimaxResult;
           pawnToMove = pawnWithMoves.pawn;
           intoDirection = direction;
+
+          if (minEval < currentBeta) {
+            currentBeta = minEval;
+          }
+          if (currentBeta <= currentAlpha) break moves;
         }
-      });
-    });
+      }
+    }
     const resultBoardState: Pawn[][] = JSON.parse(
       JSON.stringify(node.boardState)
     );

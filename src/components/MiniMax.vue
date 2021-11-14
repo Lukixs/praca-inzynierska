@@ -38,6 +38,7 @@ import Component from "vue-class-component";
 import { Coordinates, BoardDimensions, Pawn, Player } from "../types/board";
 import minimaxHelper from "../helpers/minimaxHelper";
 import FieldHelper from "../helpers/FieldHelper";
+import { minimaxValues } from "../helpers/BoardInfo";
 
 @Component({
   props: {
@@ -518,14 +519,19 @@ export default class Board extends Vue {
   //   return boardState;
   // }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   movePawnByAI(currentPlayer: string, board: Pawn[][]): void {
-    console.log({ StanPlanszyOtrzymany: this.boardState });
+    console.log({ StanPlanszyOtrzymany: board });
     const player: Player = currentPlayer == "white" ? "black" : "white";
     const enemyPlayer: Player = player == "white" ? "black" : "white";
     // const boardState = this.getBoardStateWithPawns(board, pawns);
     const boardState = JSON.parse(JSON.stringify(this.boardState));
-    const mini = minimaxHelper.minimax({ boardState: boardState }, 3, player);
+    const mini = minimaxHelper.minimax(
+      { boardState: boardState },
+      6,
+      minimaxValues.MIN,
+      minimaxValues.MAX,
+      player
+    );
     console.log(player, mini);
     if (!mini.bestMove) {
       alert(`Gratulacje, wygrał gracz: ${currentPlayer}`);
@@ -552,7 +558,7 @@ export default class Board extends Vue {
       this.hasPlayerWon(mini.bestMove.player);
     }
 
-    if (FieldHelper.isPlayerOutOfMoves(enemyPlayer, board)) {
+    if (FieldHelper.isPlayerOutOfMoves(enemyPlayer, this.boardState)) {
       alert(
         `Niestety graczowi ${enemyPlayer} nie posiada możliwości ruchu, przez co następuje remis`
       );
