@@ -4,44 +4,10 @@ import PlayerScoreHelper from "./PlayerScoreHelper";
 import PawnToRemoveHelper from "./PawnToRemoveHelper";
 import { minimaxValues } from "./BoardInfo";
 import FieldHelper from "./FieldHelper";
+import MinimaxFunction from "./Minimax"
 
 export default class {
-  public static minimax(
-    node: MinimaxNode,
-    depth: number,
-    alpha: number,
-    beta: number,
-    maximizingPlayer: Player
-  ): Minimax {
-    if (depth == 0) return this.evaluateFinalBoardState(node);
-
-    if (node.movedPawn) {
-      const hasPlayerScored = PlayerScoreHelper.hasPlayerScored(
-        node.movedPawn,
-        node.boardState
-      );
-      if (hasPlayerScored)
-        return this.handlePreviousPlayerScored(node, depth, alpha, beta);
-    }
-
-    if (maximizingPlayer == "white") {
-      const result: Minimax = this.handleWhitePlayerTurn(
-        node,
-        depth,
-        alpha,
-        beta
-      );
-      return result;
-    }
-    const result: Minimax = this.handleBlackPlayerTurn(
-      node,
-      depth,
-      alpha,
-      beta
-    );
-    return result;
-  }
-
+  
   public static minimaxAfterScoring(
     node: MinimaxNode,
     depth: number,
@@ -106,7 +72,7 @@ export default class {
     return optimalPawnToRemove;
   }
 
-  private static handleWhitePlayerTurn(
+  public static handleWhitePlayerTurn(
     node: MinimaxNode,
     depth: number,
     alpha: number,
@@ -153,7 +119,7 @@ export default class {
           direction,
           node.boardState
         );
-        const minimaxResult: Minimax = this.minimax(
+        const minimaxResult: Minimax = MinimaxFunction.minimax(
           newNode,
           depth - 1,
           currentAlpha,
@@ -192,7 +158,7 @@ export default class {
     return result;
   }
 
-  private static handleBlackPlayerTurn(
+  public static handleBlackPlayerTurn(
     node: MinimaxNode,
     depth: number,
     alpha: number,
@@ -238,7 +204,7 @@ export default class {
           direction,
           node.boardState
         );
-        const minimaxResult: Minimax = this.minimax(
+        const minimaxResult: Minimax = MinimaxFunction.minimax(
           newNode,
           depth - 1,
           currentAlpha,
@@ -276,7 +242,7 @@ export default class {
     return result;
   }
 
-  private static evaluateFinalBoardState(node: MinimaxNode): Minimax {
+  public static evaluateFinalBoardState(node: MinimaxNode): Minimax {
     if (!node.movedPawn) return { value: 0 };
     const hasPlayerScored = PlayerScoreHelper.hasPlayerScored(
       node.movedPawn,

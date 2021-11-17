@@ -36,7 +36,7 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import { Coordinates, BoardDimensions, Pawn, Player } from "../types/board";
-import minimaxHelper from "../helpers/minimaxHelper";
+import Minimax from "../helpers/Minimax";
 import FieldHelper from "../helpers/FieldHelper";
 import { minimaxValues } from "../helpers/BoardInfo";
 
@@ -525,7 +525,7 @@ export default class Board extends Vue {
     const enemyPlayer: Player = player == "white" ? "black" : "white";
     // const boardState = this.getBoardStateWithPawns(board, pawns);
     const boardState = JSON.parse(JSON.stringify(this.boardState));
-    const mini = minimaxHelper.minimax(
+    const mini = Minimax.minimax(
       { boardState: boardState },
       6,
       minimaxValues.MIN,
