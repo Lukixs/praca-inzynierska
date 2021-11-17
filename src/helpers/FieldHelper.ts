@@ -153,7 +153,7 @@ export default class {
     direction: Coordinates,
     boardState: Pawn[][]
   ): MinimaxNode {
-    const newBoardState = this.deepCopyBoardState(boardState);
+    const newBoardState = this.deepCopyItem(boardState);
     const movedPawn: Pawn = {
       lastPosition: pawnBeforeMove.currentPosition,
       currentPosition: direction,
@@ -170,8 +170,8 @@ export default class {
     };
   }
 
-  private static deepCopyBoardState(boardState: BoardState): BoardState {
-    return JSON.parse(JSON.stringify(boardState));
+  public static deepCopyItem(item: any): any {
+    return JSON.parse(JSON.stringify(item));
   }
 
   public static isPlayerOutOfMoves(

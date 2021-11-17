@@ -1,6 +1,5 @@
 import { Minimax, MinimaxNode, PawnWithAvailableMoves } from "../types/minimax";
 import { Coordinates, Pawn, Player } from "../types/board";
-import PlayerScoreHelper from "./PlayerScoreHelper";
 
 import { minimaxValues } from "./BoardInfo";
 import FieldHelper from "./FieldHelper";
@@ -15,7 +14,6 @@ export default class {
   ): Minimax {
     let currentAlpha = alpha;
     const currentBeta = beta;
-
     const maximizingPlayer: Player = "white";
 
     let givenResult: Minimax;
@@ -28,11 +26,9 @@ export default class {
       node.boardState
     );
 
-    if (playerPawns.length == 0)
+    if (playerPawns.length < 3)
       return {
-        bestMove: undefined,
         value: maxEval,
-        pawnToRemove: undefined,
       };
 
     const playerPawnsWithAvailableMoves: PawnWithAvailableMoves[] = FieldHelper.getMovablePawnWithAvailableDirections(
@@ -42,18 +38,40 @@ export default class {
 
     if (playerPawnsWithAvailableMoves.length == 0)
       return {
-        bestMove: undefined,
         value: maxEval,
-        pawnToRemove: undefined,
       };
 
-    moves: for (const pawnWithMoves of playerPawnsWithAvailableMoves) {
-      for (const direction of pawnWithMoves.directions) {
-        const newNode = FieldHelper.nodeAfterPawnMoveIntoDirection(
-          pawnWithMoves.pawn,
-          direction,
+    moves: for (let i = 0; i < playerPawnsWithAvailableMoves.length; i++) {
+      for (
+        let j = 0;
+        j < playerPawnsWithAvailableMoves[i].directions.length;
+        j++
+      ) {
+        if (!playerPawnsWithAvailableMoves[i].pawn)
+          console.error("Coś poszło bardzo nie tak");
+
+        const newBoardState: Pawn[][] = FieldHelper.deepCopyItem(
           node.boardState
         );
+        const pawnAfterMove: Pawn = FieldHelper.deepCopyItem(
+          playerPawnsWithAvailableMoves[i].pawn
+        );
+        pawnAfterMove.lastPosition = pawnAfterMove.currentPosition;
+        pawnAfterMove.currentPosition =
+          playerPawnsWithAvailableMoves[i].directions[j];
+
+        newBoardState[playerPawnsWithAvailableMoves[i].directions[j].rowIndex][
+          playerPawnsWithAvailableMoves[i].directions[j].columnIndex
+        ] = pawnAfterMove;
+        newBoardState[
+          playerPawnsWithAvailableMoves[i].pawn.currentPosition.rowIndex
+        ][playerPawnsWithAvailableMoves[i].pawn.currentPosition.columnIndex] =
+          FieldHelper.emptyField;
+
+        const newNode: MinimaxNode = {
+          movedPawn: pawnAfterMove,
+          boardState: newBoardState,
+        };
         const minimaxResult: Minimax = MinimaxFunction.minimax(
           newNode,
           depth - 1,
@@ -64,8 +82,8 @@ export default class {
         if (minimaxResult.value > maxEval) {
           maxEval = minimaxResult.value;
           givenResult = minimaxResult;
-          pawnToMove = pawnWithMoves.pawn;
-          intoDirection = direction;
+          pawnToMove = playerPawnsWithAvailableMoves[i].pawn;
+          intoDirection = playerPawnsWithAvailableMoves[i].directions[j];
 
           if (maxEval > currentAlpha) {
             currentAlpha = maxEval;
@@ -74,9 +92,16 @@ export default class {
         }
       }
     }
+
+    if (!pawnToMove)
+      return {
+        value: -10000,
+      };
+
     const resultBoardState: Pawn[][] = JSON.parse(
       JSON.stringify(node.boardState)
     );
+
     const resultNode: MinimaxNode = FieldHelper.nodeAfterPawnMoveIntoDirection(
       pawnToMove,
       intoDirection,
@@ -113,11 +138,9 @@ export default class {
       node.boardState
     );
 
-    if (playerPawns.length == 0)
+    if (playerPawns.length < 3)
       return {
-        bestMove: undefined,
         value: minEval,
-        pawnToRemove: undefined,
       };
 
     const playerPawnsWithAvailableMoves: PawnWithAvailableMoves[] = FieldHelper.getMovablePawnWithAvailableDirections(
@@ -127,18 +150,39 @@ export default class {
 
     if (playerPawnsWithAvailableMoves.length == 0)
       return {
-        bestMove: undefined,
         value: minEval,
-        pawnToRemove: undefined,
       };
 
-    moves: for (const pawnWithMoves of playerPawnsWithAvailableMoves) {
-      for (const direction of pawnWithMoves.directions) {
-        const newNode = FieldHelper.nodeAfterPawnMoveIntoDirection(
-          pawnWithMoves.pawn,
-          direction,
+    moves: for (let i = 0; i < playerPawnsWithAvailableMoves.length; i++) {
+      for (
+        let j = 0;
+        j < playerPawnsWithAvailableMoves[i].directions.length;
+        j++
+      ) {
+        if (!playerPawnsWithAvailableMoves[i].pawn)
+          console.error("Coś poszło bardzo nie tak");
+        const newBoardState: Pawn[][] = FieldHelper.deepCopyItem(
           node.boardState
         );
+        const pawnAfterMove: Pawn = FieldHelper.deepCopyItem(
+          playerPawnsWithAvailableMoves[i].pawn
+        );
+        pawnAfterMove.lastPosition = pawnAfterMove.currentPosition;
+        pawnAfterMove.currentPosition =
+          playerPawnsWithAvailableMoves[i].directions[j];
+
+        newBoardState[playerPawnsWithAvailableMoves[i].directions[j].rowIndex][
+          playerPawnsWithAvailableMoves[i].directions[j].columnIndex
+        ] = pawnAfterMove;
+        newBoardState[
+          playerPawnsWithAvailableMoves[i].pawn.currentPosition.rowIndex
+        ][playerPawnsWithAvailableMoves[i].pawn.currentPosition.columnIndex] =
+          FieldHelper.emptyField;
+
+        const newNode: MinimaxNode = {
+          movedPawn: pawnAfterMove,
+          boardState: newBoardState,
+        };
         const minimaxResult: Minimax = MinimaxFunction.minimax(
           newNode,
           depth - 1,
@@ -149,8 +193,8 @@ export default class {
         if (minimaxResult.value < minEval) {
           minEval = minimaxResult.value;
           givenResult = minimaxResult;
-          pawnToMove = pawnWithMoves.pawn;
-          intoDirection = direction;
+          pawnToMove = playerPawnsWithAvailableMoves[i].pawn;
+          intoDirection = playerPawnsWithAvailableMoves[i].directions[j];
 
           if (minEval < currentBeta) {
             currentBeta = minEval;
@@ -159,6 +203,12 @@ export default class {
         }
       }
     }
+
+    if (!pawnToMove)
+      return {
+        value: 10000,
+      };
+
     const resultBoardState: Pawn[][] = JSON.parse(
       JSON.stringify(node.boardState)
     );

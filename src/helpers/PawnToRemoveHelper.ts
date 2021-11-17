@@ -1,7 +1,6 @@
 import { MinimaxNode, Minimax } from "../types/minimax";
 import { Pawn } from "../types/board";
 import { minimaxValues } from "./BoardInfo";
-import fieldHelper from "./FieldHelper";
 import ScoringHelper from "./MinimaxScoringHelper";
 import FieldHelper from "./FieldHelper";
 
@@ -15,22 +14,22 @@ export default class {
     let currentAlpha = alpha;
     const currentBeta = beta;
     let maxEval = minimaxValues.MIN;
+    let pawnToRemove: Pawn;
+
     const enemyPawns = FieldHelper.getEnemyPlayerPawnsFromBoard(
-      node.movedPawn.player,
+      "white",
       node.boardState
     );
 
-    let pawnToRemove: Pawn;
-
     moves: for (const pawn of enemyPawns) {
-      let boardState = JSON.parse(JSON.stringify(node.boardState));
-      boardState = fieldHelper.removePawnFromBoard(pawn, boardState);
+      const copiedNode: MinimaxNode = JSON.parse(JSON.stringify(node));
+      FieldHelper.removePawnFromBoard(pawn, copiedNode.boardState);
       const evaluation: number = ScoringHelper.minimaxAfterScoring(
-        { boardState, movedPawn: node.movedPawn },
+        copiedNode,
         depth,
         currentAlpha,
         currentBeta,
-        pawn.player
+        "black"
       ).value;
       if (evaluation > maxEval) {
         pawnToRemove = pawn;
@@ -59,21 +58,21 @@ export default class {
     let currentBeta = beta;
     let minEval = minimaxValues.MAX;
     const enemyPawns = FieldHelper.getEnemyPlayerPawnsFromBoard(
-      node.movedPawn.player,
+      "black",
       node.boardState
     );
 
     let pawnToRemove: Pawn;
 
     moves: for (const pawn of enemyPawns) {
-      let boardState = JSON.parse(JSON.stringify(node.boardState));
-      boardState = fieldHelper.removePawnFromBoard(pawn, boardState);
+      const copiedNode: MinimaxNode = JSON.parse(JSON.stringify(node));
+      FieldHelper.removePawnFromBoard(pawn, copiedNode.boardState);
       const evaluation: number = ScoringHelper.minimaxAfterScoring(
-        { boardState, movedPawn: node.movedPawn },
+        copiedNode,
         depth,
         currentAlpha,
         currentBeta,
-        pawn.player
+        "white"
       ).value;
       if (evaluation < minEval) {
         pawnToRemove = pawn;

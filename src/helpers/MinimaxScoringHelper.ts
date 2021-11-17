@@ -3,6 +3,7 @@ import PawnToRemoveHelper from "./PawnToRemoveHelper";
 import MinimaxHelper from "./MinimaxHelper";
 import PlayerScoreHelper from "./PlayerScoreHelper";
 import { Player } from "../types/board";
+import FieldHelper from "./FieldHelper";
 
 export default class {
   public static minimaxAfterScoring(
@@ -44,16 +45,16 @@ export default class {
       return { value: -10000 };
     }
 
-    const newNode: MinimaxNode = node;
-    newNode.boardState = JSON.parse(JSON.stringify(node.boardState));
+    const newNode: MinimaxNode = FieldHelper.deepCopyItem(node);
 
-    if (node.movedPawn.player == "white") {
+    if (newNode.movedPawn.player == "white") {
       const optimalPawnToRemove: Minimax = PawnToRemoveHelper.findBlackPawnToRemove(
         newNode,
         depth,
         alpha,
         beta
       );
+      if (!optimalPawnToRemove.bestMove) return { value: -10000 };
       optimalPawnToRemove.value = optimalPawnToRemove.value + 20;
       optimalPawnToRemove.isPawnToRemoveFresh = true;
       return optimalPawnToRemove;
@@ -64,6 +65,7 @@ export default class {
       alpha,
       beta
     );
+    if (!optimalPawnToRemove.bestMove) return { value: 10000 };
     optimalPawnToRemove.value = optimalPawnToRemove.value - 20;
     optimalPawnToRemove.isPawnToRemoveFresh = true;
     return optimalPawnToRemove;
