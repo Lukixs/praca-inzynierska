@@ -2,7 +2,7 @@ import { MinimaxNode, Minimax } from "../types/minimax";
 import { Pawn } from "../types/board";
 import { minimaxValues } from "./BoardInfo";
 import fieldHelper from "./FieldHelper";
-import minimaxHelper from "./minimaxHelper";
+import ScoringHelper from "./MinimaxScoringHelper";
 import FieldHelper from "./FieldHelper";
 
 export default class {
@@ -25,7 +25,7 @@ export default class {
     moves: for (const pawn of enemyPawns) {
       let boardState = JSON.parse(JSON.stringify(node.boardState));
       boardState = fieldHelper.removePawnFromBoard(pawn, boardState);
-      const evaluation: number = minimaxHelper.minimaxAfterScoring(
+      const evaluation: number = ScoringHelper.minimaxAfterScoring(
         { boardState, movedPawn: node.movedPawn },
         depth,
         currentAlpha,
@@ -68,7 +68,7 @@ export default class {
     moves: for (const pawn of enemyPawns) {
       let boardState = JSON.parse(JSON.stringify(node.boardState));
       boardState = fieldHelper.removePawnFromBoard(pawn, boardState);
-      const evaluation: number = minimaxHelper.minimaxAfterScoring(
+      const evaluation: number = ScoringHelper.minimaxAfterScoring(
         { boardState, movedPawn: node.movedPawn },
         depth,
         currentAlpha,
