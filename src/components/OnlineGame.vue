@@ -2,6 +2,20 @@
   <div class="hello">
     Webowa Aplikacja do gry Dara
 
+    <ul>
+      <li style="display:block" v-for="(message, id) in messages" :key="id">
+        {{ message }}
+      </li>
+    </ul>
+
+    <input
+      v-on:input="updateMessage($event.target.value)"
+      type="text"
+      placeholder="message"
+    />
+
+    <button @click="sendMessage">Send</button>
+
     <!-- <div class="board">
       <div
         v-for="(e, rowIndex) in boardDimensions.rowsNumber"
@@ -37,6 +51,10 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import { Coordinates, BoardDimensions, Pawn } from "../types/board";
+// import VueSocketIOExt from "vue-socket.io-extended";
+// import * as io from "socket.io-client";
+
+// const socket = io("http://localhost:8081");
 
 @Component({
   props: {
@@ -46,6 +64,29 @@ import { Coordinates, BoardDimensions, Pawn } from "../types/board";
   },
 })
 export default class Board extends Vue {
+  created(): void {
+    console.log("Created", {
+      connected: this.$socket.connected,
+      id: this.$socket.client.id,
+    });
+    this.$socket.client.on("message", (message: string) => {
+      console.log(`'hey :', ${message}`);
+      this.messages.push(message);
+      console.log(this.messages);
+    });
+  }
+
+  updateMessage(text: string): void {
+    this.message = text;
+  }
+
+  sendMessage(): void {
+    // console.log(this.message);
+    this.$socket.client.emit("message", this.message);
+  }
+
+  message: string;
+  messages: string[] = [];
   tura = true;
   removeStagePlayer: string;
   moveCounter = 1;
