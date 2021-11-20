@@ -520,7 +520,6 @@ export default class Board extends Vue {
   // }
 
   movePawnByAI(currentPlayer: string, board: Pawn[][]): void {
-    console.log({ StanPlanszyOtrzymany: board });
     const player: Player = currentPlayer == "white" ? "black" : "white";
     const enemyPlayer: Player = player == "white" ? "black" : "white";
     // const boardState = this.getBoardStateWithPawns(board, pawns);

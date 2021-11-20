@@ -73,9 +73,7 @@ export default class Board extends Vue {
       this.pawnsMovingStageController(position);
     }
 
-    // console.log("I am working on typeScript", rowIndex, columnIndex);
     // this.fillBoard({ rowIndex, columnIndex });
-    // console.log(this.boardState);
   }
 
   // fillBoard(position: Coordinates): void {
