@@ -15,6 +15,7 @@
     />
 
     <button @click="sendMessage">Send</button>
+    <button @click="movePawn">MovePaw</button>
 
     <!-- <div class="board">
       <div
@@ -51,6 +52,8 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import { Coordinates, BoardDimensions, Pawn } from "../types/board";
+import * as io from "socket.io-client";
+import VueSocketIOExt from "vue-socket.io-extended";
 // import VueSocketIOExt from "vue-socket.io-extended";
 // import * as io from "socket.io-client";
 
@@ -64,15 +67,27 @@ import { Coordinates, BoardDimensions, Pawn } from "../types/board";
   },
 })
 export default class Board extends Vue {
-  created(): void {
+  socket = io.connect("ws://localhost:8080");
+  mounted(): void {
     console.log("Created", {
-      connected: this.$socket.connected,
-      id: this.$socket.client.id,
+      connected: this.socket.connected,
+      id: this.socket,
     });
-    this.$socket.client.on("message", (message: string) => {
+    this.socket.on("message", (message: string) => {
       console.log(`'hey :', ${message}`);
       this.messages.push(message);
       console.log(this.messages);
+    });
+
+    this.socket.on("move-pawn", (move: any) => {
+      console.log("wykonany ruch", move);
+    });
+  }
+
+  movePawn(): void {
+    this.socket.emit("move-pawn", {
+      pawn: { id: 1, player: "black" },
+      to: { rowIndex: 3, columnIndex: 4 },
     });
   }
 
@@ -82,7 +97,7 @@ export default class Board extends Vue {
 
   sendMessage(): void {
     // console.log(this.message);
-    this.$socket.client.emit("message", this.message);
+    this.socket.emit("message", this.message);
   }
 
   message: string;
