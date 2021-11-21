@@ -2,49 +2,54 @@
   <div class="hello">
     Webowa Aplikacja do gry Dara
 
-    <ul>
-      <li style="display:block" v-for="(message, id) in messages" :key="id">
-        {{ message }}
-      </li>
-    </ul>
+    <div v-if="!joinedRoom">
+      <p>Nie dolaczono do pokoju</p>
+      <button @click="joinRoom">JoinRoom</button>
+    </div>
+    <div v-else>
+      <ul>
+        <li style="display:block" v-for="(message, id) in messages" :key="id">
+          {{ message }}
+        </li>
+      </ul>
 
-    <input
-      v-on:input="updateMessage($event.target.value)"
-      type="text"
-      placeholder="message"
-    />
+      <input
+        v-on:input="updateMessage($event.target.value)"
+        type="text"
+        placeholder="message"
+      />
 
-    <button @click="sendMessage">Send</button>
-    <button @click="movePawn">MovePaw</button>
+      <button @click="sendMessage">Send</button>
 
-    <!-- <div class="board">
-      <div
-        v-for="(e, rowIndex) in boardDimensions.rowsNumber"
-        :key="e"
-        class="row"
-      >
+      <div class="board">
         <div
-          v-for="(f, columnIndex) in boardDimensions.columnsNumber"
-          :key="f"
-          @click="cellOnClick(rowIndex, columnIndex)"
+          v-for="(e, rowIndex) in boardDimensions.rowsNumber"
+          :key="e"
+          class="row"
         >
           <div
-            :id="`${rowIndex}${columnIndex}`"
-            :class="[(rowIndex + columnIndex) % 2 === 0 ? 'white' : 'black']"
+            v-for="(f, columnIndex) in boardDimensions.columnsNumber"
+            :key="f"
+            @click="cellOnClick(rowIndex, columnIndex)"
           >
-            <div v-if="boardState[rowIndex][columnIndex].player == 'white'">
-              &#9920;
-            </div>
-            <div v-if="boardState[rowIndex][columnIndex].player == 'black'">
-              &#9922;
+            <div
+              :id="`${rowIndex}${columnIndex}`"
+              :class="[(rowIndex + columnIndex) % 2 === 0 ? 'white' : 'black']"
+            >
+              <div v-if="boardState[rowIndex][columnIndex].player == 'white'">
+                &#9920;
+              </div>
+              <div v-if="boardState[rowIndex][columnIndex].player == 'black'">
+                &#9922;
+              </div>
             </div>
           </div>
         </div>
       </div>
+      <span>Tura {{ moveCounter }} |</span>
+      <span v-if="tura">Ruch Białych </span>
+      <span v-else>Ruch Czarnych</span>
     </div>
-    <span>Tura {{ moveCounter }} |</span>
-    <span v-if="tura">Ruch Białych </span>
-    <span v-else>Ruch Czarnych</span> -->
   </div>
 </template>
 
@@ -67,28 +72,64 @@ import VueSocketIOExt from "vue-socket.io-extended";
   },
 })
 export default class Board extends Vue {
-  socket = io.connect("ws://localhost:8080");
+  socket = io.connect("ws://localhost:8081");
+
   mounted(): void {
     console.log("Created", {
       connected: this.socket.connected,
       id: this.socket,
     });
-    this.socket.on("message", (message: string) => {
-      console.log(`'hey :', ${message}`);
-      this.messages.push(message);
-      console.log(this.messages);
+
+    this.loadSocketsListeners();
+  }
+
+  loadSocketsListeners(): void {
+    this.socket.on("joined", (enemyPlayerTurn: boolean) => {
+      console.log("Enemy move on: ", enemyPlayerTurn);
+      this.enemyMoveOn = enemyPlayerTurn;
     });
 
-    this.socket.on("move-pawn", (move: any) => {
-      console.log("wykonany ruch", move);
+    this.socket.on("message", (message: string) => {
+      this.messages.push(message);
+    });
+
+    this.socket.on("move-pawn", (pawn: Pawn) => {
+      console.log("wykonany ruch", pawn);
+      // this.focused = move.pawn;
+      this.addPawnToBoard(pawn, pawn.currentPosition);
+      this.clearBoardField(pawn.lastPosition);
+      this.updatePawnFromList(pawn);
+      this.tura = !this.tura;
+      this.moveCounter++;
+      // this.tryToMovePawnTo(move.to);
+    });
+
+    this.socket.on("place-pawn", (pawn: Pawn) => {
+      console.log("Położony pionek", pawn);
+      this.addPawnToGame(pawn, pawn.currentPosition);
+      this.tura = !this.tura;
+      this.moveCounter++;
     });
   }
 
   movePawn(): void {
     this.socket.emit("move-pawn", {
-      pawn: { id: 1, player: "black" },
-      to: { rowIndex: 3, columnIndex: 4 },
+      movedPawn: {
+        id: 1,
+        player: "black",
+        currentPosition: { rowIndex: 3, columnIndex: 4 },
+        lastPosition: { rowIndex: 2, columnIndex: 4 },
+      },
     });
+  }
+
+  emitPawnPlaced(pawn: Pawn): void {
+    this.socket.emit("place-pawn", pawn);
+  }
+
+  joinRoom(): void {
+    this.socket.emit("joinRoom");
+    this.joinedRoom = true;
   }
 
   updateMessage(text: string): void {
@@ -100,9 +141,11 @@ export default class Board extends Vue {
     this.socket.emit("message", this.message);
   }
 
+  joinedRoom = false;
   message: string;
   messages: string[] = [];
   tura = true;
+  enemyMoveOn: boolean;
   removeStagePlayer: string;
   moveCounter = 1;
   firstStageMovesLimit = 8;
@@ -123,27 +166,15 @@ export default class Board extends Vue {
   // history = []; // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
 
   cellOnClick(rowIndex: number, columnIndex: number): void {
+    if (this.enemyMoveOn == this.tura) return;
+
     const position: Coordinates = { rowIndex, columnIndex };
     if (this.moveCounter <= this.firstStageMovesLimit) {
       this.pawnsPlacingStageController(position);
     } else {
       this.pawnsMovingStageController(position);
     }
-
-    // this.fillBoard({ rowIndex, columnIndex });
   }
-
-  // fillBoard(position: Coordinates): void {
-  //   this.pushToBoardStateOnPosition(
-  //     {
-  //       player: "white",
-  //       pawnIndex: 1,
-  //       currentPosition: { rowIndex: 1, columnIndex: 1 },
-  //       lastPosition: null,
-  //     },
-  //     position
-  //   );
-  // }
 
   pushToBoardStateOnPosition(pawn: Pawn, position: Coordinates): void {
     const newRow = this.boardState[position.rowIndex].slice(0);
@@ -190,6 +221,8 @@ export default class Board extends Vue {
 
     this.addPawnToGame(newPawn, position);
 
+    this.emitPawnPlaced(newPawn);
+
     this.tura = !this.tura;
     this.moveCounter++;
   }
@@ -201,6 +234,11 @@ export default class Board extends Vue {
 
   addPawnToList(pawn: Pawn): void {
     this.pawns.push(pawn);
+  }
+
+  updatePawnFromList(pawn: Pawn): void {
+    const index = this.pawns.findIndex((item) => item.index == pawn.index);
+    this.pawns[index] = pawn;
   }
 
   addPawnToBoard(pawn: Pawn, position: Coordinates): void {
@@ -512,7 +550,9 @@ export default class Board extends Vue {
   }
 
   clearBoardField(position: Coordinates): void {
-    this.boardState[position.rowIndex][position.columnIndex] = this.emptyField;
+    const newRow = this.boardState[position.rowIndex].slice(0);
+    newRow[position.columnIndex] = this.emptyField;
+    this.$set(this.boardState, position.rowIndex, newRow);
   }
 
   get emptyField(): Pawn {
