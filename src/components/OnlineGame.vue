@@ -85,7 +85,6 @@ export default class Board extends Vue {
 
   loadSocketsListeners(): void {
     this.socket.on("joined", (enemyPlayerTurn: boolean) => {
-      console.log("Enemy move on: ", enemyPlayerTurn);
       this.enemyMoveOn = enemyPlayerTurn;
     });
 
@@ -93,34 +92,45 @@ export default class Board extends Vue {
       this.messages.push(message);
     });
 
+    this.socket.on("place-pawn", (pawn: Pawn) => {
+      this.addPawnToGame(pawn, pawn.currentPosition);
+      this.tura = !this.tura;
+      this.moveCounter++;
+    });
+
     this.socket.on("move-pawn", (pawn: Pawn) => {
-      console.log("wykonany ruch", pawn);
-      // this.focused = move.pawn;
       this.addPawnToBoard(pawn, pawn.currentPosition);
       this.clearBoardField(pawn.lastPosition);
       this.updatePawnFromList(pawn);
       this.tura = !this.tura;
       this.moveCounter++;
-      // this.tryToMovePawnTo(move.to);
     });
 
-    this.socket.on("place-pawn", (pawn: Pawn) => {
-      console.log("Położony pionek", pawn);
-      this.addPawnToGame(pawn, pawn.currentPosition);
+    this.socket.on("pawn-scored", (pawn: Pawn) => {
+      this.addPawnToBoard(pawn, pawn.currentPosition);
+      this.clearBoardField(pawn.lastPosition);
+      this.updatePawnFromList(pawn);
+    });
+
+    this.socket.on("remove-pawn", (pawn: Pawn) => {
+      this.clearBoardField(pawn.currentPosition);
+      this.removePawnById(pawn.index);
+      this.didPlayerWin(pawn.player == "white" ? "black" : "white");
       this.tura = !this.tura;
       this.moveCounter++;
     });
   }
 
-  movePawn(): void {
-    this.socket.emit("move-pawn", {
-      movedPawn: {
-        id: 1,
-        player: "black",
-        currentPosition: { rowIndex: 3, columnIndex: 4 },
-        lastPosition: { rowIndex: 2, columnIndex: 4 },
-      },
-    });
+  emitPawnMove(pawn: Pawn): void {
+    this.socket.emit("move-pawn", pawn);
+  }
+
+  emitPawnScored(pawn: Pawn) {
+    this.socket.emit("pawn-scored", pawn);
+  }
+
+  emitRemovePawn(pawn: Pawn) {
+    this.socket.emit("remove-pawn", pawn);
   }
 
   emitPawnPlaced(pawn: Pawn): void {
@@ -499,11 +509,14 @@ export default class Board extends Vue {
     if (this.hasPlayerScored(position, newRow[position.columnIndex].player)) {
       this.highlightEnemyPawns(pawn.player);
       this.removeStagePlayer = pawn.player;
+      this.emitPawnScored(pawn);
       return;
     }
 
     this.tura = !this.tura;
     this.moveCounter++;
+
+    this.emitPawnMove(pawn);
   }
 
   highlightEnemyPawns(player: string): void {
@@ -534,6 +547,7 @@ export default class Board extends Vue {
     ];
     if (targetedPawn.player === this.removeStagePlayer) return;
 
+    this.emitRemovePawn(targetedPawn);
     this.removeHighlightFromEnemyPawns(this.removeStagePlayer);
     this.removePawnById(targetedPawn.index);
     this.clearBoardField(position);
@@ -563,15 +577,6 @@ export default class Board extends Vue {
       lastPosition: null,
     };
   }
-
-  // getEmptyBoardField() {
-  //   return {
-  //     player: null,
-  //     pawnIndex: null,
-  //     currentPosition: null,
-  //     lastPosition: null,
-  //   };
-  // },
 
   removePawnById(id: number): void {
     this.pawns = this.pawns.filter((item) => item.index != id);
