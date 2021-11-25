@@ -4,16 +4,23 @@
 
     <div v-if="!joinedRoom">
       <p>Nie dolaczono do pokoju</p>
+      <!-- <input
+        name="NameInput"
+        v-on:input="updatePlayerName($event.target.value)"
+        type="text"
+        placeholder="Name"
+      /> -->
       <button @click="joinRoom">JoinRoom</button>
     </div>
     <div v-else>
       <ul>
         <li style="display:block" v-for="(message, id) in messages" :key="id">
-          {{ message }}
+          {{ message.name }}: {{ message.message }}
         </li>
       </ul>
 
       <input
+        name="MessageInput"
         v-on:input="updateMessage($event.target.value)"
         type="text"
         placeholder="message"
@@ -88,8 +95,8 @@ export default class Board extends Vue {
       this.enemyMoveOn = enemyPlayerTurn;
     });
 
-    this.socket.on("message", (message: string) => {
-      this.messages.push(message);
+    this.socket.on("message", (name: string, message: string) => {
+      this.messages.push({ name, message });
     });
 
     this.socket.on("place-pawn", (pawn: Pawn) => {
@@ -138,13 +145,17 @@ export default class Board extends Vue {
   }
 
   joinRoom(): void {
-    this.socket.emit("joinRoom");
+    this.socket.emit("joinRoom", this.playerName);
     this.joinedRoom = true;
   }
 
   updateMessage(text: string): void {
     this.message = text;
   }
+
+  // updatePlayerName(name: string): void {
+  //   this.playerName = name;
+  // }
 
   sendMessage(): void {
     // console.log(this.message);
@@ -153,7 +164,8 @@ export default class Board extends Vue {
 
   joinedRoom = false;
   message: string;
-  messages: string[] = [];
+  playerName: string;
+  messages: { name: string; message: string }[] = [];
   tura = true;
   enemyMoveOn: boolean;
   removeStagePlayer: string;
