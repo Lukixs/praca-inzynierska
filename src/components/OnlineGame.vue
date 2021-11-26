@@ -65,7 +65,6 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Coordinates, BoardDimensions, Pawn } from "../types/board";
 import * as io from "socket.io-client";
-import VueSocketIOExt from "vue-socket.io-extended";
 // import VueSocketIOExt from "vue-socket.io-extended";
 // import * as io from "socket.io-client";
 
@@ -132,11 +131,11 @@ export default class Board extends Vue {
     this.socket.emit("move-pawn", pawn);
   }
 
-  emitPawnScored(pawn: Pawn) {
+  emitPawnScored(pawn: Pawn): void {
     this.socket.emit("pawn-scored", pawn);
   }
 
-  emitRemovePawn(pawn: Pawn) {
+  emitRemovePawn(pawn: Pawn): void {
     this.socket.emit("remove-pawn", pawn);
   }
 

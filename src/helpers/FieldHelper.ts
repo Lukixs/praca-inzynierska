@@ -1,8 +1,53 @@
 import { BoardState, Coordinates, Pawn, Player } from "../types/board";
 import { MinimaxNode, PawnWithAvailableMoves } from "../types/minimax";
 import { boardStats } from "./BoardInfo";
+import FieldHelper from "./FieldHelper";
 
 export default class {
+  static getWhiteBlackPawnsAmounts(
+    boardState: Pawn[][]
+  ): { whitePawns: number; blackPawns: number } {
+    let whitePawns = 0;
+    let blackPawns = 0;
+
+    let i = 0;
+    while (i < boardState.length) {
+      let j = 0;
+      while (j < boardState[i].length) {
+        if (boardState[i][j].player == "white") whitePawns++;
+        else if (boardState[i][j].player == "black") blackPawns++;
+        j++;
+      }
+      i++;
+    }
+
+    return { whitePawns, blackPawns };
+  }
+
+  static getWhiteBlackPawnsFromBoard(
+    givenBoard: Pawn[][]
+  ): { whitePawns: Pawn[]; blackPawns: Pawn[] } {
+    const boardState = FieldHelper.deepCopyItem(givenBoard);
+
+    const whitePawns: Pawn[] = [];
+    const blackPawns: Pawn[] = [];
+
+    let i = 0;
+    while (i < boardState.length) {
+      let j = 0;
+      while (j < boardState[i].length) {
+        if (boardState[i][j].player == "white")
+          whitePawns.push(boardState[i][j]);
+        else if (boardState[i][j].player == "black")
+          blackPawns.push(boardState[i][j]);
+        j++;
+      }
+      i++;
+    }
+
+    return { whitePawns, blackPawns };
+  }
+
   public static isThisPlayerField(
     position: Coordinates,
     player: Player,
@@ -170,6 +215,7 @@ export default class {
     };
   }
 
+  // eslint-disable-next-line
   public static deepCopyItem(item: any): any {
     return JSON.parse(JSON.stringify(item));
   }
