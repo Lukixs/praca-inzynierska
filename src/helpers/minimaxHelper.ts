@@ -1,6 +1,5 @@
 import { Minimax, MinimaxNode, PawnWithAvailableMoves } from "../types/minimax";
 import { Coordinates, Pawn, Player } from "../types/board";
-
 import { minimaxValues } from "./BoardInfo";
 import FieldHelper from "./FieldHelper";
 import MinimaxFunction from "./Minimax";
@@ -95,7 +94,7 @@ export default class {
 
     if (!pawnToMove)
       return {
-        value: -10000,
+        value: -10,
       };
 
     const resultBoardState: Pawn[][] = JSON.parse(
@@ -206,7 +205,7 @@ export default class {
 
     if (!pawnToMove)
       return {
-        value: 10000,
+        value: 10,
       };
 
     const resultBoardState: Pawn[][] = JSON.parse(

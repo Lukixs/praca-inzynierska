@@ -4,6 +4,7 @@ import MinimaxHelper from "./MinimaxHelper";
 import PlayerScoreHelper from "./PlayerScoreHelper";
 import { Player } from "../types/board";
 import FieldHelper from "./FieldHelper";
+import { minimaxValues } from "./BoardInfo";
 
 export default class {
   public static minimaxAfterScoring(
@@ -39,14 +40,37 @@ export default class {
     alpha: number,
     beta: number
   ): Minimax {
-    const isTerminal = PlayerScoreHelper.isGameOver(node);
-    if (isTerminal) {
-      if (node.movedPawn.player == "white") return { value: 10000 };
-      return { value: -10000 };
+    const amountOf: {
+      whitePawns: number;
+      blackPawns: number;
+    } = FieldHelper.getWhiteBlackPawnsAmounts(node.boardState);
+
+    if (node.movedPawn.player == "white") {
+      if (amountOf.blackPawns - 1 < 3) {
+        const pawnsFromBoard = FieldHelper.getWhiteBlackPawnsFromBoard(
+          node.boardState
+        );
+
+        return {
+          value: minimaxValues.MAX,
+          pawnToRemove: pawnsFromBoard.blackPawns[0],
+          isPawnToRemoveFresh: true,
+        };
+      }
+    } else {
+      if (amountOf.whitePawns - 1 < 3) {
+        const pawnsFromBoard = FieldHelper.getWhiteBlackPawnsFromBoard(
+          node.boardState
+        );
+        return {
+          value: minimaxValues.MIN,
+          pawnToRemove: pawnsFromBoard.whitePawns[0],
+          isPawnToRemoveFresh: true,
+        };
+      }
     }
 
     const newNode: MinimaxNode = FieldHelper.deepCopyItem(node);
-
     if (newNode.movedPawn.player == "white") {
       const optimalPawnToRemove: Minimax = PawnToRemoveHelper.findBlackPawnToRemove(
         newNode,
@@ -54,8 +78,14 @@ export default class {
         alpha,
         beta
       );
-      if (!optimalPawnToRemove.bestMove) return { value: -10000 };
-      optimalPawnToRemove.value = optimalPawnToRemove.value + 20;
+      if (!optimalPawnToRemove.bestMove) {
+        const amounts = FieldHelper.getWhiteBlackPawnsAmounts(
+          newNode.boardState
+        );
+        const isDrawBetterForWhitePlayer =
+          amounts.whitePawns > amounts.blackPawns - 1;
+        return { value: isDrawBetterForWhitePlayer ? +1000 : -1000 };
+      }
       optimalPawnToRemove.isPawnToRemoveFresh = true;
       return optimalPawnToRemove;
     }
@@ -65,8 +95,12 @@ export default class {
       alpha,
       beta
     );
-    if (!optimalPawnToRemove.bestMove) return { value: 10000 };
-    optimalPawnToRemove.value = optimalPawnToRemove.value - 20;
+    if (!optimalPawnToRemove.bestMove) {
+      const amounts = FieldHelper.getWhiteBlackPawnsAmounts(newNode.boardState);
+      const isDrawBetterForBlackPlayer =
+        amounts.blackPawns > amounts.whitePawns - 1;
+      return { value: isDrawBetterForBlackPlayer ? +1000 : -1000 };
+    }
     optimalPawnToRemove.isPawnToRemoveFresh = true;
     return optimalPawnToRemove;
   }
@@ -77,17 +111,30 @@ export default class {
       node.movedPawn,
       node.boardState
     );
-    if (!hasPlayerScored) return { value: 0, bestMove: node.movedPawn };
+
+    const amountOfPawns: {
+      whitePawns: number;
+      blackPawns: number;
+    } = FieldHelper.getWhiteBlackPawnsAmounts(node.boardState);
+
+    if (hasPlayerScored) {
+      if (node.movedPawn.player == "white") amountOfPawns.blackPawns--;
+      else amountOfPawns.whitePawns--;
+    }
+
+    const differenceInPawns =
+      (amountOfPawns.whitePawns - amountOfPawns.blackPawns) * 20;
 
     const isTerminal = PlayerScoreHelper.isGameOver(node);
 
     if (node.movedPawn.player == "white")
       return {
-        value: isTerminal ? 10000 : 20,
+        value: isTerminal ? minimaxValues.MAX : differenceInPawns,
         bestMove: node.movedPawn,
       };
+
     return {
-      value: isTerminal ? -10000 : -20,
+      value: isTerminal ? minimaxValues.MIN : differenceInPawns,
       bestMove: node.movedPawn,
     };
   }
