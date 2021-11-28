@@ -37,6 +37,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Coordinates, BoardDimensions, Pawn, Player } from "../types/board";
 import Minimax from "../helpers/Minimax";
+import MinimaxDropStage from "../helpers/MinimaxDropStage";
 import FieldHelper from "../helpers/FieldHelper";
 import { minimaxValues } from "../helpers/BoardInfo";
 
@@ -180,6 +181,12 @@ export default class Board extends Vue {
   }
 
   placePawnByAI(): void {
+    const currentPlayer: Player = this.tura ? "white" : "black";
+
+    const boardState = JSON.parse(JSON.stringify(this.boardState));
+    const result = MinimaxDropStage.dropMinimax(boardState, 4, currentPlayer);
+    console.log(result);
+
     const availableFields: Coordinates[] = this.getEmptyFields(
       this.boardState,
       this.boardDimensions
@@ -188,9 +195,17 @@ export default class Board extends Vue {
     const randomFieldAddress =
       availableFields[Math.floor(Math.random() * availableFields.length)];
 
-    const newPawn = this.createNewPawn(randomFieldAddress);
+    let newPawn: Pawn;
 
-    this.addPawnToGame(newPawn, randomFieldAddress);
+    if (result.position) {
+      newPawn = this.createNewPawn(result.position);
+      this.addPawnToGame(newPawn, result.position);
+    } else {
+      newPawn = this.createNewPawn(randomFieldAddress);
+      this.addPawnToGame(newPawn, randomFieldAddress);
+    }
+
+    this.addPawnToList(newPawn);
 
     this.tura = !this.tura;
     this.moveCounter++;
@@ -442,34 +457,6 @@ export default class Board extends Vue {
     this.focused = null;
   }
 
-  // evaluateBoardState(node, maximizingPlayer) {
-  //   // console.log("evaluateBoardState", node);
-  //   const boardState = node.boardState;
-  //   const movedPawn = node.movedPawn;
-  //   // console.log({ boardState: boardState, movedPawn: movedPawn });
-  //   if (boardState && movedPawn) {
-  //     let hasPlayerScored = this.hasPlayerScoredAI(
-  //       movedPawn,
-  //       boardState,
-  //       maximizingPlayer
-  //     );
-  //     if (hasPlayerScored) {
-  //       // console.log({ hasScored: movedPawn.pawn.pawn.player });
-  //       if (maximizingPlayer === "white") return 100;
-  //       return -100;
-  //     }
-  //   }
-  //   return 0;
-  // },
-
-  // isTerminalNode(node, maximizingPlayer) {
-  //   const boardState = node.boardState;
-  //   const movedPawn = node.movedPawn;
-  //   if (boardState && movedPawn) {
-  //     return this.hasPlayerScoredAI(movedPawn, boardState, maximizingPlayer);
-  //   }
-  // },
-
   isMoveWithinReachForPawn(
     targetedField: Coordinates,
     focusedField: Coordinates
@@ -499,31 +486,11 @@ export default class Board extends Vue {
     if ([coreValue + 1, coreValue - 1].includes(aroundValue)) return true;
   }
 
-  // getBoardStateWithPawns(board: Pawn[][], pawns: Pawn[]) {
-  //   let boardState = Array(board.length)
-  //     .fill(null)
-  //     .map(() => Array(this.board.columnsNumber).fill(null));
-  //   // const boardState = board.map((row) => {
-  //   //   return row.map((item) => {
-  //   //     if (item.pawnIndex) return this.getPawnById(item.pawnIndex, pawns);
-  //   //     return null;
-  //   //   });
-  //   // });
-  //   let i, j;
-  //   for (i = 0; i < board.length; i++) {
-  //     for (j = 0; j < board[i].length; j++) {
-  //       if (board[i][j].pawnIndex)
-  //         boardState[i][j] = this.getPawnById(board[i][j].pawnIndex, pawns);
-  //     }
-  //   }
-  //   return boardState;
-  // }
-
   movePawnByAI(currentPlayer: string, board: Pawn[][]): void {
     const player: Player = currentPlayer == "white" ? "black" : "white";
     const enemyPlayer: Player = player == "white" ? "black" : "white";
     // const boardState = this.getBoardStateWithPawns(board, pawns);
-    const boardState = JSON.parse(JSON.stringify(this.boardState));
+    const boardState = JSON.parse(JSON.stringify(board));
     const mini = Minimax.minimax(
       { boardState: boardState },
       6,
@@ -536,18 +503,8 @@ export default class Board extends Vue {
       alert(`Gratulacje, wygrał gracz: ${currentPlayer}`);
       return;
     }
-    // Wykoanie ruchu według miniMaxa
 
-    // let oldRow = this.boardState[mini.bestMove.lastPosition.rowIndex].slice(0);
-    // oldRow[mini.bestMove.lastPosition.columnIndex] = this.emptyField;
-    // this.$set(this.boardState, mini.bestMove.lastPosition.rowIndex, oldRow);
     this.updatePawnById(mini.bestMove);
-    // let newRow = this.boardState[mini.bestMove.currentPosition.rowIndex].slice(
-    //   0
-    // );
-    // newRow[mini.bestMove.currentPosition.columnIndex] = mini.bestMove;
-    // this.$set(this.boardState, mini.bestMove.currentPosition.rowIndex, newRow);
-
     this.placePawnOnBoard(mini.bestMove, mini.bestMove.currentPosition);
     this.emptyGivenField(mini.bestMove.lastPosition);
 
@@ -566,18 +523,6 @@ export default class Board extends Vue {
 
     this.tura = !this.tura;
     this.moveCounter++;
-
-    // const myPawns = this.getEnemyPawns(enemy);
-    // const pawnsWithAvailableMoves = this.getMovablePawn(myPawns);
-    // if (pawnsWithAvailableMoves && pawnsWithAvailableMoves.length)
-    //   this.movePawnIntoRandomDirection(
-    //     pawnsWithAvailableMoves[
-    //       Math.floor(Math.random() * pawnsWithAvailableMoves.length)
-    //     ]
-    //   );
-    // else {
-    //   alert("Komputer przegrał z powodu braku dostępnych ruchów.");
-    // }
   }
 
   getPawnById(id: number): Pawn {

@@ -4,6 +4,72 @@ import { boardStats } from "./BoardInfo";
 import FieldHelper from "./FieldHelper";
 
 export default class {
+  static randomIntFromInterval(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min) + min);
+  }
+
+  static createPawnForPlayer(
+    position: Coordinates,
+    moveCounter: number,
+    player: Player
+  ): Pawn {
+    return {
+      player: player,
+      index: moveCounter,
+      currentPosition: {
+        rowIndex: position.rowIndex,
+        columnIndex: position.columnIndex,
+      },
+    };
+  }
+
+  static boardCentralCoordinates(): Coordinates[] {
+    const centralCoordinates: Coordinates[] = [];
+    let centralColumns;
+    const areColumnsEven: boolean = boardStats.columnsNumber % 2 == 0;
+    if (areColumnsEven)
+      centralColumns = [
+        boardStats.columnsNumber / 2,
+        boardStats.columnsNumber / 2 - 1,
+      ];
+    else centralColumns = [Math.floor(boardStats.columnsNumber / 2)];
+
+    let centralRows;
+    const rowsEven: boolean = boardStats.rowsNumber % 2 == 0;
+    if (rowsEven)
+      centralRows = [boardStats.rowsNumber / 2, boardStats.rowsNumber / 2 - 1];
+    else centralRows = [Math.floor(boardStats.rowsNumber / 2)];
+
+    let i = 0;
+    while (i < centralRows.length) {
+      let j = 0;
+      while (j < centralColumns.length) {
+        centralCoordinates.push({
+          rowIndex: centralRows[i],
+          columnIndex: centralColumns[j],
+        });
+        j++;
+      }
+      i++;
+    }
+
+    return centralCoordinates;
+  }
+
+  static isBoardEmpty(boardState: Pawn[][]): boolean {
+    let i = 0;
+    while (i < boardState.length) {
+      let j = 0;
+      while (j < boardState[i].length) {
+        if (boardState[i][j].player) return false;
+        j++;
+      }
+      i++;
+    }
+
+    return true;
+  }
+
   static getWhiteBlackPawnsAmounts(
     boardState: Pawn[][]
   ): { whitePawns: number; blackPawns: number } {
