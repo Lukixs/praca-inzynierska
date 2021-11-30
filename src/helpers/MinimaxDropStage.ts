@@ -8,6 +8,8 @@ export default class {
   public static dropMinimax(
     boardState: BoardState,
     depth: number,
+    alpha: number,
+    beta: number,
     maximizingPlayer: Player
   ): dropMinimax {
     // const isBoardEmpty: boolean = FieldHelper.isBoardEmpty(node.boardState);
@@ -34,14 +36,25 @@ export default class {
     }
 
     if (numberOfPawns < 12) {
-      console.log("Middle");
       if (maximizingPlayer == "white")
-        return this.dropWhiteMiddlePhase(boardState, depth, maximizingPlayer);
-      return this.dropBlackMiddlePhase(boardState, depth, maximizingPlayer);
+        return this.dropWhiteMiddlePhase(
+          boardState,
+          depth,
+          alpha,
+          beta,
+          maximizingPlayer
+        );
+      return this.dropBlackMiddlePhase(
+        boardState,
+        depth,
+        alpha,
+        beta,
+        maximizingPlayer
+      );
     }
 
     if (numberOfPawns == 12) {
-      console.log("Odpalamy dla depth: ", depth);
+      // console.log("Odpalamy dla depth: ", depth);
       const result = MinimaxMove.minimax(
         { boardState },
         depth ? depth - 1 : 0,
@@ -88,13 +101,17 @@ export default class {
   static dropWhiteMiddlePhase(
     boardState: BoardState,
     depth: number,
+    alpha: number,
+    beta: number,
     maximizingPlayer: Player
   ): dropMinimax {
+    let currentAlpha = alpha;
+    const currentBeta = beta;
     let maxEval = minimaxValues.MIN;
     let choosenPosition: Coordinates;
 
     let i = 0;
-    while (i < boardState.length) {
+    moves: while (i < boardState.length) {
       let j = 0;
       while (j < boardState[i].length) {
         if (!boardState[i][j].player) {
@@ -105,10 +122,20 @@ export default class {
             this.getRoundNumber(boardState),
             maximizingPlayer
           );
-          const result = this.dropMinimax(newBoardState, depth - 1, "black");
+          const result = this.dropMinimax(
+            newBoardState,
+            depth - 1,
+            currentAlpha,
+            currentBeta,
+            "black"
+          );
           if (result.value > maxEval) {
             maxEval = result.value;
             choosenPosition = result.position;
+            if (maxEval > currentAlpha) {
+              currentAlpha = maxEval;
+            }
+            if (currentBeta <= currentAlpha) break moves;
           }
         }
         j++;
@@ -122,13 +149,17 @@ export default class {
   static dropBlackMiddlePhase(
     boardState: BoardState,
     depth: number,
+    alpha: number,
+    beta: number,
     maximizingPlayer: Player
   ): dropMinimax {
+    const currentAlpha = alpha;
+    let currentBeta = beta;
     let minEval = minimaxValues.MAX;
     let choosenPosition: Coordinates;
 
     let i = 0;
-    while (i < boardState.length) {
+    moves: while (i < boardState.length) {
       let j = 0;
       while (j < boardState[i].length) {
         if (!boardState[i][j].player) {
@@ -139,10 +170,20 @@ export default class {
             this.getRoundNumber(boardState),
             maximizingPlayer
           );
-          const result = this.dropMinimax(newBoardState, depth - 1, "white");
+          const result = this.dropMinimax(
+            newBoardState,
+            depth - 1,
+            currentAlpha,
+            currentBeta,
+            "white"
+          );
           if (result.value < minEval) {
             minEval = result.value;
             choosenPosition = currentPosition;
+            if (minEval < currentBeta) {
+              currentBeta = minEval;
+            }
+            if (currentBeta <= currentAlpha) break moves;
           }
         }
         j++;

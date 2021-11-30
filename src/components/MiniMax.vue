@@ -184,7 +184,13 @@ export default class Board extends Vue {
     const currentPlayer: Player = this.tura ? "white" : "black";
 
     const boardState = JSON.parse(JSON.stringify(this.boardState));
-    const result = MinimaxDropStage.dropMinimax(boardState, 4, currentPlayer);
+    const result = MinimaxDropStage.dropMinimax(
+      boardState,
+      6,
+      minimaxValues.MIN,
+      minimaxValues.MAX,
+      currentPlayer
+    );
     console.log(result);
 
     const availableFields: Coordinates[] = this.getEmptyFields(
