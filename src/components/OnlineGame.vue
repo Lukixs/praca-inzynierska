@@ -3,14 +3,21 @@
     Webowa Aplikacja do gry Dara
 
     <div v-if="!joinedRoom">
-      <p>Nie dolaczono do pokoju</p>
+      <p>Wybierz pokoj</p>
+      <ul>
+        <li style="display:block" v-for="(room, id) in rooms" :key="id">
+          <span @click="joinRoom(room)">{{ room.name }}</span>
+          [<span v-for="(player, jd) in room.players" :key="jd"
+            >{{ player.name }},</span
+          >]
+        </li>
+      </ul>
       <!-- <input
         name="NameInput"
         v-on:input="updatePlayerName($event.target.value)"
         type="text"
         placeholder="Name"
       /> -->
-      <button @click="joinRoom">JoinRoom</button>
     </div>
     <div v-else>
       <ul>
@@ -90,8 +97,12 @@ export default class Board extends Vue {
   }
 
   loadSocketsListeners(): void {
-    this.socket.on("joined", (enemyPlayerTurn: boolean) => {
-      this.enemyMoveOn = enemyPlayerTurn;
+    this.socket.on("rooms", (rooms: any[]) => {
+      this.rooms = rooms;
+    });
+
+    this.socket.on("joined", (playerMoveOnWhite: boolean) => {
+      this.playerMoveOnWhite = playerMoveOnWhite;
     });
 
     this.socket.on("message", (name: string, message: string) => {
@@ -143,8 +154,9 @@ export default class Board extends Vue {
     this.socket.emit("place-pawn", pawn);
   }
 
-  joinRoom(): void {
-    this.socket.emit("joinRoom", this.playerName);
+  joinRoom(room: any): void {
+    if (room.players >= 2) return;
+    this.socket.emit("joinRoom", this.playerName, room.name);
     this.joinedRoom = true;
   }
 
@@ -152,12 +164,7 @@ export default class Board extends Vue {
     this.message = text;
   }
 
-  // updatePlayerName(name: string): void {
-  //   this.playerName = name;
-  // }
-
   sendMessage(): void {
-    // console.log(this.message);
     this.socket.emit("message", this.message);
   }
 
@@ -165,8 +172,10 @@ export default class Board extends Vue {
   message: string;
   playerName: string;
   messages: { name: string; message: string }[] = [];
+  rooms: any[] = [];
+  //=================================================
   tura = true;
-  enemyMoveOn: boolean;
+  playerMoveOnWhite: boolean;
   removeStagePlayer: string;
   moveCounter = 1;
   firstStageMovesLimit = 8;
@@ -187,7 +196,7 @@ export default class Board extends Vue {
   // history = []; // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
 
   cellOnClick(rowIndex: number, columnIndex: number): void {
-    if (this.enemyMoveOn == this.tura) return;
+    if (this.playerMoveOnWhite == this.tura) return;
 
     const position: Coordinates = { rowIndex, columnIndex };
     if (this.moveCounter <= this.firstStageMovesLimit) {
