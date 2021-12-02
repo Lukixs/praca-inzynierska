@@ -4,7 +4,7 @@
   </div>
 </template>
 <script>
-import OnlineGame from "@/components/OnlineGame.vue";
+import OnlineGame from "@/components/Online/OnlineGame.vue";
 export default {
   name: "Online",
   components: {
