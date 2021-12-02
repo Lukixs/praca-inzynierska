@@ -710,7 +710,10 @@ export default class Board extends Vue {
   flex-wrap: wrap-reverse;
 
   margin: 20px;
-  border: 25px solid #333;
+  /* border: 25px solid #333; */
+  border: 25px solid #a45a51;
+  /* border-color: #693100; */
+  /* border-image: url("../img/wood-pattern.png") 25px space; */
   margin-left: auto;
   margin-right: auto;
 }
@@ -723,7 +726,11 @@ export default class Board extends Vue {
   float: left;
   width: 120px;
   height: 120px;
-  background-color: #999;
+  /* background-color: #fff; */
+  /* background-color: #693100; */
+  /* background-color: #b3904f; */
+  background-color: #ba8a65;
+  background-image: url("../img/wood-pattern-rotated.png");
   font-size: 80px;
   text-align: center;
   display: table-cell;
@@ -733,12 +740,16 @@ export default class Board extends Vue {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  border: 1px black solid;
+  box-sizing: border-box;
 }
 .white {
   float: left;
   width: 120px;
   height: 120px;
-  background-color: #fff;
+  /* background-color: #bfa065; */
+  background-color: #c19a6c;
+  background-image: url("../img/wood-pattern.png");
   font-size: 80px;
   text-align: center;
   display: table-cell;
@@ -748,6 +759,8 @@ export default class Board extends Vue {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  border: 1px black solid;
+  box-sizing: border-box;
 }
 
 .yellowgreen {
