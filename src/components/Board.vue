@@ -1,6 +1,7 @@
 <template>
   <div class="hello">
     Webowa Aplikacja do gry Dara
+    <Timer ref="timer" />
     <div class="board">
       <div
         v-for="(e, rowIndex) in boardDimensions.rowsNumber"
@@ -36,15 +37,22 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import { Coordinates, BoardDimensions, Pawn } from "../types/board";
-
+import Timer from "./Timer.vue";
 @Component({
   props: {
     msg: {
       type: String,
     },
   },
+  components: {
+    Timer,
+  },
 })
 export default class Board extends Vue {
+  $refs!: {
+    timer: Timer;
+  };
+
   tura = true;
   removeStagePlayer: string;
   moveCounter = 1;
@@ -133,6 +141,7 @@ export default class Board extends Vue {
 
     this.addPawnToGame(newPawn, position);
 
+    this.$refs.timer.startTimer();
     this.tura = !this.tura;
     this.moveCounter++;
   }
