@@ -1,6 +1,12 @@
 <template>
   <div class="hello">
     Webowa Aplikacja do gry Dara
+    <Timer
+      ref="timer"
+      @timesUp="timesUp"
+      :firstPlayerName="whitePlayerName"
+      :secondPlayerName="blackPlayerName"
+    />
 
     <div class="board">
       <div
@@ -37,13 +43,22 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import { Coordinates, BoardDimensions, Pawn } from "../../../../types/board";
+import { onlinePlayer } from "../../../../types/online";
+import Timer from "../../../Timer.vue";
 
 @Component({
   props: {
     socket: {},
   },
+  components: {
+    Timer,
+  },
 })
 export default class Board extends Vue {
+  $refs!: {
+    timer: Timer;
+  };
+
   mounted(): void {
     this.loadSocketsListeners();
     this.emitGetPlayerColor();
@@ -54,6 +69,7 @@ export default class Board extends Vue {
       this.addPawnToGame(pawn, pawn.currentPosition);
       this.tura = !this.tura;
       this.moveCounter++;
+      this.$refs.timer.timerChangePlayer();
     });
 
     this.$props.socket.on("move-pawn", (pawn: Pawn) => {
@@ -62,6 +78,7 @@ export default class Board extends Vue {
       this.updatePawnFromList(pawn);
       this.tura = !this.tura;
       this.moveCounter++;
+      this.$refs.timer.timerChangePlayer();
     });
 
     this.$props.socket.on("pawn-scored", (pawn: Pawn) => {
@@ -76,10 +93,21 @@ export default class Board extends Vue {
       this.didPlayerWin(pawn.player == "white" ? "black" : "white");
       this.tura = !this.tura;
       this.moveCounter++;
+      this.$refs.timer.timerChangePlayer();
     });
 
     this.$props.socket.on("player-color", (playerColor: boolean) => {
       this.playerTurn = playerColor;
+    });
+
+    this.$props.socket.on("players-in-room", (players: onlinePlayer[]) => {
+      console.log(players);
+      if (players.length < 2) {
+        this.whitePlayerName = players[0].name;
+        return;
+      }
+      this.whitePlayerName = players[0].name;
+      this.blackPlayerName = players[1].name;
     });
   }
 
@@ -88,6 +116,7 @@ export default class Board extends Vue {
   }
 
   emitPawnMove(pawn: Pawn): void {
+    this.$refs.timer.timerChangePlayer();
     this.$props.socket.emit("move-pawn", pawn);
   }
 
@@ -96,12 +125,17 @@ export default class Board extends Vue {
   }
 
   emitRemovePawn(pawn: Pawn): void {
+    this.$refs.timer.timerChangePlayer();
     this.$props.socket.emit("remove-pawn", pawn);
   }
 
   emitPawnPlaced(pawn: Pawn): void {
+    this.$refs.timer.timerChangePlayer();
     this.$props.socket.emit("place-pawn", pawn);
   }
+
+  whitePlayerName = "0";
+  blackPlayerName = "0";
 
   tura = true;
   playerTurn: boolean;
@@ -509,6 +543,7 @@ export default class Board extends Vue {
   didPlayerWin(player: string): void {
     const enemyPawns = this.getEnemyPawns(player);
     if (enemyPawns.length > 2) return;
+    this.$refs.timer.stopTimer();
     alert(`Gratulacje, wygrał gracz: ${player}`);
   }
 
@@ -729,6 +764,14 @@ export default class Board extends Vue {
     }
     const field = this.boardState[position.rowIndex][position.columnIndex];
     return field && field.player === player;
+  }
+
+  timesUp() {
+    if (this.tura) {
+      alert("Wygrał gracz czarny poprzez czas");
+      return;
+    }
+    alert("Wygrał gracz biały poprzez czas");
   }
 
   //   return this.board.values[rowIndex][columnIndex].player === player;
