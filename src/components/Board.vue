@@ -1,7 +1,11 @@
 <template>
   <div class="hello">
-    Webowa Aplikacja do gry Dara
-    <Timer ref="timer" />
+    <Timer
+      ref="timer"
+      @timesUp="timesUp"
+      :firstPlayerName="`Player 1`"
+      :secondPlayerName="`Player 2`"
+    />
     <div class="board">
       <div
         v-for="(e, rowIndex) in boardDimensions.rowsNumber"
@@ -84,6 +88,14 @@ export default class Board extends Vue {
     // this.fillBoard({ rowIndex, columnIndex });
   }
 
+  timesUp() {
+    if (this.tura) {
+      alert("Wygrał gracz czarny poprzez czas");
+      return;
+    }
+    alert("Wygrał gracz biały poprzez czas");
+  }
+
   // fillBoard(position: Coordinates): void {
   //   this.pushToBoardStateOnPosition(
   //     {
@@ -141,9 +153,9 @@ export default class Board extends Vue {
 
     this.addPawnToGame(newPawn, position);
 
-    this.$refs.timer.startTimer();
     this.tura = !this.tura;
     this.moveCounter++;
+    this.$refs.timer.timerChangePlayer();
   }
 
   addPawnToGame(pawn: Pawn, position: Coordinates): void {
@@ -460,7 +472,10 @@ export default class Board extends Vue {
   didPlayerWin(player: string): void {
     const enemyPawns = this.getEnemyPawns(player);
     if (enemyPawns.length > 2) return;
-    alert(`Gratulacje, wygrał gracz: ${player}`);
+    {
+      this.$refs.timer.stopTimer();
+      alert(`Gratulacje, wygrał gracz: ${player}`);
+    }
   }
 
   clearBoardField(position: Coordinates): void {
