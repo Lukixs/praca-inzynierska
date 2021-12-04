@@ -3,6 +3,7 @@ import { dropMinimax } from "../types/minimax";
 import FieldHelper from "./FieldHelper";
 import { minimaxValues } from "./BoardInfo";
 import MinimaxMove from "./Minimax";
+import MinimaxScoringHelper from "./MinimaxScoringHelper";
 
 export default class {
   public static dropMinimax(
@@ -29,6 +30,13 @@ export default class {
         minimaxValues.MAX,
         maximizingPlayer
       );
+
+      if (result.value == 0)
+        return MinimaxScoringHelper.returnNumberOfFreeMovesAsValue(
+          maximizingPlayer,
+          boardState
+        );
+
       return {
         value: result.value,
         position: null,
@@ -62,6 +70,11 @@ export default class {
         minimaxValues.MAX,
         maximizingPlayer
       );
+      if (result.value == 0)
+        return MinimaxScoringHelper.returnNumberOfFreeMovesAsValue(
+          maximizingPlayer,
+          boardState
+        );
       return {
         value: result.value,
         position: null,

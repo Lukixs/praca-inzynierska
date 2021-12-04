@@ -186,7 +186,7 @@ export default class Board extends Vue {
     const boardState = JSON.parse(JSON.stringify(this.boardState));
     const result = MinimaxDropStage.dropMinimax(
       boardState,
-      6,
+      5,
       minimaxValues.MIN,
       minimaxValues.MAX,
       currentPlayer

@@ -1,8 +1,8 @@
-import { Minimax, MinimaxNode } from "../types/minimax";
+import { dropMinimax, Minimax, MinimaxNode } from "../types/minimax";
 import PawnToRemoveHelper from "./PawnToRemoveHelper";
 import MinimaxHelper from "./MinimaxHelper";
 import PlayerScoreHelper from "./PlayerScoreHelper";
-import { Player } from "../types/board";
+import { BoardState, Player } from "../types/board";
 import FieldHelper from "./FieldHelper";
 import { minimaxValues } from "./BoardInfo";
 
@@ -136,6 +136,34 @@ export default class {
     return {
       value: isTerminal ? minimaxValues.MIN : differenceInPawns,
       bestMove: node.movedPawn,
+    };
+  }
+
+  public static returnNumberOfFreeMovesAsValue(
+    maximizingPlayer: Player,
+    boardState: BoardState
+  ): dropMinimax {
+    const field = FieldHelper.deepCopyItem(boardState);
+    const playerPawns = FieldHelper.getPlayerPawnsFromBoard(
+      maximizingPlayer,
+      field
+    );
+    const numberOfAvailableMoves = FieldHelper.countAvailableDirections(
+      playerPawns,
+      field
+    );
+    if (!numberOfAvailableMoves)
+      return {
+        value: 0,
+        position: null,
+      };
+
+    return {
+      value:
+        maximizingPlayer == "white"
+          ? numberOfAvailableMoves
+          : numberOfAvailableMoves * -1,
+      position: null,
     };
   }
 }

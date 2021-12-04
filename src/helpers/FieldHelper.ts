@@ -4,7 +4,7 @@ import { boardStats } from "./BoardInfo";
 import FieldHelper from "./FieldHelper";
 
 export default class {
-  static randomIntFromInterval(min: number, max: number) {
+  static randomIntFromInterval(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min) + min);
   }
 
@@ -192,6 +192,19 @@ export default class {
       }
     });
     return availablePawns;
+  }
+
+  public static countAvailableDirections(
+    pawns: Pawn[],
+    boardState: BoardState
+  ): number {
+    let availableMoves = 0;
+
+    pawns.forEach((pawn) => {
+      const directions = this.getAvailableDirectionsForPawn(pawn, boardState);
+      availableMoves += directions.length;
+    });
+    return availableMoves;
   }
 
   public static getAvailableDirectionsForPawn(
