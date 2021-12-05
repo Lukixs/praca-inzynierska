@@ -36,8 +36,6 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import { Coordinates, BoardDimensions, Pawn, Player } from "../types/board";
-import Minimax from "../helpers/Minimax";
-import MinimaxDropStage from "../helpers/MinimaxDropStage";
 import FieldHelper from "../helpers/FieldHelper";
 import { minimaxValues } from "../helpers/BoardInfo";
 
@@ -46,6 +44,7 @@ import { minimaxValues } from "../helpers/BoardInfo";
     msg: {
       type: String,
     },
+    worker: {},
   },
 })
 export default class Board extends Vue {
@@ -183,38 +182,46 @@ export default class Board extends Vue {
   placePawnByAI(): void {
     const currentPlayer: Player = this.tura ? "white" : "black";
 
-    const boardState = JSON.parse(JSON.stringify(this.boardState));
-    const result = MinimaxDropStage.dropMinimax(
-      boardState,
-      5,
-      minimaxValues.MIN,
-      minimaxValues.MAX,
-      currentPlayer
-    );
-    console.log(result);
+    this.$props.worker.postMessage({
+      type: "drop",
+      params: [
+        this.boardState,
+        5,
+        minimaxValues.MIN,
+        minimaxValues.MAX,
+        currentPlayer,
+      ],
+    });
 
-    const availableFields: Coordinates[] = this.getEmptyFields(
-      this.boardState,
-      this.boardDimensions
-    );
+    const result = new Promise((resolve) => {
+      this.$props.worker.onmessage = (result: any) => {
+        resolve(result);
+      };
+    });
+    result.then((result: any) => {
+      console.log("value", result.data);
 
-    const randomFieldAddress =
-      availableFields[Math.floor(Math.random() * availableFields.length)];
+      let newPawn: Pawn;
 
-    let newPawn: Pawn;
+      if (result.data.position) {
+        newPawn = this.createNewPawn(result.data.position);
+        this.addPawnToGame(newPawn, result.data.position);
+      } else {
+        const availableFields: Coordinates[] = this.getEmptyFields(
+          this.boardState,
+          this.boardDimensions
+        );
+        const randomFieldAddress =
+          availableFields[Math.floor(Math.random() * availableFields.length)];
+        newPawn = this.createNewPawn(randomFieldAddress);
+        this.addPawnToGame(newPawn, randomFieldAddress);
+      }
 
-    if (result.position) {
-      newPawn = this.createNewPawn(result.position);
-      this.addPawnToGame(newPawn, result.position);
-    } else {
-      newPawn = this.createNewPawn(randomFieldAddress);
-      this.addPawnToGame(newPawn, randomFieldAddress);
-    }
+      this.addPawnToList(newPawn);
 
-    this.addPawnToList(newPawn);
-
-    this.tura = !this.tura;
-    this.moveCounter++;
+      this.tura = !this.tura;
+      this.moveCounter++;
+    });
   }
 
   getEmptyFields(
@@ -495,40 +502,52 @@ export default class Board extends Vue {
   movePawnByAI(currentPlayer: string, board: Pawn[][]): void {
     const player: Player = currentPlayer == "white" ? "black" : "white";
     const enemyPlayer: Player = player == "white" ? "black" : "white";
-    // const boardState = this.getBoardStateWithPawns(board, pawns);
-    const boardState = JSON.parse(JSON.stringify(board));
-    const mini = Minimax.minimax(
-      { boardState: boardState },
-      6,
-      minimaxValues.MIN,
-      minimaxValues.MAX,
-      player
-    );
-    console.log(player, mini);
-    if (!mini.bestMove) {
-      alert(`Gratulacje, wygrał gracz: ${currentPlayer}`);
-      return;
-    }
 
-    this.updatePawnById(mini.bestMove);
-    this.placePawnOnBoard(mini.bestMove, mini.bestMove.currentPosition);
-    this.emptyGivenField(mini.bestMove.lastPosition);
+    this.$props.worker.postMessage({
+      type: "move",
+      params: [
+        { boardState: board },
+        6,
+        minimaxValues.MIN,
+        minimaxValues.MAX,
+        player,
+      ],
+    });
 
-    if (mini.pawnToRemove && mini.pawnToRemove.player != player) {
-      this.removePawnById(mini.pawnToRemove.index);
-      this.clearBoardField(mini.pawnToRemove.currentPosition);
-      this.hasPlayerWon(mini.bestMove.player);
-    }
+    const mini = new Promise((resolve) => {
+      this.$props.worker.onmessage = (result: any) => {
+        resolve(result);
+      };
+    });
+    mini.then((value: any) => {
+      const data = value.data;
 
-    if (FieldHelper.isPlayerOutOfMoves(enemyPlayer, this.boardState)) {
-      alert(
-        `Niestety graczowi ${enemyPlayer} nie posiada możliwości ruchu, przez co następuje remis`
-      );
-      return;
-    }
+      if (!data.bestMove) {
+        alert(`Gratulacje, wygrał gracz: ${currentPlayer}`);
+        return;
+      }
 
-    this.tura = !this.tura;
-    this.moveCounter++;
+      this.updatePawnById(data.bestMove);
+      this.placePawnOnBoard(data.bestMove, data.bestMove.currentPosition);
+      this.emptyGivenField(data.bestMove.lastPosition);
+
+      if (data.pawnToRemove && data.pawnToRemove.player != player) {
+        this.removePawnById(data.pawnToRemove.index);
+        this.clearBoardField(data.pawnToRemove.currentPosition);
+        this.hasPlayerWon(data.bestMove.player);
+      }
+
+      if (FieldHelper.isPlayerOutOfMoves(enemyPlayer, this.boardState)) {
+        alert(
+          `Niestety graczowi ${enemyPlayer} nie posiada możliwości ruchu, przez co następuje remis`
+        );
+        return;
+      }
+
+      console.log(data);
+      this.tura = !this.tura;
+      this.moveCounter++;
+    });
   }
 
   getPawnById(id: number): Pawn {
