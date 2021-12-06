@@ -1,6 +1,12 @@
 <template>
   <div class="hello">
     Webowa Aplikacja do gry Dara
+    <img
+      v-show="isComputerThinking"
+      src="@/assets/img/spinner.gif"
+      alt="thinking"
+      style="width:50px; height:50px;"
+    />
     <div class="board">
       <div
         v-for="(e, rowIndex) in boardDimensions.rowsNumber"
@@ -51,6 +57,7 @@ export default class Board extends Vue {
   // name: 'Board',
 
   tura = true;
+  isComputerThinking = false;
   removeStagePlayer: string;
   moveCounter = 1;
   firstStageMovesLimit = 24;
@@ -80,6 +87,7 @@ export default class Board extends Vue {
   }
 
   cellOnClick(rowIndex: number, columnIndex: number): void {
+    if (this.isComputerThinking) return;
     const position: Coordinates = { rowIndex, columnIndex };
     if (this.moveCounter <= this.firstStageMovesLimit) {
       this.pawnsPlacingStageController(position);
@@ -180,6 +188,7 @@ export default class Board extends Vue {
   }
 
   placePawnByAI(): void {
+    this.isComputerThinking = true;
     const currentPlayer: Player = this.tura ? "white" : "black";
 
     this.$props.worker.postMessage({
@@ -221,6 +230,7 @@ export default class Board extends Vue {
 
       this.tura = !this.tura;
       this.moveCounter++;
+      this.isComputerThinking = false;
     });
   }
 
@@ -502,7 +512,7 @@ export default class Board extends Vue {
   movePawnByAI(currentPlayer: string, board: Pawn[][]): void {
     const player: Player = currentPlayer == "white" ? "black" : "white";
     const enemyPlayer: Player = player == "white" ? "black" : "white";
-
+    this.isComputerThinking = true;
     this.$props.worker.postMessage({
       type: "move",
       params: [
@@ -547,6 +557,7 @@ export default class Board extends Vue {
       console.log(data);
       this.tura = !this.tura;
       this.moveCounter++;
+      this.isComputerThinking = false;
     });
   }
 
