@@ -1,3 +1,4 @@
+import { Position } from "vue-router/types/router";
 import { Coordinates, Pawn } from "./board";
 
 export interface MinimaxNode {
@@ -10,7 +11,7 @@ export interface Minimax {
   value: number;
   bestMove?: Pawn;
   pawnToRemove?: Pawn;
-  isPawnToRemoveFresh?:boolean;
+  isPawnToRemoveFresh?: boolean;
 }
 
 export interface PawnWithAvailableMoves {
@@ -32,3 +33,8 @@ export interface PawnWithAvailableMoves {
 //   removedPawn =  pawn|null,
 //   boardState:{value[][]:{pawn}}
 // }
+
+export interface dropMinimax {
+  value: number;
+  position: Coordinates;
+}
