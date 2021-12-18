@@ -1,6 +1,13 @@
 <template>
   <div class="hello">
     Webowa Aplikacja do gry Dara
+    <Timer
+      ref="timer"
+      @timesUp="timesUp"
+      firstPlayerName="Gracz"
+      secondPlayerName="Komputer"
+    />
+
     <img
       v-show="isComputerThinking"
       src="@/assets/img/spinner.gif"
@@ -49,26 +56,30 @@ import {
 } from "../../../types/board";
 import FieldHelper from "../../../helpers/FieldHelper";
 import { minimaxValues } from "../../../helpers/BoardInfo";
+import Timer from "../../Timer.vue";
 
 @Component({
   props: {
     worker: {},
   },
+  components: {
+    Timer,
+  },
 })
 export default class Board extends Vue {
-  // name: 'Board',
+  $refs: {
+    timer: Timer;
+  };
 
   tura = true;
   isComputerThinking = false;
   removeStagePlayer: string;
   moveCounter = 1;
   firstStageMovesLimit = 24;
-  focused: Coordinates; // {rowIndex, columnIndex}   Aktualnie wybrany pionek
+  focused: Coordinates;
   boardDimensions: BoardDimensions = {
     columnsNumber: 6,
     rowsNumber: 5,
-    // { player: 'black', pawnIndex: '0' }
-    // rows: Array(8).fill(null),
   };
   boardState: Pawn[][] = new Array(this.boardDimensions.rowsNumber)
     .fill(false)
@@ -139,6 +150,7 @@ export default class Board extends Vue {
 
     this.tura = !this.tura;
     this.moveCounter++;
+    this.$refs.timer.timerChangePlayer();
     this.placePawnByAI();
   }
 
@@ -231,6 +243,7 @@ export default class Board extends Vue {
       this.tura = !this.tura;
       this.moveCounter++;
       this.isComputerThinking = false;
+      this.$refs.timer.timerChangePlayer();
     });
   }
 
@@ -454,15 +467,18 @@ export default class Board extends Vue {
     ) {
       this.highlightEnemyPawns(pawn.player);
       this.removeStagePlayer = pawn.player;
+      this.$refs.timer.timerChangePlayer();
       return;
     }
 
     this.tura = !this.tura;
     this.moveCounter++;
+    this.$refs.timer.timerChangePlayer();
     const board = this.boardState;
     const currentPlayer = pawn.player;
     const enemyPlayer: Player = pawn.player == "white" ? "black" : "white";
     if (FieldHelper.isPlayerOutOfMoves(enemyPlayer, this.boardState)) {
+      this.$refs.timer.stopTimer();
       alert(
         `Niestety graczowi ${enemyPlayer} nie posiada możliwości ruchu, przez co następuje remis`
       );
@@ -534,7 +550,8 @@ export default class Board extends Vue {
       const data = value.data;
 
       if (!data.bestMove) {
-        alert(`Gratulacje, wygrał gracz: ${currentPlayer}`);
+        this.$refs.timer.stopTimer();
+        alert(`Komputer poddał się, wygrał gracz: ${currentPlayer}`);
         return;
       }
 
@@ -549,6 +566,7 @@ export default class Board extends Vue {
       }
 
       if (FieldHelper.isPlayerOutOfMoves(enemyPlayer, this.boardState)) {
+        this.$refs.timer.stopTimer();
         alert(
           `Niestety graczowi ${enemyPlayer} nie posiada możliwości ruchu, przez co następuje remis`
         );
@@ -559,6 +577,7 @@ export default class Board extends Vue {
       this.tura = !this.tura;
       this.moveCounter++;
       this.isComputerThinking = false;
+      this.$refs.timer.timerChangePlayer();
     });
   }
 
@@ -625,6 +644,7 @@ export default class Board extends Vue {
     const enemyPawns = this.getEnemyPawns(player);
     console.log("Did Player win", enemyPawns);
     if (enemyPawns.length > 2) return;
+    this.$refs.timer.stopTimer();
     alert(`Gratulacje, wygrał gracz: ${player}`);
   }
 
@@ -854,6 +874,14 @@ export default class Board extends Vue {
     }
     const field = this.boardState[position.rowIndex][position.columnIndex];
     return field && field.player === player;
+  }
+
+  timesUp() {
+    if (this.tura) {
+      alert("Wygrał gracz czarny poprzez czas");
+      return;
+    }
+    alert("Wygrał gracz biały poprzez czas");
   }
   // },
 }

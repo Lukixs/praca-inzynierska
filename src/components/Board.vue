@@ -1,6 +1,11 @@
 <template>
   <div class="hello">
-    Webowa Aplikacja do gry Dara
+    <Timer
+      ref="timer"
+      @timesUp="timesUp"
+      :firstPlayerName="`Player 1`"
+      :secondPlayerName="`Player 2`"
+    />
     <div class="board">
       <div
         v-for="(e, rowIndex) in boardDimensions.rowsNumber"
@@ -36,15 +41,22 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import { Coordinates, BoardDimensions, Pawn } from "../types/board";
-
+import Timer from "./Timer.vue";
 @Component({
   props: {
     msg: {
       type: String,
     },
   },
+  components: {
+    Timer,
+  },
 })
 export default class Board extends Vue {
+  $refs!: {
+    timer: Timer;
+  };
+
   tura = true;
   removeStagePlayer: string;
   moveCounter = 1;
@@ -74,6 +86,14 @@ export default class Board extends Vue {
     }
 
     // this.fillBoard({ rowIndex, columnIndex });
+  }
+
+  timesUp() {
+    if (this.tura) {
+      alert("Wygrał gracz czarny poprzez czas");
+      return;
+    }
+    alert("Wygrał gracz biały poprzez czas");
   }
 
   // fillBoard(position: Coordinates): void {
@@ -135,6 +155,7 @@ export default class Board extends Vue {
 
     this.tura = !this.tura;
     this.moveCounter++;
+    this.$refs.timer.timerChangePlayer();
   }
 
   addPawnToGame(pawn: Pawn, position: Coordinates): void {
@@ -451,7 +472,10 @@ export default class Board extends Vue {
   didPlayerWin(player: string): void {
     const enemyPawns = this.getEnemyPawns(player);
     if (enemyPawns.length > 2) return;
-    alert(`Gratulacje, wygrał gracz: ${player}`);
+    {
+      this.$refs.timer.stopTimer();
+      alert(`Gratulacje, wygrał gracz: ${player}`);
+    }
   }
 
   clearBoardField(position: Coordinates): void {
