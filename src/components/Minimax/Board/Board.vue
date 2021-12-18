@@ -1,6 +1,19 @@
 <template>
   <div class="hello">
     Webowa Aplikacja do gry Dara
+    <Timer
+      ref="timer"
+      @timesUp="timesUp"
+      firstPlayerName="Gracz"
+      secondPlayerName="Komputer"
+    />
+
+    <img
+      v-show="isComputerThinking"
+      src="@/assets/img/spinner.gif"
+      alt="thinking"
+      style="width:50px; height:50px;"
+    />
     <div class="board">
       <div
         v-for="(e, rowIndex) in boardDimensions.rowsNumber"
@@ -35,31 +48,38 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import { Coordinates, BoardDimensions, Pawn, Player } from "../types/board";
-import Minimax from "../helpers/Minimax";
-import FieldHelper from "../helpers/FieldHelper";
-import { minimaxValues } from "../helpers/BoardInfo";
+import {
+  Coordinates,
+  BoardDimensions,
+  Pawn,
+  Player,
+} from "../../../types/board";
+import FieldHelper from "../../../helpers/FieldHelper";
+import { minimaxValues } from "../../../helpers/BoardInfo";
+import Timer from "../../Timer.vue";
 
 @Component({
   props: {
-    msg: {
-      type: String,
-    },
+    worker: {},
+  },
+  components: {
+    Timer,
   },
 })
 export default class Board extends Vue {
-  // name: 'Board',
+  $refs: {
+    timer: Timer;
+  };
 
   tura = true;
+  isComputerThinking = false;
   removeStagePlayer: string;
   moveCounter = 1;
   firstStageMovesLimit = 24;
-  focused: Coordinates; // {rowIndex, columnIndex}   Aktualnie wybrany pionek
+  focused: Coordinates;
   boardDimensions: BoardDimensions = {
     columnsNumber: 6,
     rowsNumber: 5,
-    // { player: 'black', pawnIndex: '0' }
-    // rows: Array(8).fill(null),
   };
   boardState: Pawn[][] = new Array(this.boardDimensions.rowsNumber)
     .fill(false)
@@ -80,6 +100,7 @@ export default class Board extends Vue {
   }
 
   cellOnClick(rowIndex: number, columnIndex: number): void {
+    if (this.isComputerThinking) return;
     const position: Coordinates = { rowIndex, columnIndex };
     if (this.moveCounter <= this.firstStageMovesLimit) {
       this.pawnsPlacingStageController(position);
@@ -129,6 +150,7 @@ export default class Board extends Vue {
 
     this.tura = !this.tura;
     this.moveCounter++;
+    this.$refs.timer.timerChangePlayer();
     this.placePawnByAI();
   }
 
@@ -180,20 +202,49 @@ export default class Board extends Vue {
   }
 
   placePawnByAI(): void {
-    const availableFields: Coordinates[] = this.getEmptyFields(
-      this.boardState,
-      this.boardDimensions
-    );
+    this.isComputerThinking = true;
+    const currentPlayer: Player = this.tura ? "white" : "black";
 
-    const randomFieldAddress =
-      availableFields[Math.floor(Math.random() * availableFields.length)];
+    this.$props.worker.postMessage({
+      type: "drop",
+      params: [
+        this.boardState,
+        5,
+        minimaxValues.MIN,
+        minimaxValues.MAX,
+        currentPlayer,
+      ],
+    });
 
-    const newPawn = this.createNewPawn(randomFieldAddress);
+    const result = new Promise((resolve) => {
+      this.$props.worker.onmessage = (result: any) => {
+        resolve(result);
+      };
+    });
+    result.then((result: any) => {
+      console.log("value", result.data);
 
-    this.addPawnToGame(newPawn, randomFieldAddress);
+      let newPawn: Pawn;
 
-    this.tura = !this.tura;
-    this.moveCounter++;
+      if (result.data.position) {
+        newPawn = this.createNewPawn(result.data.position);
+        this.addPawnToGame(newPawn, result.data.position);
+      } else {
+        const availableFields: Coordinates[] = this.getEmptyFields(
+          this.boardState,
+          this.boardDimensions
+        );
+        const randomFieldAddress =
+          availableFields[Math.floor(Math.random() * availableFields.length)];
+        newPawn = this.createNewPawn(randomFieldAddress);
+        this.addPawnToGame(newPawn, randomFieldAddress);
+      }
+
+      this.tura = !this.tura;
+      this.moveCounter++;
+      this.isComputerThinking = false;
+      this.$refs.timer.timerChangePlayer();
+    });
   }
 
   getEmptyFields(
@@ -403,6 +454,7 @@ export default class Board extends Vue {
       return;
     pawn.lastPosition = pawn.currentPosition;
     pawn.currentPosition = targetedField;
+    this.updatePawnById(pawn);
     this.placePawnOnBoard(pawn, targetedField);
     this.emptyGivenField(focused);
 
@@ -415,15 +467,18 @@ export default class Board extends Vue {
     ) {
       this.highlightEnemyPawns(pawn.player);
       this.removeStagePlayer = pawn.player;
+      this.$refs.timer.timerChangePlayer();
       return;
     }
 
     this.tura = !this.tura;
     this.moveCounter++;
+    this.$refs.timer.timerChangePlayer();
     const board = this.boardState;
     const currentPlayer = pawn.player;
     const enemyPlayer: Player = pawn.player == "white" ? "black" : "white";
     if (FieldHelper.isPlayerOutOfMoves(enemyPlayer, this.boardState)) {
+      this.$refs.timer.stopTimer();
       alert(
         `Niestety graczowi ${enemyPlayer} nie posiada możliwości ruchu, przez co następuje remis`
       );
@@ -441,34 +496,6 @@ export default class Board extends Vue {
   emptyFocused(): void {
     this.focused = null;
   }
-
-  // evaluateBoardState(node, maximizingPlayer) {
-  //   // console.log("evaluateBoardState", node);
-  //   const boardState = node.boardState;
-  //   const movedPawn = node.movedPawn;
-  //   // console.log({ boardState: boardState, movedPawn: movedPawn });
-  //   if (boardState && movedPawn) {
-  //     let hasPlayerScored = this.hasPlayerScoredAI(
-  //       movedPawn,
-  //       boardState,
-  //       maximizingPlayer
-  //     );
-  //     if (hasPlayerScored) {
-  //       // console.log({ hasScored: movedPawn.pawn.pawn.player });
-  //       if (maximizingPlayer === "white") return 100;
-  //       return -100;
-  //     }
-  //   }
-  //   return 0;
-  // },
-
-  // isTerminalNode(node, maximizingPlayer) {
-  //   const boardState = node.boardState;
-  //   const movedPawn = node.movedPawn;
-  //   if (boardState && movedPawn) {
-  //     return this.hasPlayerScoredAI(movedPawn, boardState, maximizingPlayer);
-  //   }
-  // },
 
   isMoveWithinReachForPawn(
     targetedField: Coordinates,
@@ -499,85 +526,59 @@ export default class Board extends Vue {
     if ([coreValue + 1, coreValue - 1].includes(aroundValue)) return true;
   }
 
-  // getBoardStateWithPawns(board: Pawn[][], pawns: Pawn[]) {
-  //   let boardState = Array(board.length)
-  //     .fill(null)
-  //     .map(() => Array(this.board.columnsNumber).fill(null));
-  //   // const boardState = board.map((row) => {
-  //   //   return row.map((item) => {
-  //   //     if (item.pawnIndex) return this.getPawnById(item.pawnIndex, pawns);
-  //   //     return null;
-  //   //   });
-  //   // });
-  //   let i, j;
-  //   for (i = 0; i < board.length; i++) {
-  //     for (j = 0; j < board[i].length; j++) {
-  //       if (board[i][j].pawnIndex)
-  //         boardState[i][j] = this.getPawnById(board[i][j].pawnIndex, pawns);
-  //     }
-  //   }
-  //   return boardState;
-  // }
-
   movePawnByAI(currentPlayer: string, board: Pawn[][]): void {
     const player: Player = currentPlayer == "white" ? "black" : "white";
     const enemyPlayer: Player = player == "white" ? "black" : "white";
-    // const boardState = this.getBoardStateWithPawns(board, pawns);
-    const boardState = JSON.parse(JSON.stringify(this.boardState));
-    const mini = Minimax.minimax(
-      { boardState: boardState },
-      6,
-      minimaxValues.MIN,
-      minimaxValues.MAX,
-      player
-    );
-    console.log(player, mini);
-    if (!mini.bestMove) {
-      alert(`Gratulacje, wygrał gracz: ${currentPlayer}`);
-      return;
-    }
-    // Wykoanie ruchu według miniMaxa
+    this.isComputerThinking = true;
+    this.$props.worker.postMessage({
+      type: "move",
+      params: [
+        { boardState: board },
+        6,
+        minimaxValues.MIN,
+        minimaxValues.MAX,
+        player,
+      ],
+    });
 
-    // let oldRow = this.boardState[mini.bestMove.lastPosition.rowIndex].slice(0);
-    // oldRow[mini.bestMove.lastPosition.columnIndex] = this.emptyField;
-    // this.$set(this.boardState, mini.bestMove.lastPosition.rowIndex, oldRow);
-    this.updatePawnById(mini.bestMove);
-    // let newRow = this.boardState[mini.bestMove.currentPosition.rowIndex].slice(
-    //   0
-    // );
-    // newRow[mini.bestMove.currentPosition.columnIndex] = mini.bestMove;
-    // this.$set(this.boardState, mini.bestMove.currentPosition.rowIndex, newRow);
+    const mini = new Promise((resolve) => {
+      this.$props.worker.onmessage = (result: any) => {
+        resolve(result);
+      };
+    });
+    mini.then((value: any) => {
+      const data = value.data;
 
-    this.placePawnOnBoard(mini.bestMove, mini.bestMove.currentPosition);
-    this.emptyGivenField(mini.bestMove.lastPosition);
+      if (!data.bestMove) {
+        this.$refs.timer.stopTimer();
+        alert(`Komputer poddał się, wygrał gracz: ${currentPlayer}`);
+        return;
+      }
 
-    if (mini.pawnToRemove && mini.pawnToRemove.player != player) {
-      this.removePawnById(mini.pawnToRemove.index);
-      this.clearBoardField(mini.pawnToRemove.currentPosition);
-      this.hasPlayerWon(mini.bestMove.player);
-    }
+      this.updatePawnById(data.bestMove);
+      this.placePawnOnBoard(data.bestMove, data.bestMove.currentPosition);
+      this.emptyGivenField(data.bestMove.lastPosition);
 
-    if (FieldHelper.isPlayerOutOfMoves(enemyPlayer, this.boardState)) {
-      alert(
-        `Niestety graczowi ${enemyPlayer} nie posiada możliwości ruchu, przez co następuje remis`
-      );
-      return;
-    }
+      if (data.pawnToRemove && data.pawnToRemove.player != player) {
+        this.removePawnById(data.pawnToRemove.index);
+        this.clearBoardField(data.pawnToRemove.currentPosition);
+        this.hasPlayerWon(data.bestMove.player);
+      }
 
-    this.tura = !this.tura;
-    this.moveCounter++;
+      if (FieldHelper.isPlayerOutOfMoves(enemyPlayer, this.boardState)) {
+        this.$refs.timer.stopTimer();
+        alert(
+          `Niestety graczowi ${enemyPlayer} nie posiada możliwości ruchu, przez co następuje remis`
+        );
+        return;
+      }
 
-    // const myPawns = this.getEnemyPawns(enemy);
-    // const pawnsWithAvailableMoves = this.getMovablePawn(myPawns);
-    // if (pawnsWithAvailableMoves && pawnsWithAvailableMoves.length)
-    //   this.movePawnIntoRandomDirection(
-    //     pawnsWithAvailableMoves[
-    //       Math.floor(Math.random() * pawnsWithAvailableMoves.length)
-    //     ]
-    //   );
-    // else {
-    //   alert("Komputer przegrał z powodu braku dostępnych ruchów.");
-    // }
+      console.log(data);
+      this.tura = !this.tura;
+      this.moveCounter++;
+      this.isComputerThinking = false;
+      this.$refs.timer.timerChangePlayer();
+    });
   }
 
   getPawnById(id: number): Pawn {
@@ -643,6 +644,7 @@ export default class Board extends Vue {
     const enemyPawns = this.getEnemyPawns(player);
     console.log("Did Player win", enemyPawns);
     if (enemyPawns.length > 2) return;
+    this.$refs.timer.stopTimer();
     alert(`Gratulacje, wygrał gracz: ${player}`);
   }
 
@@ -872,6 +874,14 @@ export default class Board extends Vue {
     }
     const field = this.boardState[position.rowIndex][position.columnIndex];
     return field && field.player === player;
+  }
+
+  timesUp() {
+    if (this.tura) {
+      alert("Wygrał gracz czarny poprzez czas");
+      return;
+    }
+    alert("Wygrał gracz biały poprzez czas");
   }
   // },
 }
