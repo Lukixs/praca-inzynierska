@@ -1,24 +1,15 @@
 <template>
   <div class="about">
-    <MiniMax :worker="worker" />
+    <MiniMax />
   </div>
 </template>
 <script>
-import MiniMax from "@/components/MiniMax.vue";
+import MiniMax from "@/components/Minimax/Minimax.vue";
 import Vue from "vue";
 import Component from "vue-class-component";
-
-import Worker from "worker-loader!./Worker";
 
 @Component({
   components: { MiniMax },
 })
-export default class Home extends Vue {
-  worker;
-  created() {
-    if (typeof Worker !== "undefined") {
-      this.worker = new Worker("worker-loader!./Workers/Worker");
-    }
-  }
-}
+export default class Home extends Vue {}
 </script>

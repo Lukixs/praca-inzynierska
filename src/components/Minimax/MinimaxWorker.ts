@@ -1,5 +1,5 @@
-import Minimax from "../helpers/Minimax";
-import MinimaxDropStage from "../helpers/MinimaxDropStage";
+import Minimax from "../../helpers/Minimax";
+import MinimaxDropStage from "../../helpers/MinimaxDropStage";
 
 const ctx: Worker = self as any;
 

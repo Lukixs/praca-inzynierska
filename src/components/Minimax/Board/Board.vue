@@ -41,15 +41,17 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import { Coordinates, BoardDimensions, Pawn, Player } from "../types/board";
-import FieldHelper from "../helpers/FieldHelper";
-import { minimaxValues } from "../helpers/BoardInfo";
+import {
+  Coordinates,
+  BoardDimensions,
+  Pawn,
+  Player,
+} from "../../../types/board";
+import FieldHelper from "../../../helpers/FieldHelper";
+import { minimaxValues } from "../../../helpers/BoardInfo";
 
 @Component({
   props: {
-    msg: {
-      type: String,
-    },
     worker: {},
   },
 })
@@ -225,8 +227,6 @@ export default class Board extends Vue {
         newPawn = this.createNewPawn(randomFieldAddress);
         this.addPawnToGame(newPawn, randomFieldAddress);
       }
-
-      this.addPawnToList(newPawn);
 
       this.tura = !this.tura;
       this.moveCounter++;
@@ -441,6 +441,7 @@ export default class Board extends Vue {
       return;
     pawn.lastPosition = pawn.currentPosition;
     pawn.currentPosition = targetedField;
+    this.updatePawnById(pawn);
     this.placePawnOnBoard(pawn, targetedField);
     this.emptyGivenField(focused);
 
