@@ -3,6 +3,12 @@
     Webowa Aplikacja do gry Dara
 
     <div v-if="!joinedRoom">
+      <input
+        name="NameInput"
+        ref="NameInput"
+        type="text"
+        placeholder="Nickname"
+      />
       <p>Wybierz pokoj</p>
       <ul>
         <li style="display:block" v-for="(room, id) in rooms" :key="id">
@@ -12,12 +18,6 @@
           >]
         </li>
       </ul>
-      <!-- <input
-        name="NameInput"
-        v-on:input="updatePlayerName($event.target.value)"
-        type="text"
-        placeholder="Name"
-      /> -->
     </div>
     <div v-else><BoardAndChat :socket="socket" /></div>
   </div>
@@ -42,6 +42,9 @@ import { onlineRoom } from "../../types/online";
 })
 export default class Board extends Vue {
   protected socket = io.connect("ws://localhost:8081");
+  $refs!: {
+    NameInput: HTMLInputElement;
+  };
 
   mounted(): void {
     console.log("Created", {
@@ -64,7 +67,7 @@ export default class Board extends Vue {
 
   joinRoom(room: onlineRoom): void {
     if (room.players.length >= 2) return;
-    this.socket.emit("joinRoom", this.playerName, room.name);
+    this.socket.emit("joinRoom", this.$refs.NameInput.value, room.name);
   }
 
   joinedRoom = false;
