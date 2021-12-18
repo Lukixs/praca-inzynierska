@@ -32,7 +32,7 @@ import Component from "vue-class-component";
     },
   },
 })
-export default class Timer2 extends Vue {
+export default class Timer extends Vue {
   firstTimerRunning = false;
   SecondTimerRunning = false;
 
