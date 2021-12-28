@@ -14,11 +14,11 @@
       alt="thinking"
       style="width:50px; height:50px;"
     />
-    <div class="board">
+    <div class="game-board">
       <div
         v-for="(e, rowIndex) in boardDimensions.rowsNumber"
         :key="e"
-        class="row"
+        class="board-row"
       >
         <div
           v-for="(f, columnIndex) in boardDimensions.columnsNumber"
@@ -27,7 +27,11 @@
         >
           <div
             :id="`${rowIndex}${columnIndex}`"
-            :class="[(rowIndex + columnIndex) % 2 === 0 ? 'white' : 'black']"
+            :class="[
+              (rowIndex + columnIndex) % 2 === 0
+                ? 'white-field'
+                : 'black-field',
+            ]"
           >
             <div v-if="boardState[rowIndex][columnIndex].player == 'white'">
               &#9920;
@@ -889,9 +893,9 @@ export default class Board extends Vue {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.board {
-  width: 720px;
-  height: 600px;
+.game-board {
+  width: 770px;
+  height: 650px;
 
   display: flex;
   flex-wrap: wrap-reverse;
@@ -902,11 +906,11 @@ export default class Board extends Vue {
   margin-right: auto;
 }
 
-.row {
+.board-row {
   display: flex;
 }
 
-.black {
+.black-field {
   float: left;
   width: 120px;
   height: 120px;
@@ -921,7 +925,7 @@ export default class Board extends Vue {
   -ms-user-select: none;
   user-select: none;
 }
-.white {
+.white-field {
   float: left;
   width: 120px;
   height: 120px;

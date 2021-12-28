@@ -1,8 +1,8 @@
 <template>
-  <div class="hello">
+  <div>
     Webowa Aplikacja do gry Dara
-    <div class="board">
-      <div v-for="(e, rowIndex) in board.rowsNumber" :key="e" class="row">
+    <div class="game-board">
+      <div v-for="(e, rowIndex) in board.rowsNumber" :key="e" class="board-row">
         <div
           v-for="(f, columnIndex) in board.columnsNumber"
           :key="f"
@@ -10,7 +10,11 @@
         >
           <div
             :id="`${rowIndex}${columnIndex}`"
-            :class="[(rowIndex + columnIndex) % 2 === 0 ? 'white' : 'black']"
+            :class="[
+              (rowIndex + columnIndex) % 2 === 0
+                ? 'white-field'
+                : 'black-field',
+            ]"
           >
             <div v-if="board.values[rowIndex][columnIndex].player == 'white'">
               &#9920;
@@ -32,7 +36,7 @@
 export default {
   // name: 'Board',
   props: {
-    msg: String
+    msg: String,
   },
   data: function() {
     return {
@@ -44,11 +48,11 @@ export default {
       board: {
         columnsNumber: 6,
         rowsNumber: 5,
-        values: null // { player: 'black', pawnIndex: '0' }
+        values: null, // { player: 'black', pawnIndex: '0' }
         // rows: Array(8).fill(null),
       },
       pawns: [], // { player: 'black', currentPosition: {rowIndex: 4, columnIndex: 4}, lastPosition:{rowIndex: 4, columnIndex: 3} }
-      history: [] // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
+      history: [], // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
     };
   },
   methods: {
@@ -137,9 +141,9 @@ export default {
         pawnIndex: moveCounter,
         currentPosition: {
           rowIndex: rowIndex,
-          columnIndex: columnIndex
+          columnIndex: columnIndex,
         },
-        lastPosition: null
+        lastPosition: null,
       };
     },
 
@@ -149,9 +153,9 @@ export default {
         pawnIndex: moveCounter,
         currentPosition: {
           rowIndex: rowIndex,
-          columnIndex: columnIndex
+          columnIndex: columnIndex,
         },
-        lastPosition: null
+        lastPosition: null,
       };
     },
 
@@ -187,7 +191,7 @@ export default {
           if (!values[i][j].player)
             emptyFields.push({
               rowIndex: i,
-              columnIndex: j
+              columnIndex: j,
             });
         }
       }
@@ -378,7 +382,7 @@ export default {
       pawn.lastPosition = pawn.currentPosition;
       pawn.currentPosition = {
         rowIndex: rowIndex,
-        columnIndex: columnIndex
+        columnIndex: columnIndex,
       };
 
       newRow[columnIndex] = pawn;
@@ -436,7 +440,7 @@ export default {
       pawn.lastPosition = pawn.currentPosition;
       pawn.currentPosition = {
         rowIndex: rowIndex,
-        columnIndex: columnIndex
+        columnIndex: columnIndex,
       };
       newRow[columnIndex] = pawn;
       this.$set(this.board.values, rowIndex, newRow);
@@ -489,7 +493,7 @@ export default {
       )
         availableDirections.push({
           rowIndex: pawn.currentPosition.rowIndex - 1,
-          columnIndex: pawn.currentPosition.columnIndex
+          columnIndex: pawn.currentPosition.columnIndex,
         });
       else if (
         this.isLowerFieldSuitableToMove(
@@ -500,7 +504,7 @@ export default {
       )
         availableDirections.push({
           rowIndex: pawn.currentPosition.rowIndex + 1,
-          columnIndex: pawn.currentPosition.columnIndex
+          columnIndex: pawn.currentPosition.columnIndex,
         });
       else if (
         this.isLeftFieldSuitableToMove(
@@ -511,7 +515,7 @@ export default {
       )
         availableDirections.push({
           rowIndex: pawn.currentPosition.rowIndex,
-          columnIndex: pawn.currentPosition.columnIndex - 1
+          columnIndex: pawn.currentPosition.columnIndex - 1,
         });
       else if (
         this.isRightFieldSuitableToMove(
@@ -522,7 +526,7 @@ export default {
       )
         availableDirections.push({
           rowIndex: pawn.currentPosition.rowIndex,
-          columnIndex: pawn.currentPosition.columnIndex + 1
+          columnIndex: pawn.currentPosition.columnIndex + 1,
         });
 
       return availableDirections;
@@ -580,7 +584,7 @@ export default {
         player: null,
         pawnIndex: null,
         currentPosition: null,
-        lastPosition: null
+        lastPosition: null,
       };
     },
 
@@ -747,7 +751,7 @@ export default {
       }
 
       return this.board.values[rowIndex][columnIndex].player === player;
-    }
+    },
   },
   beforeMount() {
     this.board.values = Array(8)
@@ -757,18 +761,18 @@ export default {
           player: null,
           pawnIndex: null,
           currentPosition: null,
-          lastPosition: null
+          lastPosition: null,
         })
       );
-  }
+  },
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.board {
-  width: 720px;
-  height: 600px;
+.game-board {
+  width: 770px;
+  height: 650px;
 
   display: flex;
   flex-wrap: wrap-reverse;
@@ -779,11 +783,11 @@ export default {
   margin-right: auto;
 }
 
-.row {
+.board-row {
   display: flex;
 }
 
-.black {
+.black-field {
   float: left;
   width: 120px;
   height: 120px;
@@ -798,7 +802,7 @@ export default {
   -ms-user-select: none;
   user-select: none;
 }
-.white {
+.white-field {
   float: left;
   width: 120px;
   height: 120px;

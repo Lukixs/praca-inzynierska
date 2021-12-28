@@ -8,12 +8,14 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@babel/polyfill": "^7.4.4",
     "core-js": "^3.6.5",
     "socket.io-client": "^4.4.0",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.6",
     "vue-router": "^3.2.0",
     "vue-socket.io-extended": "^4.2.0",
+    "vuetify": "^2.4.0",
     "worker-loader": "^3.0.8"
   },
   "devDependencies": {
