@@ -1,4 +1,3 @@
-import { Position } from "vue-router/types/router";
 import { Coordinates, Pawn } from "./board";
 
 export interface MinimaxNode {
