@@ -4,12 +4,18 @@ import Home from "../views/Home.vue";
 import About from "../views/About.vue";
 import MiniMax from "../views/MiniMax.vue";
 import OnlineGame from "../views/OnlineGame.vue";
+import Menu from "../views/Menu.vue";
 
 Vue.use(VueRouter);
 
 const routes: Array<RouteConfig> = [
   {
     path: "/",
+    name: "Menu",
+    component: Menu,
+  },
+  {
+    path: "/local",
     name: "Home",
     component: Home,
   },
