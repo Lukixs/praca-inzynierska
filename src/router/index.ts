@@ -1,8 +1,8 @@
 import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
-import Home from "../views/Home.vue";
-import About from "../views/About.vue";
-import MiniMax from "../views/MiniMax.vue";
+import LocalGame from "../views/LocalGame/LocalGame.vue";
+import LocalGameMenu from "../views/LocalGame/LocalGameMenu.vue";
+import AIGame from "../views/LocalGame/AIGame.vue";
 import OnlineGame from "../views/OnlineGame.vue";
 import Menu from "../views/Menu.vue";
 
@@ -15,25 +15,30 @@ const routes: Array<RouteConfig> = [
     component: Menu,
   },
   {
+    path: "/local-menu",
+    name: "Local Game Menu",
+    component: LocalGameMenu,
+  },
+  {
     path: "/local",
-    name: "Home",
-    component: Home,
+    name: "Local Game",
+    component: LocalGame,
   },
+  // {
+  //   path: "/about",
+  //   name: "About",
+  //   // route level code-splitting
+  //   // this generates a separate chunk (about.[hash].js) for this route
+  //   // which is lazy-loaded when the route is visited.
+  //   component: About,
+  // },
   {
-    path: "/about",
-    name: "About",
+    path: "/aigame",
+    name: "Artificial Intelligence Game",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: About,
-  },
-  {
-    path: "/minimax",
-    name: "MiniMax",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: MiniMax,
+    component: AIGame,
   },
   {
     path: "/online",

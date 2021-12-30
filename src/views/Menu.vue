@@ -36,10 +36,10 @@ export default Vue.extend({
   data() {
     return {
       items: [
-        { title: "GRAJ LOKALNIE", link: "/local" },
-        { title: "GRAJ ONLINE", link: "/about" },
-        { title: "OPCJE", link: "/minimax" },
-        { title: "INSTRUKCJA", icon: "mdi-forum", link: "/online" },
+        { title: "GRAJ LOKALNIE", link: "/local-menu" },
+        { title: "GRAJ ONLINE", link: "/online" },
+        { title: "OPCJE", link: "/options" },
+        { title: "INSTRUKCJA", icon: "mdi-forum", link: "/help" },
       ],
     };
   },
@@ -62,6 +62,7 @@ export default Vue.extend({
   margin-top: 5vh;
   font-size: 50px;
   display: flex;
+  overflow: auto;
 
   justify-content: center;
   &--list {
