@@ -738,7 +738,7 @@ export default class Board extends Vue {
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .game-board {

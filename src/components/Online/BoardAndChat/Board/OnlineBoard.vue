@@ -1,13 +1,5 @@
 <template>
-  <div class="hello">
-    Webowa Aplikacja do gry Dara
-    <Timer
-      ref="timer"
-      @timesUp="timesUp"
-      :firstPlayerName="whitePlayerName"
-      :secondPlayerName="blackPlayerName"
-    />
-
+  <div class="online-content">
     <div class="game-board">
       <div
         v-for="(e, rowIndex) in boardDimensions.rowsNumber"
@@ -37,9 +29,18 @@
         </div>
       </div>
     </div>
-    <span>Tura {{ moveCounter }} |</span>
+    <div class="timer-chat">
+      <Timer
+        ref="timer"
+        @timesUp="timesUp"
+        :firstPlayerName="whitePlayerName"
+        :secondPlayerName="blackPlayerName"
+      />
+      <Chat :socket="$props.socket" />
+    </div>
+    <!-- <span>Tura {{ moveCounter }} |</span>
     <span v-if="tura">Ruch Białych </span>
-    <span v-else>Ruch Czarnych</span>
+    <span v-else>Ruch Czarnych</span> -->
   </div>
 </template>
 
@@ -49,13 +50,14 @@ import Component from "vue-class-component";
 import { Coordinates, BoardDimensions, Pawn } from "../../../../types/board";
 import { onlinePlayer } from "../../../../types/online";
 import Timer from "../../../Timer.vue";
-
+import Chat from "../Chat/ChatWindow.vue";
 @Component({
   props: {
     socket: {},
   },
   components: {
     Timer,
+    Chat,
   },
 })
 export default class Board extends Vue {
@@ -138,8 +140,8 @@ export default class Board extends Vue {
     this.$props.socket.emit("place-pawn", pawn);
   }
 
-  whitePlayerName = "0";
-  blackPlayerName = "0";
+  whitePlayerName = "Gracz 1";
+  blackPlayerName = "Gracz 2";
 
   tura = true;
   playerTurn: boolean;
@@ -799,18 +801,34 @@ export default class Board extends Vue {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style lang="scss" scoped>
+.online-content {
+  margin-top: 5vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: flex-start;
+}
+
+.timer-chat {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+  justify-content: space-between;
+}
+
 .game-board {
+  color: black;
   width: 770px;
   height: 650px;
 
   display: flex;
   flex-wrap: wrap-reverse;
 
-  margin: 20px;
+  // margin: 20px;
   border: 25px solid #333;
-  margin-left: auto;
-  margin-right: auto;
+  // margin-left: auto;
+  // margin-right: auto;
 }
 
 .board-row {

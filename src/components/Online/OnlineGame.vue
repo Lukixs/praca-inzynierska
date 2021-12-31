@@ -1,7 +1,8 @@
 <template>
-  <div class="hello">
-    Webowa Aplikacja do gry Dara
-
+  <div class="online">
+    <div class="header">
+      <h1 class="h1 title ">Rozgrywka On-line</h1>
+    </div>
     <div v-if="!joinedRoom">
       <input
         name="NameInput"
@@ -20,6 +21,7 @@
       </ul>
     </div>
     <div v-else><BoardAndChat :socket="socket" /></div>
+    <!-- <div><BoardAndChat :socket="socket" /></div> -->
   </div>
 </template>
 
@@ -80,4 +82,11 @@ export default class Board extends Vue {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped></style>
+<style lang="scss" scoped>
+.header {
+  font-size: 30px;
+  padding: 15px;
+  // min-height: 15vh;
+  background-color: #6e6e6e30;
+}
+</style>

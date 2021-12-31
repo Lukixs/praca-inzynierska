@@ -1,6 +1,5 @@
 <template>
   <div class="BoardAndChat">
-    <Chat :socket="$props.socket" />
     <Board :socket="$props.socket" />
   </div>
 </template>
@@ -8,7 +7,7 @@
 <script lang="ts">
 import Vue from "vue";
 import Board from "./Board/OnlineBoard.vue";
-import Chat from "./Chat/ChatWindow.vue";
+
 import Component from "vue-class-component";
 
 @Component({
@@ -17,10 +16,17 @@ import Component from "vue-class-component";
   },
   components: {
     Board,
-    Chat,
   },
 })
 export default class BoardAndChat extends Vue {}
 </script>
 
-<style scoped></style>
+<style lang="scss" scoped>
+.BoardAndChat {
+  color: white;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
+}
+</style>

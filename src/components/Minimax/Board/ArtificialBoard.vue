@@ -1,19 +1,11 @@
 <template>
-  <div class="hello">
-    Webowa Aplikacja do gry Dara
-    <Timer
-      ref="timer"
-      @timesUp="timesUp"
-      firstPlayerName="Gracz"
-      secondPlayerName="Komputer"
-    />
-
-    <img
+  <div class="artificial-content">
+    <!-- <img
       v-show="isComputerThinking"
       src="@/assets/img/spinner.gif"
       alt="thinking"
       style="width:50px; height:50px;"
-    />
+    /> -->
     <div class="game-board">
       <div
         v-for="(e, rowIndex) in boardDimensions.rowsNumber"
@@ -43,9 +35,19 @@
         </div>
       </div>
     </div>
-    <span>Tura {{ moveCounter }} |</span>
-    <span v-if="tura"> Ruch Białych </span>
-    <span v-else>Ruch Czarnych</span>
+    <div>
+      <Timer
+        ref="timer"
+        @timesUp="timesUp"
+        firstPlayerName="Gracz"
+        secondPlayerName="Komputer"
+        >VS</Timer
+      >
+    </div>
+
+    <!-- <span>Tura {{ moveCounter }} |</span>
+    <span v-if="tura"> Ruch Białych </span> -->
+    <!-- <span v-else>Ruch Czarnych</span> -->
   </div>
 </template>
 
@@ -892,18 +894,27 @@ export default class Board extends Vue {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style lang="scss" scoped>
+.artificial-content {
+  margin-top: 5vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: flex-start;
+}
+
 .game-board {
+  color: black;
   width: 770px;
   height: 650px;
 
   display: flex;
   flex-wrap: wrap-reverse;
 
-  margin: 20px;
+  // margin: 20px;
   border: 25px solid #333;
-  margin-left: auto;
-  margin-right: auto;
+  // margin-left: auto;
+  // margin-right: auto;
 }
 
 .board-row {
