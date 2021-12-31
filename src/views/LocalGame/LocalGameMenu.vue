@@ -1,7 +1,7 @@
 <template>
   <div class="menu">
     <div class="header">
-      <h1 class="h1 title ">Wybierz tryb rozgrywki</h1>
+      <h1 class="h1 title ">Wybierz poziom trudności</h1>
     </div>
 
     <div class="options">
@@ -47,7 +47,7 @@ export default Vue.extend({
   user-select: none; /* Standard */
 }
 .header {
-  font-size: 40px;
+  font-size: 30px;
   padding: 15px;
   // min-height: 10vh;
   background-color: #6e6e6e30;

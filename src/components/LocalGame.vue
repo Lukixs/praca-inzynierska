@@ -1,11 +1,5 @@
 <template>
-  <div>
-    <Timer
-      ref="timer"
-      @timesUp="timesUp"
-      :firstPlayerName="`Player 1`"
-      :secondPlayerName="`Player 2`"
-    />
+  <div class="local-content">
     <div class="game-board">
       <div
         v-for="(e, rowIndex) in boardDimensions.rowsNumber"
@@ -35,9 +29,18 @@
         </div>
       </div>
     </div>
-    <span>Tura {{ moveCounter }} |</span>
-    <span v-if="tura">Ruch Białych </span>
-    <span v-else>Ruch Czarnych</span>
+    <div class="options">
+      <Timer
+        ref="timer"
+        @timesUp="timesUp"
+        :firstPlayerName="`Gracz 1`"
+        :secondPlayerName="`Gracz 2`"
+        >VS</Timer
+      >
+      <!-- <span>Tura {{ moveCounter }} |</span>
+      <span v-if="tura">Ruch Białych </span>
+      <span v-else>Ruch Czarnych</span> -->
+    </div>
   </div>
 </template>
 
@@ -729,18 +732,27 @@ export default class Board extends Vue {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style lang="scss" scoped>
+.local-content {
+  margin-top: 5vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
 .game-board {
+  color: black;
   width: 770px;
   height: 650px;
 
   display: flex;
   flex-wrap: wrap-reverse;
 
-  margin: 20px;
+  // margin: 20px;
   border: 25px solid #333;
-  margin-left: auto;
-  margin-right: auto;
+  // margin-left: auto;
+  // margin-right: auto;
 }
 
 .board-row {
