@@ -19,10 +19,6 @@
         <!-- </div> -->
       </div>
     </div>
-    <!-- <router-link to="/local">Local Game</router-link> |
-    <router-link to="/about">AI Game - Easy</router-link> |
-    <router-link to="/minimax">MiniMax Game</router-link> |
-    <router-link to="/online">Online</router-link> -->
   </div>
 </template>
 

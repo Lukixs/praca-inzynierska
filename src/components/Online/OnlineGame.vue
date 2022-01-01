@@ -3,25 +3,41 @@
     <div class="header">
       <h1 class="h1 title ">Rozgrywka On-line</h1>
     </div>
-    <div v-if="!joinedRoom">
-      <input
-        name="NameInput"
-        ref="NameInput"
-        type="text"
-        placeholder="Nickname"
-      />
-      <p>Wybierz pokoj</p>
-      <ul>
-        <li style="display:block" v-for="(room, id) in rooms" :key="id">
-          <span @click="joinRoom(room)">{{ room.name }}</span>
-          [<span v-for="(player, jd) in room.players" :key="jd"
-            >{{ player.name }},</span
-          >]
-        </li>
-      </ul>
+    <div class="content" v-if="!joinedRoom">
+      <div v-if="!nameSetted" class="name-field">
+        <span class="label">Podaj swój pseudonim</span>
+        <v-text-field
+          class="input"
+          v-model="playerName"
+          placeholder="Nick"
+          dark
+          outlined
+        ></v-text-field>
+
+        <v-btn @click="verifyNameInput()">Potwierdź</v-btn>
+      </div>
+
+      <div v-else class="rooms">
+        <span class="rooms--header">Dołącz do któregoś z dostępnych pokoi</span>
+        <!-- <ul class="list">
+          <li style="display:block" v-for="(room, id) in rooms" :key="id">
+            <span @click="joinRoom(room)">{{ room.name }}</span>
+            [<span v-for="(player, jd) in room.players" :key="jd"
+              >{{ player.name }},</span
+            >]
+          </li>
+        </ul> -->
+        <div class="rooms--list">
+          <div class="rooms--list--item" v-for="(room, id) in rooms" :key="id">
+            <span @click="joinRoom(room)">{{ room.name }}</span>
+            [<span v-for="(player, jd) in room.players" :key="jd"
+              >{{ player.name }},</span
+            >]
+          </div>
+        </div>
+      </div>
     </div>
-    <div v-else><BoardAndChat :socket="socket" /></div>
-    <!-- <div><BoardAndChat :socket="socket" /></div> -->
+    <BoardAndChat v-else :socket="socket" />
   </div>
 </template>
 
@@ -44,9 +60,9 @@ import { onlineRoom } from "../../types/online";
 })
 export default class Board extends Vue {
   protected socket = io.connect("ws://localhost:8081");
-  $refs!: {
-    NameInput: HTMLInputElement;
-  };
+  // $refs!: {
+  //   NameInput: HTMLInputElement;
+  // };
 
   mounted(): void {
     console.log("Created", {
@@ -59,6 +75,7 @@ export default class Board extends Vue {
 
   loadSocketsListeners(): void {
     this.socket.on("rooms", (rooms: onlineRoom[]) => {
+      console.log("Emituje nowe roomy", rooms);
       this.rooms = rooms;
     });
 
@@ -69,12 +86,19 @@ export default class Board extends Vue {
 
   joinRoom(room: onlineRoom): void {
     if (room.players.length >= 2) return;
-    this.socket.emit("joinRoom", this.$refs.NameInput.value, room.name);
+    this.socket.emit("joinRoom", this.playerName, room.name);
+  }
+
+  verifyNameInput() {
+    // console.log(this.$refs.NameInput.value);
+    console.log(this.playerName);
+    if (this.playerName && this.playerName != "") this.nameSetted = true;
   }
 
   joinedRoom = false;
+  nameSetted = false;
   message: string;
-  playerName: string;
+  playerName = "";
   messages: { name: string; message: string }[] = [];
   rooms: onlineRoom[] = [];
   //=================================================
@@ -88,5 +112,62 @@ export default class Board extends Vue {
   padding: 15px;
   // min-height: 15vh;
   background-color: #6e6e6e30;
+}
+
+.content {
+  margin: 0 auto;
+
+  .name-field {
+    margin-top: 80px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #6e6e6e30;
+    border: 2px solid white;
+    border-radius: 30px;
+    padding: 40px;
+
+    .label {
+      font-size: 40px;
+      margin: 0 0 30px 0;
+    }
+    .input {
+      max-width: 20vw;
+    }
+  }
+
+  .rooms {
+    margin-top: 80px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #6e6e6e30;
+    border: 2px solid white;
+    border-radius: 30px;
+    padding: 20px 40px 40px 40px;
+
+    &--header {
+      font-size: 30px;
+      line-height: 70px;
+      margin: 0 0 20px 0;
+      border-bottom: 2px solid white;
+    }
+
+    &--list {
+      // margin-top: 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+
+      &--item {
+        font-size: 25px;
+        width: 80%;
+        background-color: #6e6e6e60;
+        padding: 10px;
+        margin: 10px;
+      }
+    }
+  }
 }
 </style>
