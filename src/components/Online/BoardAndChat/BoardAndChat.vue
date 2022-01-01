@@ -1,5 +1,21 @@
 <template>
-  <div class="BoardAndChat">
+  <div v-if="choosingColorState">
+    <button
+      :disabled="!availableColors.white"
+      @click="joinAsGiveColor('white')"
+    >
+      Biały
+    </button>
+    <button
+      :disabled="!availableColors.black"
+      @click="joinAsGiveColor('black')"
+    >
+      Czarny
+    </button>
+    <button>Obserwator</button>
+  </div>
+  <div v-else class="BoardAndChat">
+    <Chat :socket="$props.socket" />
     <Board :socket="$props.socket" />
   </div>
 </template>
@@ -18,7 +34,26 @@ import Component from "vue-class-component";
     Board,
   },
 })
-export default class BoardAndChat extends Vue {}
+export default class BoardAndChat extends Vue {
+  choosingColorState = true;
+  availableColors = { white: false, black: false };
+  mounted(): void {
+    this.$props.socket.emit("get-available-colors");
+
+    this.$props.socket.on("available-colors", (colors: any) => {
+      this.availableColors = colors;
+    });
+
+    this.$props.socket.on("color-setted", () => {
+      this.choosingColorState = false;
+    });
+  }
+
+  joinAsGiveColor(color: string) {
+    this.availableColors = { white: false, black: false };
+    this.$props.socket.emit("set-player-color", color);
+  }
+}
 </script>
 
 <style lang="scss" scoped>

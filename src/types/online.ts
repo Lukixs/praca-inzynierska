@@ -9,4 +9,5 @@ export interface onlineRoom {
 export interface onlinePlayer {
   name: string;
   id: string;
+  color: string;
 }

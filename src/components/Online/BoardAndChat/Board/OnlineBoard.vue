@@ -75,6 +75,7 @@ export default class Board extends Vue {
       this.addPawnToGame(pawn, pawn.currentPosition);
       this.tura = !this.tura;
       this.moveCounter++;
+      this.freezeGame = false;
       this.$refs.timer.timerChangePlayer();
     });
 
@@ -102,18 +103,33 @@ export default class Board extends Vue {
       this.$refs.timer.timerChangePlayer();
     });
 
-    this.$props.socket.on("player-color", (playerColor: boolean) => {
-      this.playerTurn = playerColor;
+    this.$props.socket.on("player-color", (playerColor: string) => {
+      if (playerColor == "white") this.playerTurn = true;
+      else this.playerTurn = false;
     });
 
     this.$props.socket.on("players-in-room", (players: onlinePlayer[]) => {
-      console.log(players);
-      if (players.length < 2) {
-        this.whitePlayerName = players[0].name;
-        return;
+      console.log("playersInRoom", players);
+      const whitePlayer = players.find((player) => {
+        return player.color == "white";
+      });
+      if (whitePlayer) {
+        this.whitePlayerName = whitePlayer.name;
       }
-      this.whitePlayerName = players[0].name;
-      this.blackPlayerName = players[1].name;
+
+      const blackPlayer = players.find((player) => {
+        return player.color == "black";
+      });
+      if (blackPlayer) {
+        this.blackPlayerName = blackPlayer.name;
+      }
+    });
+
+    this.$props.socket.on("user-has-left", (name: string) => {
+      this.freezeGame = true;
+      this.$refs.timer.stopTimer();
+      alert("Enemy has left the game");
+      console.log(name, " has left the game");
     });
   }
 
@@ -140,10 +156,11 @@ export default class Board extends Vue {
     this.$props.socket.emit("place-pawn", pawn);
   }
 
-  whitePlayerName = "Gracz 1";
-  blackPlayerName = "Gracz 2";
+  whitePlayerName = "___";
+  blackPlayerName = "___";
 
   tura = true;
+  freezeGame = false;
   playerTurn: boolean;
   removeStagePlayer: string;
   moveCounter = 1;
@@ -165,7 +182,8 @@ export default class Board extends Vue {
   // history = []; // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
 
   cellOnClick(rowIndex: number, columnIndex: number): void {
-    if (this.playerTurn == this.tura) return;
+    if (this.freezeGame) return;
+    if (this.playerTurn != this.tura) return;
 
     const position: Coordinates = { rowIndex, columnIndex };
     if (this.moveCounter <= this.firstStageMovesLimit) {
