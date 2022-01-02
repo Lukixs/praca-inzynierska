@@ -28,8 +28,13 @@
           </li>
         </ul> -->
         <div class="rooms--list">
-          <div class="rooms--list--item" v-for="(room, id) in rooms" :key="id">
-            <span @click="joinRoom(room)">{{ room.name }}</span>
+          <div
+            class="rooms--list--item"
+            v-for="(room, id) in rooms"
+            :key="id"
+            @click="joinRoom(room)"
+          >
+            <span>{{ room.name }}</span>
             [<span v-for="(player, jd) in room.players" :key="jd"
               >{{ player.name }},</span
             >]

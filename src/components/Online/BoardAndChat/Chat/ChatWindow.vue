@@ -1,26 +1,35 @@
 <template>
   <div class="chatbox">
-    <div class="header"><h1>Konwersacja</h1></div>
-    <div class="messages">
-      <ul>
-        <li
-          style="display:block"
-          v-for="(message, index) in messages"
-          :key="index"
-        >
-          {{ message.name }}: {{ message.message }}
-        </li>
-      </ul>
-    </div>
+    <header>
+      <h1>Konwersacja</h1>
+    </header>
+    <!-- <div class="messages"> -->
+    <ul class="messages">
+      <li
+        class="messages--single"
+        v-for="(singleMessage, index) in messages"
+        :key="index"
+        :class="index % 2 ? 'uneven-row' : 'even-row'"
+      >
+        <p v-if="singleMessage.system">
+          Gracz {{ singleMessage.name }} opuścił rozgrywkę.
+        </p>
+        <p v-else>
+          <span class="nickname">{{ singleMessage.name }}</span
+          >: <span class="text">{{ singleMessage.message }}</span>
+        </p>
+      </li>
+    </ul>
+    <!-- </div> -->
     <div class="input">
       <v-text-field
         class="input--text"
-        placeholder="Placeholder"
-        v-on:input="updateMessage($event.target.value)"
+        placeholder="Twoja wiadomość"
+        v-model="message"
         type="text"
         dark
       ></v-text-field>
-      <v-btn elevation="4" dark @click="sendMessage">Wyślij</v-btn>
+      <v-btn elevation="4" dark @click="sendMessage()">Wyślij</v-btn>
     </div>
   </div>
 </template>
@@ -41,20 +50,31 @@ export default class Board extends Vue {
 
   loadSocketsListeners(): void {
     this.$props.socket.on("message", (name: string, message: string) => {
-      this.messages.push({ name, message });
+      console.log(message, this.messages);
+      this.messages.push({ name, message, system: false });
+    });
+
+    this.$props.socket.on("user-has-left", (name: string) => {
+      console.log(name);
+      this.messages.push({
+        name: name,
+        message: "",
+        system: true,
+      });
     });
   }
 
-  updateMessage(text: string): void {
-    this.message = text;
-  }
+  // updateMessage(text: string): void {
+  //   this.message = text;
+  // }
 
   sendMessage(): void {
-    this.$props.socket.emit("message", this.message);
+    console.log("trying to send a message", this.message);
+    if (this.message != "") this.$props.socket.emit("message", this.message);
   }
 
-  message: string;
-  messages: { name: string; message: string }[] = [];
+  message = "";
+  messages: { name: string; message: string; system: boolean }[] = [];
 }
 </script>
 
@@ -62,14 +82,34 @@ export default class Board extends Vue {
 <style lang="scss" scoped>
 .chatbox {
   margin-top: 50px;
+  border-radius: 15px;
   background-color: #6e6e6e30;
   display: flex;
   flex-flow: column;
 
+  header {
+    padding: 15px;
+  }
+
   .messages {
+    list-style-type: none;
     min-height: 19vh;
-    background-color: #6e6e6e;
+    max-height: 19vh;
+    background-color: #6e6e6e30;
     overflow-y: auto;
+    text-align: left;
+
+    .uneven-row {
+      background-color: #a1a1a130;
+    }
+
+    &--single {
+      padding: 10px;
+
+      .nickname {
+        color: #869440;
+      }
+    }
   }
 
   .input {
