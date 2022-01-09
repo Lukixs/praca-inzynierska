@@ -1,29 +1,40 @@
 <template>
-  <div v-if="choosingColorState">
-    <button
-      :disabled="!availableColors.white"
-      @click="joinAsGiveColor('white')"
-    >
-      Biały
-    </button>
-    <button
-      :disabled="!availableColors.black"
-      @click="joinAsGiveColor('black')"
-    >
-      Czarny
-    </button>
-    <button>Obserwator</button>
+  <div class="colors" v-if="choosingColorState">
+    <div class="white">
+      <div class="field">
+        &#9920;
+      </div>
+      <v-btn
+        :disabled="!availableColors.white"
+        @click="joinAsGiveColor('white')"
+        x-large
+      >
+        Biały
+      </v-btn>
+    </div>
+    <div class="black">
+      <div class="field">
+        &#9922;
+      </div>
+      <v-btn
+        :disabled="!availableColors.black"
+        @click="joinAsGiveColor('black')"
+        x-large
+      >
+        Czarny
+      </v-btn>
+    </div>
+    <!-- <v-btn>Obserwator</v-btn> -->
   </div>
   <div v-else class="BoardAndChat">
-    <Chat :socket="$props.socket" />
-    <Board :socket="$props.socket" />
+    <OnlineBoard :socket="$props.socket" />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-import Board from "./Board/OnlineBoard.vue";
-import Chat from "./Chat/ChatWindow.vue";
+import OnlineBoard from "./Board/OnlineBoard.vue";
+
 import Component from "vue-class-component";
 
 @Component({
@@ -31,8 +42,7 @@ import Component from "vue-class-component";
     socket: {},
   },
   components: {
-    Board,
-    Chat,
+    OnlineBoard,
   },
 })
 export default class BoardAndChat extends Vue {
@@ -57,4 +67,43 @@ export default class BoardAndChat extends Vue {
 }
 </script>
 
-<style scoped></style>
+<style lang="scss" scoped>
+.colors {
+  margin-top: 40px;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: #6e6e6e30;
+  border: 2px solid white;
+  border-radius: 30px;
+  padding: 40px;
+}
+
+.v-btn {
+  margin: 20px;
+}
+
+.white,
+.black {
+  border: 1px solid white;
+  border-radius: 30px;
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.black {
+  color: black;
+}
+
+.field {
+  width: 120px;
+  height: 120px;
+  font-size: 80px;
+  line-height: 90px;
+  background-color: #999;
+  margin: 20px;
+  border: 1px solid white;
+}
+</style>

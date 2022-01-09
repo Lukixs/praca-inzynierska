@@ -1,17 +1,33 @@
 <template>
-  <div class="hello">
-    <div class="timer">
-      <span class="playerName">{{ firstPlayerName }}|</span>
-      <span class="minutes">{{ firstPlayerMinutes }}</span
-      >:<span class="seconds">{{ firstPlayerSeconds }}</span
-      >.<span class="mili-seconds">{{ firstPlayerMiliSeconds }}</span>
+  <div class="timer">
+    <div class="firstPlayer">
+      <div class="clock">
+        <div class="time">
+          <span class="minutes">{{ firstPlayerMinutes }}</span
+          >:<span class="seconds">{{ firstPlayerSeconds }}</span
+          >.<span class="mili-seconds">{{ firstPlayerMiliSeconds }}</span>
+        </div>
+      </div>
+      <!-- <br /> -->
+      <div class="playerName">
+        <span>{{ firstPlayerName }}</span>
+      </div>
     </div>
-    VS
-    <div class="timer">
-      <span class="playerName">{{ secondPlayerName }}|</span>
-      <span class="minutes">{{ secondPlayerMinutes }}</span
-      >:<span class="seconds">{{ secondPlayerSeconds }}</span
-      >.<span class="mili-seconds">{{ secondPlayerMiliSeconds }}</span>
+    <div class="middleground">
+      <slot />
+    </div>
+    <div class="secondPlayer">
+      <div class="playerName">
+        <span>{{ secondPlayerName }}</span>
+      </div>
+      <!-- <br /> -->
+      <div class="clock low-time">
+        <div class="time">
+          <span class="minutes">{{ secondPlayerMinutes }}</span
+          >:<span class="seconds">{{ secondPlayerSeconds }}</span
+          >.<span class="mili-seconds">{{ secondPlayerMiliSeconds }}</span>
+        </div>
+      </div>
     </div>
     <!-- <button class="starter" @click="timerChangePlayer">ChangePlayer</button>
     <button class="starter" @click="stopTimer">Stop</button> -->
@@ -96,4 +112,51 @@ export default class Timer extends Vue {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped></style>
+<style lang="scss" scoped>
+.timer {
+  .clock {
+    // position: relative;
+    // display: inline-block;
+    // float: left;
+    display: flex;
+    justify-content: space-between;
+
+    .time {
+      font-size: 50px;
+      padding: 10px 20px 10px 10px;
+      background-color: #6e6e6e30;
+      display: flex;
+      font-weight: bold;
+      align-items: flex-end;
+    }
+  }
+  .low-time {
+    color: red;
+  }
+
+  .playerName {
+    font-size: 22px;
+    padding: 10px;
+    display: flex;
+    background-color: #6e6e6e30;
+  }
+
+  .middleground {
+    background-color: #6e6e6e;
+    min-height: 5vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .firstPlayer,
+  .secondPlayer {
+    // display: flex;
+    // flex-direction: column;
+    // justify-content: flex-start;
+    min-width: 25vw;
+    display: inline-block;
+  }
+}
+</style>

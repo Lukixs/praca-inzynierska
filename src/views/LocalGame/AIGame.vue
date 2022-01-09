@@ -1,7 +1,5 @@
 <template>
-  <div class="about">
-    <MiniMax />
-  </div>
+  <MiniMax />
 </template>
 <script>
 import MiniMax from "@/components/Minimax/Minimax.vue";
