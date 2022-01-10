@@ -35,7 +35,9 @@
         @timesUp="timesUp"
         :firstPlayerName="whitePlayerName"
         :secondPlayerName="blackPlayerName"
-      />
+      >
+        <v-btn dark @click="setupGame()">Restart Game</v-btn>
+      </Timer>
       <Chat :socket="$props.socket" />
     </div>
     <!-- <span>Tura {{ moveCounter }} |</span>
@@ -97,10 +99,10 @@ export default class Board extends Vue {
     this.$props.socket.on("remove-pawn", (pawn: Pawn) => {
       this.clearBoardField(pawn.currentPosition);
       this.removePawnById(pawn.index);
-      this.didPlayerWin(pawn.player == "white" ? "black" : "white");
+      if (this.didPlayerWin(pawn.player == "white" ? "black" : "white")) return;
+      this.$refs.timer.timerChangePlayer();
       this.tura = !this.tura;
       this.moveCounter++;
-      this.$refs.timer.timerChangePlayer();
     });
 
     this.$props.socket.on("player-color", (playerColor: string) => {
@@ -110,6 +112,8 @@ export default class Board extends Vue {
 
     this.$props.socket.on("players-in-room", (players: onlinePlayer[]) => {
       console.log("playersInRoom", players);
+      if (players.length == 2) this.freezeGame = false;
+
       const whitePlayer = players.find((player) => {
         return player.color == "white";
       });
@@ -128,8 +132,8 @@ export default class Board extends Vue {
     this.$props.socket.on("user-has-left", (name: string) => {
       this.freezeGame = true;
       this.$refs.timer.stopTimer();
-      alert("Enemy has left the game");
-      console.log(name, " has left the game");
+      this.setupGame();
+      alert("Przeciwnik opuścił rozgrywkę");
     });
   }
 
@@ -160,7 +164,7 @@ export default class Board extends Vue {
   blackPlayerName = "___";
 
   tura = true;
-  freezeGame = false;
+  freezeGame = true;
   playerTurn: boolean;
   removeStagePlayer: string;
   moveCounter = 1;
@@ -180,6 +184,25 @@ export default class Board extends Vue {
 
   pawns: Pawn[] = []; // { player: 'black', currentPosition: {rowIndex: 4, columnIndex: 4}, lastPosition:{rowIndex: 4, columnIndex: 3} }
   // history = []; // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
+
+  setupGame() {
+    this.clearTheBoard();
+    this.focused = null as Coordinates;
+    this.pawns = [];
+    this.moveCounter = 1;
+    this.tura = true;
+    this.removeStagePlayer = null as string;
+    this.$refs.timer.resetTimer();
+    this.freezeGame = true;
+  }
+
+  clearTheBoard() {
+    this.boardState = new Array(this.boardDimensions.rowsNumber)
+      .fill(false)
+      .map(() =>
+        new Array(this.boardDimensions.columnsNumber).fill(this.emptyField)
+      );
+  }
 
   cellOnClick(rowIndex: number, columnIndex: number): void {
     if (this.freezeGame) return;
@@ -564,11 +587,12 @@ export default class Board extends Vue {
     this.moveCounter++;
   }
 
-  didPlayerWin(player: string): void {
+  didPlayerWin(player: string): boolean {
     const enemyPawns = this.getEnemyPawns(player);
     if (enemyPawns.length > 2) return;
     this.$refs.timer.stopTimer();
     alert(`Gratulacje, wygrał gracz: ${player}`);
+    return true;
   }
 
   clearBoardField(position: Coordinates): void {

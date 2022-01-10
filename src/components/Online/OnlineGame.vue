@@ -12,6 +12,7 @@
           placeholder="Nick"
           dark
           outlined
+          @keydown.enter="verifyNameInput()"
         ></v-text-field>
 
         <v-btn @click="verifyNameInput()">Potwierdź</v-btn>
