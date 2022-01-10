@@ -104,9 +104,11 @@ export default class Timer extends Vue {
   }
 
   emitTimesUp() {
-    this.$emit("timesUp");
     this.firstTimerRunning = false;
     this.SecondTimerRunning = false;
+    setTimeout(() => {
+      this.$emit("timesUp");
+    }, 10);
   }
 
   resetTimer() {
