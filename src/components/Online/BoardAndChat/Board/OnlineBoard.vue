@@ -36,7 +36,12 @@
         :firstPlayerName="whitePlayerName"
         :secondPlayerName="blackPlayerName"
       >
-        <v-btn dark @click="setupGame()">Restart Game</v-btn>
+        <v-btn dark v-if="showSurrenderButton()" @click="emitSurrender()"
+          >Poddaj się</v-btn
+        >
+        <v-btn dark v-if="rematchOption" @click="emitRematch()"
+          >Zagraj ponownie</v-btn
+        >
       </Timer>
       <Chat :socket="$props.socket" />
     </div>
@@ -99,7 +104,10 @@ export default class Board extends Vue {
     this.$props.socket.on("remove-pawn", (pawn: Pawn) => {
       this.clearBoardField(pawn.currentPosition);
       this.removePawnById(pawn.index);
-      if (this.didPlayerWin(pawn.player == "white" ? "black" : "white")) return;
+      if (this.didPlayerWin(pawn.player == "white" ? "black" : "white")) {
+        this.rematchOption = true;
+        return;
+      }
       this.$refs.timer.timerChangePlayer();
       this.tura = !this.tura;
       this.moveCounter++;
@@ -135,6 +143,20 @@ export default class Board extends Vue {
       this.setupGame();
       alert("Przeciwnik opuścił rozgrywkę");
     });
+
+    this.$props.socket.on("player-surrendered", (name: string) => {
+      this.freezeGame = true;
+      this.$refs.timer.stopTimer();
+      alert(`Gracz ${name} poddał się`);
+    });
+
+    this.$props.socket.on("show-rematch-option", () => {
+      this.rematchOption = true;
+    });
+
+    this.$props.socket.on("setup-game", () => {
+      this.setupGame();
+    });
   }
 
   emitGetPlayerColor(): void {
@@ -160,11 +182,22 @@ export default class Board extends Vue {
     this.$props.socket.emit("place-pawn", pawn);
   }
 
+  emitSurrender(): void {
+    this.freezeGame = true;
+    this.$refs.timer.stopTimer();
+    this.$props.socket.emit("surrender");
+  }
+
+  emitRematch(): void {
+    this.$props.socket.emit("set-rematch");
+  }
+
   whitePlayerName = "___";
   blackPlayerName = "___";
 
   tura = true;
   freezeGame = true;
+  rematchOption = false;
   playerTurn: boolean;
   removeStagePlayer: string;
   moveCounter = 1;
@@ -193,7 +226,9 @@ export default class Board extends Vue {
     this.tura = true;
     this.removeStagePlayer = null as string;
     this.$refs.timer.resetTimer();
-    this.freezeGame = true;
+    this.freezeGame = false;
+    this.rematchOption = false;
+    this.emitGetPlayerColor();
   }
 
   clearTheBoard() {
@@ -581,7 +616,8 @@ export default class Board extends Vue {
     this.removeHighlightFromEnemyPawns(this.removeStagePlayer);
     this.removePawnById(targetedPawn.index);
     this.clearBoardField(position);
-    this.didPlayerWin(this.removeStagePlayer);
+
+    if (this.didPlayerWin(this.removeStagePlayer)) return;
     this.removeStagePlayer = null;
     this.tura = !this.tura;
     this.moveCounter++;
@@ -820,6 +856,10 @@ export default class Board extends Vue {
       return;
     }
     alert("Wygrał gracz biały poprzez czas");
+  }
+
+  showSurrenderButton(): boolean {
+    if (this.moveCounter > 2 && !this.freezeGame) return true;
   }
 
   //   return this.board.values[rowIndex][columnIndex].player === player;
