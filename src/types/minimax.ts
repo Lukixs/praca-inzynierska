@@ -6,6 +6,12 @@ export interface MinimaxNode {
   boardState: Pawn[][];
 }
 
+export interface Difficulty {
+  title: string;
+  drop: number;
+  move: number;
+}
+
 export interface Minimax {
   value: number;
   bestMove?: Pawn;

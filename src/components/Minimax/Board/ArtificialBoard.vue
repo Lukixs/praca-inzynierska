@@ -41,8 +41,11 @@
         @timesUp="timesUp"
         firstPlayerName="Gracz"
         secondPlayerName="Komputer"
-        >VS</Timer
       >
+        <v-btn dark :disabled="isComputerThinking" @click="setupGame()"
+          >Restart Game</v-btn
+        >
+      </Timer>
     </div>
 
     <!-- <span>Tura {{ moveCounter }} |</span>
@@ -60,6 +63,7 @@ import {
   Pawn,
   Player,
 } from "../../../types/board";
+import { Difficulty } from "../../../types/minimax";
 import FieldHelper from "../../../helpers/FieldHelper";
 import { minimaxValues } from "../../../helpers/BoardInfo";
 import Timer from "../../Timer.vue";
@@ -67,6 +71,7 @@ import Timer from "../../Timer.vue";
 @Component({
   props: {
     worker: {},
+    aiDifficulty: Object as () => Difficulty,
   },
   components: {
     Timer,
@@ -77,6 +82,7 @@ export default class Board extends Vue {
     timer: Timer;
   };
 
+  freezeGame = false;
   tura = true;
   isComputerThinking = false;
   removeStagePlayer: string;
@@ -94,7 +100,27 @@ export default class Board extends Vue {
     );
 
   pawns: Pawn[] = []; // { player: 'black', currentPosition: {rowIndex: 4, columnIndex: 4}, lastPosition:{rowIndex: 4, columnIndex: 3} }
+
   // history = []; // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
+
+  setupGame() {
+    this.clearTheBoard();
+    this.focused = null as Coordinates;
+    this.pawns = [];
+    this.moveCounter = 1;
+    this.tura = true;
+    this.removeStagePlayer = null as string;
+    this.$refs.timer.resetTimer();
+    this.freezeGame = false;
+  }
+
+  clearTheBoard() {
+    this.boardState = new Array(this.boardDimensions.rowsNumber)
+      .fill(false)
+      .map(() =>
+        new Array(this.boardDimensions.columnsNumber).fill(this.emptyField)
+      );
+  }
 
   get emptyField(): Pawn {
     return {
@@ -106,7 +132,7 @@ export default class Board extends Vue {
   }
 
   cellOnClick(rowIndex: number, columnIndex: number): void {
-    if (this.isComputerThinking) return;
+    if (this.isComputerThinking || this.freezeGame) return;
     const position: Coordinates = { rowIndex, columnIndex };
     if (this.moveCounter <= this.firstStageMovesLimit) {
       this.pawnsPlacingStageController(position);
@@ -215,7 +241,7 @@ export default class Board extends Vue {
       type: "drop",
       params: [
         this.boardState,
-        5,
+        this.$props.aiDifficulty.drop,
         minimaxValues.MIN,
         minimaxValues.MAX,
         currentPlayer,
@@ -488,6 +514,7 @@ export default class Board extends Vue {
       alert(
         `Niestety graczowi ${enemyPlayer} nie posiada możliwości ruchu, przez co następuje remis`
       );
+      this.freezeGame = true;
       return;
     }
     this.movePawnByAI(currentPlayer, board);
@@ -540,7 +567,7 @@ export default class Board extends Vue {
       type: "move",
       params: [
         { boardState: board },
-        6,
+        this.$props.aiDifficulty.move,
         minimaxValues.MIN,
         minimaxValues.MAX,
         player,
@@ -558,6 +585,8 @@ export default class Board extends Vue {
       if (!data.bestMove) {
         this.$refs.timer.stopTimer();
         alert(`Komputer poddał się, wygrał gracz: ${currentPlayer}`);
+        this.freezeGame = true;
+        this.isComputerThinking = false;
         return;
       }
 
@@ -576,6 +605,8 @@ export default class Board extends Vue {
         alert(
           `Niestety graczowi ${enemyPlayer} nie posiada możliwości ruchu, przez co następuje remis`
         );
+        this.freezeGame = true;
+        this.isComputerThinking = false;
         return;
       }
 
@@ -652,6 +683,7 @@ export default class Board extends Vue {
     if (enemyPawns.length > 2) return;
     this.$refs.timer.stopTimer();
     alert(`Gratulacje, wygrał gracz: ${player}`);
+    this.freezeGame = true;
   }
 
   clearBoardField(position: Coordinates): void {
@@ -885,9 +917,11 @@ export default class Board extends Vue {
   timesUp() {
     if (this.tura) {
       alert("Wygrał gracz czarny poprzez czas");
+      this.freezeGame = true;
       return;
     }
     alert("Wygrał gracz biały poprzez czas");
+    this.freezeGame = true;
   }
   // },
 }
