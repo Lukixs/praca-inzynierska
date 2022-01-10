@@ -52,15 +52,15 @@ export default class Timer extends Vue {
   firstTimerRunning = false;
   SecondTimerRunning = false;
 
-  firstPlayerMinutes = 10;
+  firstPlayerMinutes = 5;
   firstPlayerSeconds = 0;
   firstPlayerMiliSeconds = 0;
-  firstPlayerMiliSecondsLeft = 600000;
+  firstPlayerMiliSecondsLeft = 300000;
 
-  secondPlayerMinutes = 10;
+  secondPlayerMinutes = 5;
   secondPlayerSeconds = 0;
   secondPlayerMiliSeconds = 0;
-  secondPlayerMiliSecondsLeft = 600000;
+  secondPlayerMiliSecondsLeft = 300000;
 
   mounted() {
     setInterval(() => {
@@ -108,6 +108,19 @@ export default class Timer extends Vue {
     this.firstTimerRunning = false;
     this.SecondTimerRunning = false;
   }
+
+  resetTimer() {
+    this.firstTimerRunning = false;
+    this.SecondTimerRunning = false;
+    this.firstPlayerMiliSecondsLeft = 300000;
+    this.firstPlayerMinutes = 5;
+    this.firstPlayerSeconds = 0;
+    this.firstPlayerMiliSeconds = 0;
+    this.secondPlayerMiliSecondsLeft = 300000;
+    this.secondPlayerMinutes = 5;
+    this.secondPlayerSeconds = 0;
+    this.secondPlayerMiliSeconds = 0;
+  }
 }
 </script>
 
@@ -143,9 +156,10 @@ export default class Timer extends Vue {
 
   .middleground {
     background-color: #6e6e6e;
+    padding: 10px;
     min-height: 5vh;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     flex-direction: row;
   }

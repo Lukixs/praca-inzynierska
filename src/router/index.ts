@@ -2,7 +2,9 @@ import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import LocalGame from "../views/LocalGame/LocalGame.vue";
 import LocalGameMenu from "../views/LocalGame/LocalGameMenu.vue";
-import AIGame from "../views/LocalGame/AIGame.vue";
+import AIGameEasy from "../views/LocalGame/Difficulty/Easy.vue";
+import AIGameMedium from "../views/LocalGame/Difficulty/Medium.vue";
+import AIGameHard from "../views/LocalGame/Difficulty/Hard.vue";
 import OnlineGame from "../views/OnlineGame.vue";
 import Menu from "../views/Menu.vue";
 
@@ -24,21 +26,29 @@ const routes: Array<RouteConfig> = [
     name: "Local Game",
     component: LocalGame,
   },
-  // {
-  //   path: "/about",
-  //   name: "About",
-  //   // route level code-splitting
-  //   // this generates a separate chunk (about.[hash].js) for this route
-  //   // which is lazy-loaded when the route is visited.
-  //   component: About,
-  // },
   {
-    path: "/aigame",
-    name: "Artificial Intelligence Game",
+    path: "/aigame-easy",
+    name: "AI Game Easy",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: AIGame,
+    component: AIGameEasy,
+  },
+  {
+    path: "/aigame-medium",
+    name: "AI Game Medium",
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: AIGameMedium,
+  },
+  {
+    path: "/aigame-hard",
+    name: "AI Game Hard",
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: AIGameHard,
   },
   {
     path: "/online",

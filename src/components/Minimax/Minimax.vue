@@ -1,23 +1,24 @@
 <template>
   <div class="artificial">
     <div class="header">
-      <h1 class="h1 title ">Sztuczna Inteligencja - Trudna</h1>
+      <h1 class="h1 title ">{{ aiDifficulty.title }}</h1>
     </div>
-    <ArtificialBoard :worker="worker" />
+    <ArtificialBoard :worker="worker" :aiDifficulty="aiDifficulty" />
   </div>
 </template>
 <script>
 import Vue from "vue";
 import Component from "vue-class-component";
 import ArtificialBoard from "./Board/ArtificialBoard.vue";
-
 import MinimaxWorker from "worker-loader!./MinimaxWorker";
 
 @Component({
+  props: { aiDifficulty: {} },
   components: { ArtificialBoard },
 })
 export default class Home extends Vue {
   worker;
+
   created() {
     if (typeof Worker !== "undefined") {
       this.worker = new MinimaxWorker("worker-loader!./Workers/Worker");

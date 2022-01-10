@@ -30,9 +30,24 @@ export default Vue.extend({
     return {
       items: [
         { title: "DWÓCH GRACZY", link: "/local" },
-        { title: "BOT - ŁATWY", link: "/aigame" },
-        { title: "BOT - ŚREDNI", link: "/aigame" },
-        { title: "BOT - TRUDNY", link: "/aigame" },
+        {
+          title: "BOT - ŁATWY",
+          link: {
+            name: "AI Game Easy",
+          },
+        },
+        {
+          title: "BOT - ŚREDNI",
+          link: {
+            name: "AI Game Medium",
+          },
+        },
+        {
+          title: "BOT - TRUDNY",
+          link: {
+            name: "AI Game Hard",
+          },
+        },
       ],
     };
   },
