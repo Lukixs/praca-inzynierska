@@ -66,9 +66,6 @@ import { onlineRoom } from "../../types/online";
 })
 export default class Board extends Vue {
   protected socket = io.connect("ws://localhost:8081");
-  // $refs!: {
-  //   NameInput: HTMLInputElement;
-  // };
 
   mounted(): void {
     console.log("Created", {
@@ -99,6 +96,10 @@ export default class Board extends Vue {
     // console.log(this.$refs.NameInput.value);
     console.log(this.playerName);
     if (this.playerName && this.playerName != "") this.nameSetted = true;
+  }
+
+  closeSocket() {
+    this.socket.disconnect();
   }
 
   joinedRoom = false;
