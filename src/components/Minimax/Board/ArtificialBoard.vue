@@ -597,7 +597,7 @@ export default class Board extends Vue {
       if (data.pawnToRemove && data.pawnToRemove.player != player) {
         this.removePawnById(data.pawnToRemove.index);
         this.clearBoardField(data.pawnToRemove.currentPosition);
-        this.hasPlayerWon(data.bestMove.player);
+        if (this.hasPlayerWon(data.bestMove.player)) return;
       }
 
       if (FieldHelper.isPlayerOutOfMoves(enemyPlayer, this.boardState)) {
@@ -677,13 +677,14 @@ export default class Board extends Vue {
     this.movePawnByAI(currentPlayer, board);
   }
 
-  hasPlayerWon(player: string): void {
+  hasPlayerWon(player: string): boolean {
     const enemyPawns = this.getEnemyPawns(player);
     console.log("Did Player win", enemyPawns);
     if (enemyPawns.length > 2) return;
     this.$refs.timer.stopTimer();
     alert(`Gratulacje, wygrał gracz: ${player}`);
     this.freezeGame = true;
+    return true;
   }
 
   clearBoardField(position: Coordinates): void {
