@@ -12,6 +12,19 @@
         Biały
       </v-btn>
     </div>
+    <div class="random">
+      <div class="field">
+        <span style="color: white;">&#9922;</span
+        ><span style="color: black;">&#9922;</span>
+      </div>
+      <v-btn
+        :disabled="!availableColors.black || !availableColors.white"
+        @click="joinAsRandomColor()"
+        x-large
+      >
+        Losowy
+      </v-btn>
+    </div>
     <div class="black">
       <div class="field">
         &#9922;
@@ -24,7 +37,6 @@
         Czarny
       </v-btn>
     </div>
-    <!-- <v-btn>Obserwator</v-btn> -->
   </div>
   <div v-else class="BoardAndChat">
     <OnlineBoard :socket="$props.socket" />
@@ -61,8 +73,16 @@ export default class BoardAndChat extends Vue {
   }
 
   joinAsGiveColor(color: string) {
-    this.availableColors = { white: false, black: false };
     this.$props.socket.emit("set-player-color", color);
+  }
+
+  joinAsRandomColor() {
+    const colors = ["white", "black"];
+    console.log(colors[Math.round(Math.random())]);
+    this.$props.socket.emit(
+      "set-player-color",
+      colors[Math.round(Math.random())]
+    );
   }
 }
 </script>
@@ -84,7 +104,8 @@ export default class BoardAndChat extends Vue {
 }
 
 .white,
-.black {
+.black,
+.random {
   border: 1px solid white;
   border-radius: 30px;
   margin: 20px;
