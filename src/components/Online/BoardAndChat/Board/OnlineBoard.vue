@@ -45,9 +45,6 @@
       </Timer>
       <Chat :socket="$props.socket" />
     </div>
-    <!-- <span>Tura {{ moveCounter }} |</span>
-    <span v-if="tura">Ruch Białych </span>
-    <span v-else>Ruch Czarnych</span> -->
   </div>
 </template>
 
@@ -141,7 +138,8 @@ export default class Board extends Vue {
       this.freezeGame = true;
       this.$refs.timer.stopTimer();
       this.setupGame();
-      alert("Przeciwnik opuścił rozgrywkę");
+      this.freezeGame = true;
+      alert(`Przeciwnik ${name} opuścił rozgrywkę`);
     });
 
     this.$props.socket.on("player-surrendered", (name: string) => {
