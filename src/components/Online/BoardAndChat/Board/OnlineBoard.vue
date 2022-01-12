@@ -35,12 +35,16 @@
         @timesUp="timesUp"
         :firstPlayerName="whitePlayerName"
         :secondPlayerName="blackPlayerName"
-      />
+      >
+        <v-btn dark v-if="showSurrenderButton()" @click="emitSurrender()"
+          >Poddaj się</v-btn
+        >
+        <v-btn dark v-if="rematchOption" @click="emitRematch()"
+          >Zagraj ponownie</v-btn
+        >
+      </Timer>
       <Chat :socket="$props.socket" />
     </div>
-    <!-- <span>Tura {{ moveCounter }} |</span>
-    <span v-if="tura">Ruch Białych </span>
-    <span v-else>Ruch Czarnych</span> -->
   </div>
 </template>
 
@@ -97,10 +101,13 @@ export default class Board extends Vue {
     this.$props.socket.on("remove-pawn", (pawn: Pawn) => {
       this.clearBoardField(pawn.currentPosition);
       this.removePawnById(pawn.index);
-      this.didPlayerWin(pawn.player == "white" ? "black" : "white");
+      if (this.didPlayerWin(pawn.player == "white" ? "black" : "white")) {
+        this.rematchOption = true;
+        return;
+      }
+      this.$refs.timer.timerChangePlayer();
       this.tura = !this.tura;
       this.moveCounter++;
-      this.$refs.timer.timerChangePlayer();
     });
 
     this.$props.socket.on("player-color", (playerColor: string) => {
@@ -110,11 +117,15 @@ export default class Board extends Vue {
 
     this.$props.socket.on("players-in-room", (players: onlinePlayer[]) => {
       console.log("playersInRoom", players);
+      if (players.length == 2) this.freezeGame = false;
+
       const whitePlayer = players.find((player) => {
         return player.color == "white";
       });
       if (whitePlayer) {
         this.whitePlayerName = whitePlayer.name;
+      } else {
+        this.whitePlayerName = "___";
       }
 
       const blackPlayer = players.find((player) => {
@@ -122,14 +133,31 @@ export default class Board extends Vue {
       });
       if (blackPlayer) {
         this.blackPlayerName = blackPlayer.name;
+      } else {
+        this.blackPlayerName = "___";
       }
     });
 
     this.$props.socket.on("user-has-left", (name: string) => {
       this.freezeGame = true;
       this.$refs.timer.stopTimer();
-      alert("Enemy has left the game");
-      console.log(name, " has left the game");
+      this.setupGame();
+      this.freezeGame = true;
+      alert(`Przeciwnik ${name} opuścił rozgrywkę`);
+    });
+
+    this.$props.socket.on("player-surrendered", (name: string) => {
+      this.freezeGame = true;
+      this.$refs.timer.stopTimer();
+      alert(`Gracz ${name} poddał się`);
+    });
+
+    this.$props.socket.on("show-rematch-option", () => {
+      this.rematchOption = true;
+    });
+
+    this.$props.socket.on("setup-game", () => {
+      this.setupGame();
     });
   }
 
@@ -156,11 +184,22 @@ export default class Board extends Vue {
     this.$props.socket.emit("place-pawn", pawn);
   }
 
+  emitSurrender(): void {
+    this.freezeGame = true;
+    this.$refs.timer.stopTimer();
+    this.$props.socket.emit("surrender");
+  }
+
+  emitRematch(): void {
+    this.$props.socket.emit("set-rematch");
+  }
+
   whitePlayerName = "___";
   blackPlayerName = "___";
 
   tura = true;
-  freezeGame = false;
+  freezeGame = true;
+  rematchOption = false;
   playerTurn: boolean;
   removeStagePlayer: string;
   moveCounter = 1;
@@ -180,6 +219,27 @@ export default class Board extends Vue {
 
   pawns: Pawn[] = []; // { player: 'black', currentPosition: {rowIndex: 4, columnIndex: 4}, lastPosition:{rowIndex: 4, columnIndex: 3} }
   // history = []; // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
+
+  setupGame() {
+    this.clearTheBoard();
+    this.focused = null as Coordinates;
+    this.pawns = [];
+    this.moveCounter = 1;
+    this.tura = true;
+    this.removeStagePlayer = null as string;
+    this.$refs.timer.resetTimer();
+    this.freezeGame = false;
+    this.rematchOption = false;
+    this.emitGetPlayerColor();
+  }
+
+  clearTheBoard() {
+    this.boardState = new Array(this.boardDimensions.rowsNumber)
+      .fill(false)
+      .map(() =>
+        new Array(this.boardDimensions.columnsNumber).fill(this.emptyField)
+      );
+  }
 
   cellOnClick(rowIndex: number, columnIndex: number): void {
     if (this.freezeGame) return;
@@ -558,17 +618,19 @@ export default class Board extends Vue {
     this.removeHighlightFromEnemyPawns(this.removeStagePlayer);
     this.removePawnById(targetedPawn.index);
     this.clearBoardField(position);
-    this.didPlayerWin(this.removeStagePlayer);
+
+    if (this.didPlayerWin(this.removeStagePlayer)) return;
     this.removeStagePlayer = null;
     this.tura = !this.tura;
     this.moveCounter++;
   }
 
-  didPlayerWin(player: string): void {
+  didPlayerWin(player: string): boolean {
     const enemyPawns = this.getEnemyPawns(player);
     if (enemyPawns.length > 2) return;
     this.$refs.timer.stopTimer();
     alert(`Gratulacje, wygrał gracz: ${player}`);
+    return true;
   }
 
   clearBoardField(position: Coordinates): void {
@@ -796,6 +858,10 @@ export default class Board extends Vue {
       return;
     }
     alert("Wygrał gracz biały poprzez czas");
+  }
+
+  showSurrenderButton(): boolean {
+    if (this.moveCounter > 2 && !this.freezeGame) return true;
   }
 
   //   return this.board.values[rowIndex][columnIndex].player === player;

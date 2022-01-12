@@ -35,7 +35,7 @@
         @timesUp="timesUp"
         :firstPlayerName="`Gracz 1`"
         :secondPlayerName="`Gracz 2`"
-        >VS</Timer
+        ><v-btn dark @click="setupGame()">Restart Game</v-btn></Timer
       >
       <!-- <span>Tura {{ moveCounter }} |</span>
       <span v-if="tura">Ruch Białych </span>
@@ -65,6 +65,7 @@ export default class Board extends Vue {
   };
 
   tura = true;
+  freezeGame = false;
   removeStagePlayer: string;
   moveCounter = 1;
   firstStageMovesLimit = 8;
@@ -84,7 +85,27 @@ export default class Board extends Vue {
   pawns: Pawn[] = []; // { player: 'black', currentPosition: {rowIndex: 4, columnIndex: 4}, lastPosition:{rowIndex: 4, columnIndex: 3} }
   // history = []; // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
 
+  setupGame() {
+    this.clearTheBoard();
+    this.focused = null as Coordinates;
+    this.pawns = [];
+    this.moveCounter = 1;
+    this.tura = true;
+    this.removeStagePlayer = null as string;
+    this.$refs.timer.resetTimer();
+    this.freezeGame = false;
+  }
+
+  clearTheBoard() {
+    this.boardState = new Array(this.boardDimensions.rowsNumber)
+      .fill(false)
+      .map(() =>
+        new Array(this.boardDimensions.columnsNumber).fill(this.emptyField)
+      );
+  }
+
   cellOnClick(rowIndex: number, columnIndex: number): void {
+    if (this.freezeGame) return;
     const position: Coordinates = { rowIndex, columnIndex };
     if (this.moveCounter <= this.firstStageMovesLimit) {
       this.pawnsPlacingStageController(position);
@@ -97,9 +118,11 @@ export default class Board extends Vue {
 
   timesUp() {
     if (this.tura) {
+      this.freezeGame = true;
       alert("Wygrał gracz czarny poprzez czas");
       return;
     }
+    this.freezeGame = true;
     alert("Wygrał gracz biały poprzez czas");
   }
 
@@ -480,6 +503,7 @@ export default class Board extends Vue {
     const enemyPawns = this.getEnemyPawns(player);
     if (enemyPawns.length > 2) return;
     {
+      this.freezeGame = true;
       this.$refs.timer.stopTimer();
       alert(`Gratulacje, wygrał gracz: ${player}`);
     }

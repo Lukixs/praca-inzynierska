@@ -1,11 +1,21 @@
 <template>
   <div class="timer">
     <div class="firstPlayer">
-      <div class="clock">
+      <div
+        class="clock"
+        :class="{ 'low-time': firstPlayerMiliSecondsLeft < 10000 }"
+      >
         <div class="time">
           <span class="minutes">{{ firstPlayerMinutes }}</span
-          >:<span class="seconds">{{ firstPlayerSeconds }}</span
-          >.<span class="mili-seconds">{{ firstPlayerMiliSeconds }}</span>
+          >:<span class="seconds">{{
+            firstPlayerSeconds.toLocaleString("en-US", {
+              minimumIntegerDigits: 2,
+              useGrouping: false
+            })
+          }}</span
+          ><span class="mili-seconds" v-if="firstPlayerMiliSecondsLeft < 10000"
+            >.{{ firstPlayerMiliSeconds }}</span
+          >
         </div>
       </div>
       <!-- <br /> -->
@@ -21,11 +31,21 @@
         <span>{{ secondPlayerName }}</span>
       </div>
       <!-- <br /> -->
-      <div class="clock low-time">
+      <div
+        class="clock"
+        :class="{ 'low-time': secondPlayerMiliSecondsLeft < 10000 }"
+      >
         <div class="time">
           <span class="minutes">{{ secondPlayerMinutes }}</span
-          >:<span class="seconds">{{ secondPlayerSeconds }}</span
-          >.<span class="mili-seconds">{{ secondPlayerMiliSeconds }}</span>
+          >:<span class="seconds">{{
+            secondPlayerSeconds.toLocaleString("en-US", {
+              minimumIntegerDigits: 2,
+              useGrouping: false
+            })
+          }}</span
+          ><span class="mili-seconds" v-if="secondPlayerMiliSecondsLeft < 10000"
+            >.{{ secondPlayerMiliSeconds }}</span
+          >
         </div>
       </div>
     </div>
@@ -41,12 +61,12 @@ import Component from "vue-class-component";
 @Component({
   props: {
     firstPlayerName: {
-      type: String,
+      type: String
     },
     secondPlayerName: {
-      type: String,
-    },
-  },
+      type: String
+    }
+  }
 })
 export default class Timer extends Vue {
   firstTimerRunning = false;

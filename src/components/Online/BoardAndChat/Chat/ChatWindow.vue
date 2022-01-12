@@ -11,8 +11,8 @@
         :key="index"
         :class="index % 2 ? 'uneven-row' : 'even-row'"
       >
-        <p v-if="singleMessage.system">
-          Gracz {{ singleMessage.name }} opuścił rozgrywkę.
+        <p v-if="singleMessage.system" class="text">
+          {{ singleMessage.message }}
         </p>
         <p v-else>
           <span class="nickname">{{ singleMessage.name }}</span
@@ -27,6 +27,7 @@
         placeholder="Twoja wiadomość"
         v-model="message"
         type="text"
+        @keydown.enter="sendMessage()"
         dark
       ></v-text-field>
       <v-btn elevation="4" dark @click="sendMessage()">Wyślij</v-btn>
@@ -50,15 +51,22 @@ export default class Board extends Vue {
 
   loadSocketsListeners(): void {
     this.$props.socket.on("message", (name: string, message: string) => {
-      console.log(message, this.messages);
       this.messages.push({ name, message, system: false });
+      this.message = "";
     });
 
     this.$props.socket.on("user-has-left", (name: string) => {
-      console.log(name);
       this.messages.push({
         name: name,
-        message: "",
+        message: `Użytkownik ${name} opuścił rozgrywkę.`,
+        system: true,
+      });
+    });
+
+    this.$props.socket.on("user-has-joined-chat", (name: string) => {
+      this.messages.push({
+        name: name,
+        message: `Użytkownik ${name} dołączył do rozgrywki.`,
         system: true,
       });
     });
@@ -105,6 +113,10 @@ export default class Board extends Vue {
 
     &--single {
       padding: 10px;
+
+      .text {
+        color: #b8b5b5;
+      }
 
       .nickname {
         color: #869440;
