@@ -124,6 +124,8 @@ export default class Board extends Vue {
       });
       if (whitePlayer) {
         this.whitePlayerName = whitePlayer.name;
+      } else {
+        this.whitePlayerName = "___";
       }
 
       const blackPlayer = players.find((player) => {
@@ -131,6 +133,8 @@ export default class Board extends Vue {
       });
       if (blackPlayer) {
         this.blackPlayerName = blackPlayer.name;
+      } else {
+        this.blackPlayerName = "___";
       }
     });
 
