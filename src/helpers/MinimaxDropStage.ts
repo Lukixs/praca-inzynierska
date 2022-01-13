@@ -4,6 +4,7 @@ import FieldHelper from "./FieldHelper";
 import { minimaxValues } from "./BoardInfo";
 import MinimaxMove from "./Minimax";
 import MinimaxScoringHelper from "./MinimaxScoringHelper";
+import PlayerScoreHelper from "./PlayerScoreHelper";
 
 export default class {
   public static dropMinimax(
@@ -128,27 +129,37 @@ export default class {
       let j = 0;
       while (j < boardState[i].length) {
         if (!boardState[i][j].player) {
-          const newBoardState = FieldHelper.deepCopyItem(boardState);
-          const currentPosition: Coordinates = { rowIndex: i, columnIndex: j };
-          newBoardState[i][j] = FieldHelper.createPawnForPlayer(
-            currentPosition,
-            this.getRoundNumber(boardState),
-            maximizingPlayer
+          const gonnaBeThirdInRow = PlayerScoreHelper.isGonnaBeThirdInRow(
+            { rowIndex: i, columnIndex: j } as Coordinates,
+            "white" as Player,
+            boardState
           );
-          const result = this.dropMinimax(
-            newBoardState,
-            depth - 1,
-            currentAlpha,
-            currentBeta,
-            "black"
-          );
-          if (result.value > maxEval) {
-            maxEval = result.value;
-            choosenPosition = result.position;
-            if (maxEval > currentAlpha) {
-              currentAlpha = maxEval;
+          if (!gonnaBeThirdInRow) {
+            const newBoardState = FieldHelper.deepCopyItem(boardState);
+            const currentPosition: Coordinates = {
+              rowIndex: i,
+              columnIndex: j,
+            };
+            newBoardState[i][j] = FieldHelper.createPawnForPlayer(
+              currentPosition,
+              this.getRoundNumber(boardState),
+              maximizingPlayer
+            );
+            const result = this.dropMinimax(
+              newBoardState,
+              depth - 1,
+              currentAlpha,
+              currentBeta,
+              "black"
+            );
+            if (result.value > maxEval) {
+              maxEval = result.value;
+              choosenPosition = result.position;
+              if (maxEval > currentAlpha) {
+                currentAlpha = maxEval;
+              }
+              if (currentBeta <= currentAlpha) break moves;
             }
-            if (currentBeta <= currentAlpha) break moves;
           }
         }
         j++;
@@ -176,27 +187,37 @@ export default class {
       let j = 0;
       while (j < boardState[i].length) {
         if (!boardState[i][j].player) {
-          const newBoardState = FieldHelper.deepCopyItem(boardState);
-          const currentPosition: Coordinates = { rowIndex: i, columnIndex: j };
-          newBoardState[i][j] = FieldHelper.createPawnForPlayer(
-            currentPosition,
-            this.getRoundNumber(boardState),
-            maximizingPlayer
+          const gonnaBeThirdInRow = PlayerScoreHelper.isGonnaBeThirdInRow(
+            { rowIndex: i, columnIndex: j } as Coordinates,
+            "black" as Player,
+            boardState
           );
-          const result = this.dropMinimax(
-            newBoardState,
-            depth - 1,
-            currentAlpha,
-            currentBeta,
-            "white"
-          );
-          if (result.value < minEval) {
-            minEval = result.value;
-            choosenPosition = currentPosition;
-            if (minEval < currentBeta) {
-              currentBeta = minEval;
+          if (!gonnaBeThirdInRow) {
+            const newBoardState = FieldHelper.deepCopyItem(boardState);
+            const currentPosition: Coordinates = {
+              rowIndex: i,
+              columnIndex: j,
+            };
+            newBoardState[i][j] = FieldHelper.createPawnForPlayer(
+              currentPosition,
+              this.getRoundNumber(boardState),
+              maximizingPlayer
+            );
+            const result = this.dropMinimax(
+              newBoardState,
+              depth - 1,
+              currentAlpha,
+              currentBeta,
+              "white"
+            );
+            if (result.value < minEval) {
+              minEval = result.value;
+              choosenPosition = currentPosition;
+              if (minEval < currentBeta) {
+                currentBeta = minEval;
+              }
+              if (currentBeta <= currentAlpha) break moves;
             }
-            if (currentBeta <= currentAlpha) break moves;
           }
         }
         j++;

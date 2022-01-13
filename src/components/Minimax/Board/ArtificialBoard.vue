@@ -848,6 +848,7 @@ export default class Board extends Vue {
     this.$refs.timer.stopTimer();
     alert(`Gratulacje, wygrał gracz: ${player}`);
     this.freezeGame = true;
+    this.isComputerThinking = false;
     return true;
   }
 
