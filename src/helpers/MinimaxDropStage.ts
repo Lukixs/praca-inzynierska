@@ -15,7 +15,7 @@ export default class {
     maximizingPlayer: Player
   ): dropMinimax {
     // const isBoardEmpty: boolean = FieldHelper.isBoardEmpty(node.boardState);
-    const numberOfPawns: number = this.amountOfPlayerPawnsOnBoard(
+    const numberOfPawns: number = FieldHelper.amountOfPlayerPawnsOnBoard(
       maximizingPlayer,
       boardState
     );
@@ -270,18 +270,6 @@ export default class {
   //   if (maximizingPlayer == "white") return pawnsAmounts.whitePawns !== 0;
   //   return pawnsAmounts.blackPawns !== 0;
   // }
-
-  static amountOfPlayerPawnsOnBoard(
-    maximizingPlayer: Player,
-    boardState: BoardState
-  ): number {
-    const copyOfBoardState = FieldHelper.deepCopyItem(boardState);
-    const pawnsAmounts = FieldHelper.getWhiteBlackPawnsAmounts(
-      copyOfBoardState
-    );
-    if (maximizingPlayer == "white") return pawnsAmounts.whitePawns;
-    return pawnsAmounts.blackPawns;
-  }
 
   static getRoundNumber(boardState: BoardState): number {
     const copyOfBoardState = FieldHelper.deepCopyItem(boardState);

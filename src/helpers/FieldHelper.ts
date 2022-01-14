@@ -2,8 +2,42 @@ import { BoardState, Coordinates, Pawn, Player } from "../types/board";
 import { MinimaxNode, PawnWithAvailableMoves } from "../types/minimax";
 import { boardStats } from "./BoardInfo";
 import FieldHelper from "./FieldHelper";
+import PlayerScoreHelper from "./PlayerScoreHelper";
 
 export default class {
+  static randomLegalEmptyFieldFromBoard(
+    boardState: BoardState,
+    player: Player
+  ): Coordinates {
+    const emptyFields = [] as Coordinates[];
+    boardState.forEach((column, rowIndex) => {
+      column.forEach((field, columnIndex) => {
+        if (!field.player) {
+          const gonnaBeThirdInRow = PlayerScoreHelper.isGonnaBeThirdInRow(
+            { rowIndex: rowIndex, columnIndex: columnIndex } as Coordinates,
+            player,
+            boardState
+          );
+          if (!gonnaBeThirdInRow)
+            emptyFields.push({ rowIndex: rowIndex, columnIndex: columnIndex });
+        }
+      });
+    });
+
+    return emptyFields[Math.floor(Math.random() * emptyFields.length)];
+  }
+
+  static findEmptyFields(
+    boardstate: any,
+    centerRing: Coordinates[]
+  ): Coordinates[] {
+    const emptyFields = centerRing.filter((coordinate) => {
+      if (this.isCoordinateOutOfBounds(coordinate)) return false;
+      return !boardstate[coordinate.rowIndex][coordinate.columnIndex].player;
+    });
+    return emptyFields;
+  }
+
   static randomIntFromInterval(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min) + min);
   }
@@ -310,5 +344,17 @@ export default class {
     );
 
     if (playerPawnsWithAvailableMoves.length == 0) return true;
+  }
+
+  static amountOfPlayerPawnsOnBoard(
+    maximizingPlayer: Player,
+    boardState: BoardState
+  ): number {
+    const copyOfBoardState = FieldHelper.deepCopyItem(boardState);
+    const pawnsAmounts = FieldHelper.getWhiteBlackPawnsAmounts(
+      copyOfBoardState
+    );
+    if (maximizingPlayer == "white") return pawnsAmounts.whitePawns;
+    return pawnsAmounts.blackPawns;
   }
 }
