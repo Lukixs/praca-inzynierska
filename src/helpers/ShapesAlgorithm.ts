@@ -18,28 +18,80 @@ export default class {
       boardState
     );
 
-    // if (myPawnsOnBoard.length > 2) {
-    // 1) patrzysz na pionki jakie masz:
-    // const myPawnsWithDirections = FieldHelper.getMovablePawnWithAvailableDirections(
-    //   myPawnsOnBoard,
-    //   boardState
-    // );
-    // let pawnsWithMostMoves = [] as PawnWithAvailableMoves[];
-    // let currentMostMoves = 0;
-    // myPawnsWithDirections.forEach((pawn) => {
-    //   if (pawn.directions.length > currentMostMoves) {
-    //     pawnsWithMostMoves = [];
-    //     currentMostMoves = pawn.directions.length;
-    //     pawnsWithMostMoves.push(pawn);
-    //   } else if (pawn.directions.length == currentMostMoves) {
-    //     pawnsWithMostMoves.push(pawn);
-    //   }
-    // });
-    // if (
-    //   pawnsWithMostMoves.length == 0 ||
-    //   pawnsWithMostMoves[0].directions.length == 0
-    // )
-    // }
+    if (myPawnsOnBoard.length > 2) {
+      // 1) patrzysz na pionki jakie masz:
+      // const perpendicularPairs: { pair: Pawn[] }[] = [];
+      // const diagonalPairs: { pair: Pawn[] }[] = [];
+      const possiblePairs: { pair: Pawn[]; distance: number }[] = [];
+
+      for (let index = 0; index < myPawnsOnBoard.length - 1; index++) {
+        const currentPawn = myPawnsOnBoard[index];
+        for (let pivot = index + 1; pivot < myPawnsOnBoard.length; pivot++) {
+          const comparedPawn = myPawnsOnBoard[pivot];
+          const distanceBetweenPawns = FieldHelper.manhattanDistance(
+            currentPawn.currentPosition,
+            comparedPawn.currentPosition
+          );
+          if (distanceBetweenPawns <= 3) {
+            possiblePairs.push({
+              pair: [currentPawn, comparedPawn],
+              distance: distanceBetweenPawns,
+            });
+          }
+        }
+      }
+
+      possiblePairs.forEach((prospect) => {
+        switch (prospect.distance) {
+          case 1: {
+            const options: {
+              coordinates: Coordinates[];
+            } = ShapesHelper.checkCloseDistancePossibilities(
+              prospect.pair,
+              boardState
+            );
+            console.log("options", options);
+
+            // porównaj czy są już takie kordy, jak tak to przypisz plusika, jak nie to dodaj
+            break;
+          }
+          case 2:
+            break;
+          case 3:
+            break;
+
+          // default:
+          //   break;
+        }
+        //Znajdź prostopadle
+        //Znajdź ukośnie
+      });
+
+      const scoringPlaces: {
+        coordinates: Coordinates[];
+        strength: number;
+      }[] = [];
+
+      // const myPawnsWithDirections = FieldHelper.getMovablePawnWithAvailableDirections(
+      //   myPawnsOnBoard,
+      //   boardState
+      // );
+      // let pawnsWithMostMoves = [] as PawnWithAvailableMoves[];
+      // let currentMostMoves = 0;
+      // myPawnsWithDirections.forEach((pawn) => {
+      //   if (pawn.directions.length > currentMostMoves) {
+      //     pawnsWithMostMoves = [];
+      //     currentMostMoves = pawn.directions.length;
+      //     pawnsWithMostMoves.push(pawn);
+      //   } else if (pawn.directions.length == currentMostMoves) {
+      //     pawnsWithMostMoves.push(pawn);
+      //   }
+      // });
+      // if (
+      //   pawnsWithMostMoves.length == 0 ||
+      //   pawnsWithMostMoves[0].directions.length == 0
+      // )
+    }
 
     // #4 a) Dostawiam pionka w pierwszym możliwym mniej oddalonym
     const position = ShapesHelper.dropNearby(myPawnsOnBoard, boardState);
@@ -49,10 +101,10 @@ export default class {
     // 2. Drugi krok, tu już algorytm, albo doklejenie pionka
     // 3. Algorytm:
     //    1) patrzysz na pionki jakie masz:
-    //        a) szukasz takich w rzędzie, albo po ukosie
+    //        a) szukasz par w rzędzie, albo po ukosie
     //        b) sprawdzasz, czy masz miejsce na dostawienie trzeciego (biorąc pod uwagę groźbę 4 w rzędzie), zapisujesz opcje
     //    2) patrzysz na pionki przeciwnika:
-    //        a) szukasz takich w rzędzie, albo po ukosie
+    //        a) szukasz par w rzędzie, albo po ukosie
     //        b) sprawdzasz, czy masz miejsce na dostawienie trzeciego (biorąc pod uwagę groźbę 4 w rzędzie)
     //        c) jeśli ma, zapisujesz miejsce w którym pionek ten zdobyłby punkt
     //    3) Sprawdzasz czy któreś z waszych docelowych miejsc postawienia piona się pokrywają:

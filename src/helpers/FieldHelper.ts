@@ -5,6 +5,39 @@ import FieldHelper from "./FieldHelper";
 import PlayerScoreHelper from "./PlayerScoreHelper";
 
 export default class {
+  static isFieldSuitableToDrop(
+    coordinates: Coordinates,
+    player: Player,
+    boardState: BoardState
+  ) {
+    if (this.isCoordinateOutOfBounds(coordinates)) return false;
+    const targetedField =
+      boardState[coordinates.rowIndex][coordinates.columnIndex];
+    if (targetedField.player) return false;
+
+    const isGonnaBeThirdinRow = PlayerScoreHelper.isGonnaBeThirdInRow(
+      coordinates,
+      player,
+      boardState
+    );
+    if (isGonnaBeThirdinRow) return false;
+
+    return true;
+  }
+  static isThisFieldEmpty(position: Coordinates, board: BoardState): boolean {
+    if (this.isCoordinateOutOfBounds(position)) {
+      return false;
+    }
+    const field: Pawn = board[position.rowIndex][position.columnIndex];
+    return !field.player;
+  }
+
+  static manhattanDistance(first: Coordinates, second: Coordinates): number {
+    const distance =
+      Math.abs(first.rowIndex - second.rowIndex) +
+      Math.abs(first.columnIndex - second.columnIndex);
+    return distance;
+  }
   static randomLegalEmptyFieldFromBoard(
     boardState: BoardState,
     player: Player
