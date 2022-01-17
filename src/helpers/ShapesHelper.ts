@@ -12,14 +12,166 @@ export default class {
       pair[0].currentPosition.rowIndex == pair[1].currentPosition.rowIndex ||
       pair[0].currentPosition.columnIndex == pair[1].currentPosition.columnIndex
     ) {
-      // const options = this.checkNeedlePositionPerpendicularly(pair, boardState);
-      return { coordinates: [] };
+      const options: Coordinates[] = this.checkRingPositionPerpendicularly(
+        pair,
+        boardState
+      );
+      return { coordinates: options };
     }
     const options: Coordinates[] = this.checkRingPositionDiagonally(
       pair,
       boardState
     );
+    // console.log("Ring", options.length, options);
     return { coordinates: options };
+  }
+
+  static checkRingPositionPerpendicularly(
+    pair: Pawn[],
+    boardState: BoardState
+  ): Coordinates[] {
+    if (pair[0].currentPosition.rowIndex == pair[1].currentPosition.rowIndex) {
+      return this.checkDoublePointHorizontally(pair, boardState);
+    }
+    return this.checkDoublePointVertically(pair, boardState);
+  }
+
+  static checkDoublePointHorizontally(
+    pair: Pawn[],
+    boardState: BoardState
+  ): Coordinates[] {
+    const doublePointPossibilities: Coordinates[] = [];
+
+    const scoreFieldCords: Coordinates = {
+      rowIndex: pair[0].currentPosition.rowIndex,
+      columnIndex:
+        (pair[0].currentPosition.columnIndex +
+          pair[0].currentPosition.columnIndex) /
+        2,
+    };
+
+    const isScoreFieldEmpty = FieldHelper.isThisFieldEmpty(
+      scoreFieldCords,
+      boardState
+    );
+    if (!isScoreFieldEmpty) return [];
+
+    const scoreToTopCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex + 1,
+      columnIndex: scoreFieldCords.columnIndex,
+    };
+    const scoreToRightCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex,
+      columnIndex: scoreFieldCords.columnIndex + 2,
+    };
+    const scoreToBottomtCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex - 1,
+      columnIndex: scoreFieldCords.columnIndex,
+    };
+    const scoreToLeftCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex,
+      columnIndex: scoreFieldCords.columnIndex - 2,
+    };
+
+    const isTopFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToTopCords,
+      pair[0].player,
+      boardState
+    );
+    if (isTopFieldSuitableToDrop)
+      doublePointPossibilities.push(scoreToTopCords);
+    const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToRightCords,
+      pair[0].player,
+      boardState
+    );
+    if (isRightFieldSuitableToDrop)
+      doublePointPossibilities.push(scoreToRightCords);
+
+    const isBottomFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToBottomtCords,
+      pair[0].player,
+      boardState
+    );
+    if (isBottomFieldSuitableToDrop)
+      doublePointPossibilities.push(scoreToBottomtCords);
+
+    const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToLeftCords,
+      pair[0].player,
+      boardState
+    );
+    if (isLeftFieldSuitableToDrop)
+      doublePointPossibilities.push(scoreToLeftCords);
+
+    return doublePointPossibilities;
+  }
+
+  static checkDoublePointVertically(
+    pair: Pawn[],
+    boardState: BoardState
+  ): Coordinates[] {
+    const doublePointOptions: Coordinates[] = [];
+
+    const scoreFieldCords: Coordinates = {
+      rowIndex:
+        (pair[0].currentPosition.rowIndex + pair[1].currentPosition.rowIndex) /
+        2,
+      columnIndex: pair[0].currentPosition.columnIndex,
+    };
+
+    const isScoreFieldEmpty = FieldHelper.isThisFieldEmpty(
+      scoreFieldCords,
+      boardState
+    );
+    if (!isScoreFieldEmpty) return [];
+
+    const scoreToTopCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex + 2,
+      columnIndex: scoreFieldCords.columnIndex,
+    };
+    const scoreToRightCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex,
+      columnIndex: scoreFieldCords.columnIndex + 1,
+    };
+    const scoreToBottomtCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex - 2,
+      columnIndex: scoreFieldCords.columnIndex,
+    };
+    const scoreToLeftCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex,
+      columnIndex: scoreFieldCords.columnIndex - 1,
+    };
+
+    const isTopFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToTopCords,
+      pair[0].player,
+      boardState
+    );
+    if (isTopFieldSuitableToDrop) doublePointOptions.push(scoreToTopCords);
+    const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToRightCords,
+      pair[0].player,
+      boardState
+    );
+    if (isRightFieldSuitableToDrop) doublePointOptions.push(scoreToRightCords);
+
+    const isBottomFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToBottomtCords,
+      pair[0].player,
+      boardState
+    );
+    if (isBottomFieldSuitableToDrop)
+      doublePointOptions.push(scoreToBottomtCords);
+
+    const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToLeftCords,
+      pair[0].player,
+      boardState
+    );
+    if (isLeftFieldSuitableToDrop) doublePointOptions.push(scoreToLeftCords);
+
+    return doublePointOptions;
   }
 
   static checkRingPositionDiagonally(

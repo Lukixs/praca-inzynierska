@@ -72,6 +72,7 @@ export default class {
               prospect.pair,
               boardState
             );
+
             console.log(
               "optionsRing",
               options.coordinates.length,
@@ -79,9 +80,9 @@ export default class {
             );
             break;
           }
-          case 3:
+          case 3: {
             break;
-
+          }
           // default:
           //   break;
         }
