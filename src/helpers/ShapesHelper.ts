@@ -58,7 +58,7 @@ export default class {
   ): Coordinates[] {
     let diagonallyDecreasingOptions: Coordinates[] = [];
 
-    const TopRightPawn = {
+    const topRightPawn = {
       player: higherPawn.player,
       index: higherPawn.index,
       currentPosition: {
@@ -66,7 +66,7 @@ export default class {
         columnIndex: lowerPawn.currentPosition.columnIndex,
       },
     };
-    const topRight = this.checkRingPositionTopRight(TopRightPawn, boardState);
+    const topRight = this.checkRingPositionTopRight(topRightPawn, boardState);
 
     const bottomLeftPawn = {
       player: lowerPawn.player,
