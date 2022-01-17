@@ -12,11 +12,387 @@ export default class {
       pair[0].currentPosition.rowIndex == pair[1].currentPosition.rowIndex ||
       pair[0].currentPosition.columnIndex == pair[1].currentPosition.columnIndex
     ) {
-      const options = this.checkNeedlePositionPerpendicularly(pair, boardState);
-      return { coordinates: options };
+      // const options = this.checkNeedlePositionPerpendicularly(pair, boardState);
+      return { coordinates: [] };
     }
-    const options = this.checkNeedlePositionDiagonally(pair, boardState);
+    const options: Coordinates[] = this.checkRingPositionDiagonally(
+      pair,
+      boardState
+    );
     return { coordinates: options };
+  }
+
+  static checkRingPositionDiagonally(
+    pair: Pawn[],
+    boardState: BoardState
+  ): Coordinates[] {
+    let lowerPawn, higherPawn;
+    if (pair[0].currentPosition.rowIndex > pair[1].currentPosition.rowIndex) {
+      higherPawn = pair[0];
+      lowerPawn = pair[1];
+    } else {
+      higherPawn = pair[1];
+      lowerPawn = pair[0];
+    }
+
+    if (
+      lowerPawn.currentPosition.columnIndex <
+      higherPawn.currentPosition.columnIndex
+    ) {
+      return this.checkRingPositionDiagonallyRising(
+        lowerPawn,
+        higherPawn,
+        boardState
+      );
+    }
+    return this.checkRingPositionDiagonallyDecreasing(
+      lowerPawn,
+      higherPawn,
+      boardState
+    );
+  }
+  static checkRingPositionDiagonallyDecreasing(
+    lowerPawn: Pawn,
+    higherPawn: Pawn,
+    boardState: BoardState
+  ): Coordinates[] {
+    let diagonallyDecreasingOptions: Coordinates[] = [];
+
+    const TopRightPawn = {
+      player: higherPawn.player,
+      index: higherPawn.index,
+      currentPosition: {
+        rowIndex: higherPawn.currentPosition.rowIndex,
+        columnIndex: lowerPawn.currentPosition.columnIndex,
+      },
+    };
+    const topRight = this.checkRingPositionTopRight(TopRightPawn, boardState);
+
+    const bottomLeftPawn = {
+      player: lowerPawn.player,
+      index: lowerPawn.index,
+      currentPosition: {
+        rowIndex: lowerPawn.currentPosition.rowIndex,
+        columnIndex: higherPawn.currentPosition.columnIndex,
+      },
+    };
+    const bottomLeft = this.checkRingPositionBottomLeft(
+      bottomLeftPawn,
+      boardState
+    );
+
+    diagonallyDecreasingOptions = diagonallyDecreasingOptions.concat(
+      topRight,
+      bottomLeft
+    );
+    return diagonallyDecreasingOptions;
+  }
+
+  static checkRingPositionBottomLeft(
+    lowerPawn: Pawn,
+    boardState: BoardState
+  ): Coordinates[] {
+    const ringPositionBottomLeftOptions: Coordinates[] = [];
+    const scoreFieldCords: Coordinates = {
+      rowIndex: lowerPawn.currentPosition.rowIndex,
+      columnIndex: lowerPawn.currentPosition.columnIndex,
+    };
+    const isScoreFieldEmpty = FieldHelper.isThisFieldEmpty(
+      scoreFieldCords,
+      boardState
+    );
+
+    if (!isScoreFieldEmpty) return [];
+
+    const scoreToTopCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex + 2,
+      columnIndex: scoreFieldCords.columnIndex,
+    };
+    const scoreToRightCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex,
+      columnIndex: scoreFieldCords.columnIndex + 2,
+    };
+    const scoreToBottomtCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex - 1,
+      columnIndex: scoreFieldCords.columnIndex,
+    };
+    const scoreToLeftCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex,
+      columnIndex: scoreFieldCords.columnIndex - 1,
+    };
+
+    const isTopFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToTopCords,
+      lowerPawn.player,
+      boardState
+    );
+    if (isTopFieldSuitableToDrop)
+      ringPositionBottomLeftOptions.push(scoreToTopCords);
+    const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToRightCords,
+      lowerPawn.player,
+      boardState
+    );
+    if (isRightFieldSuitableToDrop)
+      ringPositionBottomLeftOptions.push(scoreToRightCords);
+
+    const isBottomFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToBottomtCords,
+      lowerPawn.player,
+      boardState
+    );
+    if (isBottomFieldSuitableToDrop)
+      ringPositionBottomLeftOptions.push(scoreToBottomtCords);
+
+    const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToLeftCords,
+      lowerPawn.player,
+      boardState
+    );
+    if (isLeftFieldSuitableToDrop)
+      ringPositionBottomLeftOptions.push(scoreToLeftCords);
+
+    return ringPositionBottomLeftOptions;
+  }
+
+  static checkRingPositionTopRight(
+    higherPawn: Pawn,
+    boardState: BoardState
+  ): Coordinates[] {
+    const ringPositionTopRightOptions: Coordinates[] = [];
+    const scoreFieldCords: Coordinates = {
+      rowIndex: higherPawn.currentPosition.rowIndex,
+      columnIndex: higherPawn.currentPosition.columnIndex,
+    };
+    const isScoreFieldEmpty = FieldHelper.isThisFieldEmpty(
+      scoreFieldCords,
+      boardState
+    );
+
+    if (!isScoreFieldEmpty) return [];
+
+    const scoreToTopCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex + 1,
+      columnIndex: scoreFieldCords.columnIndex,
+    };
+    const scoreToRightCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex,
+      columnIndex: scoreFieldCords.columnIndex + 1,
+    };
+    const scoreToBottomtCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex - 2,
+      columnIndex: scoreFieldCords.columnIndex,
+    };
+    const scoreToLeftCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex,
+      columnIndex: scoreFieldCords.columnIndex - 2,
+    };
+
+    const isTopFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToTopCords,
+      higherPawn.player,
+      boardState
+    );
+    if (isTopFieldSuitableToDrop)
+      ringPositionTopRightOptions.push(scoreToTopCords);
+    const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToRightCords,
+      higherPawn.player,
+      boardState
+    );
+    if (isRightFieldSuitableToDrop)
+      ringPositionTopRightOptions.push(scoreToRightCords);
+
+    const isBottomFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToBottomtCords,
+      higherPawn.player,
+      boardState
+    );
+    if (isBottomFieldSuitableToDrop)
+      ringPositionTopRightOptions.push(scoreToBottomtCords);
+
+    const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToLeftCords,
+      higherPawn.player,
+      boardState
+    );
+    if (isLeftFieldSuitableToDrop)
+      ringPositionTopRightOptions.push(scoreToLeftCords);
+
+    return ringPositionTopRightOptions;
+  }
+
+  static checkRingPositionDiagonallyRising(
+    lowerPawn: Pawn,
+    higherPawn: Pawn,
+    boardState: BoardState
+  ): Coordinates[] {
+    let diagonallyRisingOptions: Coordinates[] = [];
+
+    const topLeftPawn = {
+      player: higherPawn.player,
+      index: higherPawn.index,
+      currentPosition: {
+        rowIndex: higherPawn.currentPosition.rowIndex,
+        columnIndex: lowerPawn.currentPosition.columnIndex,
+      },
+    };
+    const topLeft = this.checkRingPositionTopLeft(topLeftPawn, boardState);
+
+    const bottomRightPawn = {
+      player: lowerPawn.player,
+      index: lowerPawn.index,
+      currentPosition: {
+        rowIndex: lowerPawn.currentPosition.rowIndex,
+        columnIndex: higherPawn.currentPosition.columnIndex,
+      },
+    };
+    const bottomRight = this.checkRingPositionBottomRight(
+      bottomRightPawn,
+      boardState
+    );
+
+    diagonallyRisingOptions = diagonallyRisingOptions.concat(
+      topLeft,
+      bottomRight
+    );
+    return diagonallyRisingOptions;
+  }
+
+  static checkRingPositionBottomRight(
+    lowerPawn: Pawn,
+    boardState: BoardState
+  ): Coordinates[] {
+    const ringPositionBottomRightOptions: Coordinates[] = [];
+    const scoreFieldCords: Coordinates = {
+      rowIndex: lowerPawn.currentPosition.rowIndex,
+      columnIndex: lowerPawn.currentPosition.columnIndex,
+    };
+    const isScoreFieldEmpty = FieldHelper.isThisFieldEmpty(
+      scoreFieldCords,
+      boardState
+    );
+
+    if (!isScoreFieldEmpty) return [];
+
+    const scoreToTopCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex + 2,
+      columnIndex: scoreFieldCords.columnIndex,
+    };
+    const scoreToRightCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex,
+      columnIndex: scoreFieldCords.columnIndex + 1,
+    };
+    const scoreToBottomtCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex - 1,
+      columnIndex: scoreFieldCords.columnIndex,
+    };
+    const scoreToLeftCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex,
+      columnIndex: scoreFieldCords.columnIndex - 2,
+    };
+
+    const isTopFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToTopCords,
+      lowerPawn.player,
+      boardState
+    );
+    if (isTopFieldSuitableToDrop)
+      ringPositionBottomRightOptions.push(scoreToTopCords);
+
+    const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToRightCords,
+      lowerPawn.player,
+      boardState
+    );
+    if (isRightFieldSuitableToDrop)
+      ringPositionBottomRightOptions.push(scoreToRightCords);
+
+    const isBottomFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToBottomtCords,
+      lowerPawn.player,
+      boardState
+    );
+    if (isBottomFieldSuitableToDrop)
+      ringPositionBottomRightOptions.push(scoreToBottomtCords);
+
+    const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToLeftCords,
+      lowerPawn.player,
+      boardState
+    );
+    if (isLeftFieldSuitableToDrop)
+      ringPositionBottomRightOptions.push(scoreToLeftCords);
+
+    return ringPositionBottomRightOptions;
+  }
+
+  static checkRingPositionTopLeft(
+    higherPawn: Pawn,
+    boardState: BoardState
+  ): Coordinates[] {
+    const ringPositionTopLeftOptions: Coordinates[] = [];
+    const scoreFieldCords: Coordinates = {
+      rowIndex: higherPawn.currentPosition.rowIndex,
+      columnIndex: higherPawn.currentPosition.columnIndex,
+    };
+    const isScoreFieldEmpty = FieldHelper.isThisFieldEmpty(
+      scoreFieldCords,
+      boardState
+    );
+
+    if (!isScoreFieldEmpty) return [];
+
+    const scoreToTopCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex + 1,
+      columnIndex: scoreFieldCords.columnIndex,
+    };
+    const scoreToRightCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex,
+      columnIndex: scoreFieldCords.columnIndex + 2,
+    };
+    const scoreToBottomtCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex - 2,
+      columnIndex: scoreFieldCords.columnIndex,
+    };
+    const scoreToLeftCords: Coordinates = {
+      rowIndex: scoreFieldCords.rowIndex,
+      columnIndex: scoreFieldCords.columnIndex - 1,
+    };
+
+    const isTopFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToTopCords,
+      higherPawn.player,
+      boardState
+    );
+    if (isTopFieldSuitableToDrop)
+      ringPositionTopLeftOptions.push(scoreToTopCords);
+
+    const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToRightCords,
+      higherPawn.player,
+      boardState
+    );
+    if (isRightFieldSuitableToDrop)
+      ringPositionTopLeftOptions.push(scoreToRightCords);
+
+    const isBottomFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToBottomtCords,
+      higherPawn.player,
+      boardState
+    );
+    if (isBottomFieldSuitableToDrop)
+      ringPositionTopLeftOptions.push(scoreToBottomtCords);
+
+    const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+      scoreToLeftCords,
+      higherPawn.player,
+      boardState
+    );
+    if (isLeftFieldSuitableToDrop)
+      ringPositionTopLeftOptions.push(scoreToLeftCords);
+
+    return ringPositionTopLeftOptions;
   }
 
   static checkCloseDistancePossibilities(
@@ -87,7 +463,7 @@ export default class {
       rowIndex: scoreFieldCords.rowIndex,
       columnIndex: scoreFieldCords.columnIndex - 1,
     };
-    const scoreToDownCords: Coordinates = {
+    const scoreToBottomCords: Coordinates = {
       rowIndex: scoreFieldCords.rowIndex - 1,
       columnIndex: scoreFieldCords.columnIndex,
     };
@@ -104,11 +480,11 @@ export default class {
     if (isLeftFieldSuitableToDrop) lowHarpoonOptions.push(scoreToLeftCords);
 
     const isDownFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
-      scoreToDownCords,
+      scoreToBottomCords,
       lowerPawn.player,
       boardState
     );
-    if (isDownFieldSuitableToDrop) lowHarpoonOptions.push(scoreToDownCords);
+    if (isDownFieldSuitableToDrop) lowHarpoonOptions.push(scoreToBottomCords);
 
     const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
       scoreToRightCords,
@@ -184,7 +560,10 @@ export default class {
     return highHarpoonOptions;
   }
 
-  static checkHarpoonPositionInRow(pair: Pawn[], boardState: BoardState) {
+  static checkHarpoonPositionInRow(
+    pair: Pawn[],
+    boardState: BoardState
+  ): Coordinates[] {
     let rowOptions: Coordinates[] = [];
     let leftPawn, rightPawn;
     if (
@@ -230,7 +609,7 @@ export default class {
     );
     if (isFourthPawnBlocking) return [];
 
-    const scoreToDownCords: Coordinates = {
+    const scoreToBottomCords: Coordinates = {
       rowIndex: scoreFieldCords.rowIndex - 1,
       columnIndex: scoreFieldCords.columnIndex,
     };
@@ -244,11 +623,11 @@ export default class {
     };
 
     const isDownFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
-      scoreToDownCords,
+      scoreToBottomCords,
       leftPawn.player,
       boardState
     );
-    if (isDownFieldSuitableToDrop) leftHarpoonOptions.push(scoreToDownCords);
+    if (isDownFieldSuitableToDrop) leftHarpoonOptions.push(scoreToBottomCords);
 
     const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
       scoreToLeftCords,
@@ -294,7 +673,7 @@ export default class {
     );
     if (isFourthPawnBlocking) return [];
 
-    const scoreToDownCords: Coordinates = {
+    const scoreToBottomCords: Coordinates = {
       rowIndex: scoreFieldCords.rowIndex - 1,
       columnIndex: scoreFieldCords.columnIndex,
     };
@@ -308,11 +687,11 @@ export default class {
     };
 
     const isDownFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
-      scoreToDownCords,
+      scoreToBottomCords,
       rightPawn.player,
       boardState
     );
-    if (isDownFieldSuitableToDrop) rightHarpoonOptions.push(scoreToDownCords);
+    if (isDownFieldSuitableToDrop) rightHarpoonOptions.push(scoreToBottomCords);
 
     const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
       scoreToRightCords,

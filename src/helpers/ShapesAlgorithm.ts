@@ -1,5 +1,5 @@
 import { BoardState, Coordinates, Pawn, Player } from "../types/board";
-import { PawnWithAvailableMoves } from "../types/minimax";
+// import { PawnWithAvailableMoves } from "../types/minimax";
 import { dropShapes } from "../types/shapes";
 import FieldHelper from "./FieldHelper";
 import ShapesHelper from "./ShapesHelper";
@@ -41,6 +41,11 @@ export default class {
         }
       }
 
+      const scoringPlaces: {
+        coordinates: Coordinates[];
+        strength: number;
+      }[] = [];
+
       possiblePairs.forEach((prospect) => {
         switch (prospect.distance) {
           case 1: {
@@ -50,20 +55,30 @@ export default class {
               prospect.pair,
               boardState
             );
-            console.log("options", options);
+
+            console.log(
+              "optionsHarpoon",
+              options.coordinates,
+              options.coordinates.length
+            );
 
             // porównaj czy są już takie kordy, jak tak to przypisz plusika, jak nie to dodaj
             break;
           }
-          case 2:
+          case 2: {
             const options: {
               coordinates: Coordinates[];
             } = ShapesHelper.checkMediumDistancePossibilities(
               prospect.pair,
               boardState
             );
-            console.log("options", options);
+            console.log(
+              "optionsRing",
+              options.coordinates.length,
+              options.coordinates
+            );
             break;
+          }
           case 3:
             break;
 
@@ -73,11 +88,6 @@ export default class {
         //Znajdź prostopadle
         //Znajdź ukośnie
       });
-
-      const scoringPlaces: {
-        coordinates: Coordinates[];
-        strength: number;
-      }[] = [];
 
       // const myPawnsWithDirections = FieldHelper.getMovablePawnWithAvailableDirections(
       //   myPawnsOnBoard,

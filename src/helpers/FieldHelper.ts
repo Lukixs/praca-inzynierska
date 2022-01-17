@@ -9,10 +9,11 @@ export default class {
     coordinates: Coordinates,
     player: Player,
     boardState: BoardState
-  ) {
+  ): boolean {
     if (this.isCoordinateOutOfBounds(coordinates)) return false;
     const targetedField =
       boardState[coordinates.rowIndex][coordinates.columnIndex];
+
     if (targetedField.player) return false;
 
     const isGonnaBeThirdinRow = PlayerScoreHelper.isGonnaBeThirdInRow(
@@ -24,12 +25,19 @@ export default class {
 
     return true;
   }
-  static isThisFieldEmpty(position: Coordinates, board: BoardState): boolean {
+
+  static isThisFieldEmpty(
+    position: Coordinates,
+    boardState: BoardState
+  ): boolean {
     if (this.isCoordinateOutOfBounds(position)) {
       return false;
     }
-    const field: Pawn = board[position.rowIndex][position.columnIndex];
-    return !field.player;
+
+    const targetedField = boardState[position.rowIndex][position.columnIndex];
+    if (targetedField.player) return false;
+
+    return true;
   }
 
   static manhattanDistance(first: Coordinates, second: Coordinates): number {
@@ -61,7 +69,7 @@ export default class {
   }
 
   static findEmptyFields(
-    boardstate: any,
+    boardstate: BoardState,
     centerRing: Coordinates[]
   ): Coordinates[] {
     const emptyFields = centerRing.filter((coordinate) => {
