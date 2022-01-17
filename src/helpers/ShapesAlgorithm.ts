@@ -56,6 +56,13 @@ export default class {
             break;
           }
           case 2:
+            const options: {
+              coordinates: Coordinates[];
+            } = ShapesHelper.checkMediumDistancePossibilities(
+              prospect.pair,
+              boardState
+            );
+            console.log("options", options);
             break;
           case 3:
             break;

@@ -4,6 +4,21 @@ import FieldHelper from "./FieldHelper";
 import PlayerScoreHelper from "./PlayerScoreHelper";
 
 export default class {
+  static checkMediumDistancePossibilities(
+    pair: Pawn[],
+    boardState: BoardState
+  ): { coordinates: Coordinates[] } {
+    if (
+      pair[0].currentPosition.rowIndex == pair[1].currentPosition.rowIndex ||
+      pair[0].currentPosition.columnIndex == pair[1].currentPosition.columnIndex
+    ) {
+      const options = this.checkNeedlePositionPerpendicularly(pair, boardState);
+      return { coordinates: options };
+    }
+    const options = this.checkNeedlePositionDiagonally(pair, boardState);
+    return { coordinates: options };
+  }
+
   static checkCloseDistancePossibilities(
     pair: Pawn[],
     boardState: BoardState
