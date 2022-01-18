@@ -4,6 +4,166 @@ import FieldHelper from "./FieldHelper";
 import PlayerScoreHelper from "./PlayerScoreHelper";
 
 export default class {
+  static checkLongDistancePossibilities(
+    pair: Pawn[],
+    boardState: BoardState
+  ): { coordinates: Coordinates[] } {
+    if (
+      pair[0].currentPosition.rowIndex == pair[1].currentPosition.rowIndex ||
+      pair[0].currentPosition.columnIndex == pair[1].currentPosition.columnIndex
+    ) {
+      const options: Coordinates[] = this.checkNeedlesPositions(
+        pair,
+        boardState
+      );
+      return { coordinates: options };
+    }
+    const options: Coordinates[] = this.checkLsPositions(pair, boardState);
+    return { coordinates: options };
+  }
+
+  static checkLsPositions(pair: Pawn[], boardState: BoardState): Coordinates[] {
+    throw new Error("Method not implemented.");
+  }
+
+  static checkNeedlesPositions(
+    pair: Pawn[],
+    boardState: BoardState
+  ): Coordinates[] {
+    if (pair[0].currentPosition.rowIndex == pair[1].currentPosition.rowIndex) {
+      const options: Coordinates[] = this.checkNeedlesPositionsHorizontally(
+        pair,
+        boardState
+      );
+      return options;
+    }
+    const options: Coordinates[] = this.checkNeedlesPositionsVertically(
+      pair,
+      boardState
+    );
+    return options;
+  }
+
+  static checkNeedlesPositionsVertically(pair: Pawn[], boardState: BoardState) {
+    const verticalNeedlePossibilities: Coordinates[] = [];
+    let higherPawn, lowerPawn;
+    if (pair[0].currentPosition.rowIndex > pair[1].currentPosition.rowIndex) {
+      higherPawn = pair[0];
+      lowerPawn = pair[1];
+    } else {
+      higherPawn = pair[1];
+      lowerPawn = pair[0];
+    }
+
+    const lowerScoreFieldCords: Coordinates = {
+      rowIndex: lowerPawn.currentPosition.rowIndex + 1,
+      columnIndex: lowerPawn.currentPosition.columnIndex,
+    };
+    const isLowerScoreFieldEmpty = FieldHelper.isThisFieldEmpty(
+      lowerScoreFieldCords,
+      boardState
+    );
+    if (isLowerScoreFieldEmpty) {
+      const possibleDropFieldCords: Coordinates = {
+        rowIndex: lowerPawn.currentPosition.rowIndex + 2,
+        columnIndex: lowerPawn.currentPosition.columnIndex,
+      };
+      const isFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+        possibleDropFieldCords,
+        lowerPawn.player,
+        boardState
+      );
+      if (isFieldSuitableToDrop)
+        verticalNeedlePossibilities.push(possibleDropFieldCords);
+    }
+
+    const higherScoreFieldCords: Coordinates = {
+      rowIndex: higherPawn.currentPosition.rowIndex - 1,
+      columnIndex: higherPawn.currentPosition.columnIndex,
+    };
+    const isHigherScoreFieldEmpty = FieldHelper.isThisFieldEmpty(
+      higherScoreFieldCords,
+      boardState
+    );
+    if (isHigherScoreFieldEmpty) {
+      const possibleDropFieldCords: Coordinates = {
+        rowIndex: higherPawn.currentPosition.rowIndex - 2,
+        columnIndex: higherPawn.currentPosition.columnIndex,
+      };
+      const isFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+        possibleDropFieldCords,
+        higherPawn.player,
+        boardState
+      );
+      if (isFieldSuitableToDrop)
+        verticalNeedlePossibilities.push(possibleDropFieldCords);
+    }
+
+    return verticalNeedlePossibilities;
+  }
+  static checkNeedlesPositionsHorizontally(
+    pair: Pawn[],
+    boardState: BoardState
+  ): Coordinates[] {
+    const verticalNeedlePossibilities: Coordinates[] = [];
+    let leftPawn, rightPawn;
+    if (
+      pair[0].currentPosition.columnIndex > pair[1].currentPosition.columnIndex
+    ) {
+      rightPawn = pair[0];
+      leftPawn = pair[1];
+    } else {
+      rightPawn = pair[1];
+      leftPawn = pair[0];
+    }
+
+    const leftScoreFieldCords: Coordinates = {
+      rowIndex: leftPawn.currentPosition.rowIndex,
+      columnIndex: leftPawn.currentPosition.columnIndex + 1,
+    };
+    const isLeftScoreFieldEmpty = FieldHelper.isThisFieldEmpty(
+      leftScoreFieldCords,
+      boardState
+    );
+    if (isLeftScoreFieldEmpty) {
+      const possibleDropFieldCords: Coordinates = {
+        rowIndex: leftPawn.currentPosition.rowIndex,
+        columnIndex: leftPawn.currentPosition.columnIndex + 2,
+      };
+      const isFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+        possibleDropFieldCords,
+        leftPawn.player,
+        boardState
+      );
+      if (isFieldSuitableToDrop)
+        verticalNeedlePossibilities.push(possibleDropFieldCords);
+    }
+
+    const rightScoreFieldCords: Coordinates = {
+      rowIndex: rightPawn.currentPosition.rowIndex,
+      columnIndex: rightPawn.currentPosition.columnIndex - 1,
+    };
+    const isRightScoreFieldEmpty = FieldHelper.isThisFieldEmpty(
+      rightScoreFieldCords,
+      boardState
+    );
+    if (isRightScoreFieldEmpty) {
+      const possibleDropFieldCords: Coordinates = {
+        rowIndex: rightPawn.currentPosition.rowIndex,
+        columnIndex: rightPawn.currentPosition.columnIndex - 2,
+      };
+      const isFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
+        possibleDropFieldCords,
+        rightPawn.player,
+        boardState
+      );
+      if (isFieldSuitableToDrop)
+        verticalNeedlePossibilities.push(possibleDropFieldCords);
+    }
+
+    return verticalNeedlePossibilities;
+  }
+
   static checkMediumDistancePossibilities(
     pair: Pawn[],
     boardState: BoardState
