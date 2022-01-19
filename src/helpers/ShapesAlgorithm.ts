@@ -18,30 +18,29 @@ export default class {
       boardState
     );
 
-    // #1 Zbieramy wszystkie możliwe nasze ustawienia względem naszych aktualnych pionków
+    let playerOptions, enemyOptions;
+
     if (myPawnsOnBoard.length >= 2) {
-      const powers = ShapesHelper.findMyPossibleMoves(
+      playerOptions = ShapesHelper.findMyPossibleMoves(
         myPawnsOnBoard,
         boardState,
         player
       );
+      console.log("player", playerOptions);
     }
 
-    const enemyPlayer: Player = player == "white" ? "black" : "black";
+    const enemyPlayer: Player = player == "white" ? "black" : "white";
     const enemyPawnsOnBoard = FieldHelper.getPlayerPawnsFromBoard(
       enemyPlayer,
       boardState
     );
-    // #2 Zbieramy wszystkie możliwe nasze ustawienia względem naszych aktualnych pionków
     if (enemyPawnsOnBoard.length >= 2) {
-      // const powers = ShapesHelper.findMyPossibleMoves(
-      //   enemyPawnsOnBoard,
-      //   boardState,
-      //   player
-      // );
-      // 1) patrzysz na pionki jakie masz:
-      // const perpendicularPairs: { pair: Pawn[] }[] = [];
-      // const diagonalPairs: { pair: Pawn[] }[] = [];
+      enemyOptions = ShapesHelper.findMyPossibleMoves(
+        enemyPawnsOnBoard,
+        boardState,
+        player
+      );
+      console.log("enemy", enemyOptions);
     }
 
     // #3 Decydujem o ostatnim ruchu, czy mamy jakieś własne ruchy, czy przeciwnik ma

@@ -9,7 +9,7 @@ export default class {
     boardState: BoardState,
     currentPlayer: Player
   ): {
-    coordinates: Coordinates[];
+    coordinate: Coordinates;
     strength: number;
   }[] {
     const possiblePairs: {
@@ -17,10 +17,7 @@ export default class {
       distance: number;
     }[] = this.findPossiblePairs(myPawnsOnBoard);
 
-    const cordinatesAndTheirPowers: {
-      coordinates: Coordinates[];
-      strength: number;
-    }[] = [];
+    let allOptions: Coordinates[] = [];
 
     possiblePairs.forEach((prospect) => {
       switch (prospect.distance) {
@@ -31,9 +28,9 @@ export default class {
             currentPlayer
           );
 
-          console.log("optionsHarpoon", options.length, options);
+          allOptions = allOptions.concat(options);
+          // console.log("optionsHarpoon", options.length, options);
 
-          // porównaj czy są już takie kordy, jak tak to przypisz plusika, jak nie to dodaj
           break;
         }
         case 2: {
@@ -43,23 +40,51 @@ export default class {
             currentPlayer
           );
 
-          console.log("optionsRing", options.length, options);
+          allOptions = allOptions.concat(options);
+          // console.log("optionsRing", options.length, options);
+
           break;
         }
         case 3: {
           const options: Coordinates[] = this.checkLongDistancePossibilities(
             prospect.pair,
-            boardState
+            boardState,
+            currentPlayer
           );
 
-          console.log("options Needle/L", options.length, options);
+          allOptions = allOptions.concat(options);
+          // console.log("options Needle/L", options.length, options);
 
           break;
         }
       }
     });
 
-    return cordinatesAndTheirPowers;
+    const coordinatesAndTheirPowers: {
+      coordinate: Coordinates;
+      strength: number;
+    }[] = this.sumCoordinatesPowers(allOptions);
+
+    return coordinatesAndTheirPowers;
+  }
+
+  static sumCoordinatesPowers(
+    options: Coordinates[]
+  ): { coordinate: Coordinates; strength: number }[] {
+    const strengths: { coordinate: Coordinates; strength: number }[] = [];
+
+    options.forEach((option) => {
+      const foundSameCord = strengths.find((cord) =>
+        FieldHelper.isCoordinateEqual(cord.coordinate, option)
+      );
+      if (foundSameCord) {
+        foundSameCord.strength += 1;
+      } else {
+        strengths.push({ coordinate: option, strength: 1 });
+      }
+    });
+
+    return strengths;
   }
 
   static findPossiblePairs(
@@ -94,7 +119,8 @@ export default class {
 
   static checkLongDistancePossibilities(
     pair: Pawn[],
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     if (
       pair[0].currentPosition.rowIndex == pair[1].currentPosition.rowIndex ||
@@ -102,15 +128,24 @@ export default class {
     ) {
       const options: Coordinates[] = this.checkNeedlesPositions(
         pair,
-        boardState
+        boardState,
+        currentPlayer
       );
       return options;
     }
-    const options: Coordinates[] = this.checkLsPositions(pair, boardState);
+    const options: Coordinates[] = this.checkLsPositions(
+      pair,
+      boardState,
+      currentPlayer
+    );
     return options;
   }
 
-  static checkLsPositions(pair: Pawn[], boardState: BoardState): Coordinates[] {
+  static checkLsPositions(
+    pair: Pawn[],
+    boardState: BoardState,
+    currentPlayer: Player
+  ): Coordinates[] {
     let leftPawn, rightPawn;
     if (
       pair[0].currentPosition.columnIndex > pair[1].currentPosition.columnIndex
@@ -122,26 +157,43 @@ export default class {
       leftPawn = pair[0];
     }
 
-    return this.checkLsPositionsUpDown(leftPawn, rightPawn, boardState);
+    return this.checkLsPositionsUpDown(
+      leftPawn,
+      rightPawn,
+      boardState,
+      currentPlayer
+    );
   }
 
   static checkLsPositionsUpDown(
     leftPawn: Pawn,
     rightPawn: Pawn,
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     if (
       leftPawn.currentPosition.rowIndex < rightPawn.currentPosition.rowIndex
     ) {
-      return this.checkLsPositionsLeftPawnDown(leftPawn, rightPawn, boardState);
+      return this.checkLsPositionsLeftPawnDown(
+        leftPawn,
+        rightPawn,
+        boardState,
+        currentPlayer
+      );
     }
-    return this.checkLsPositionsRightPawnDown(leftPawn, rightPawn, boardState);
+    return this.checkLsPositionsRightPawnDown(
+      leftPawn,
+      rightPawn,
+      boardState,
+      currentPlayer
+    );
   }
 
   static checkLsPositionsRightPawnDown(
     leftPawn: Pawn,
     rightPawn: Pawn,
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     if (
       rightPawn.currentPosition.columnIndex -
@@ -151,21 +203,24 @@ export default class {
       const options = this.checkVerticalRightPawnDownPositions(
         leftPawn,
         rightPawn,
-        boardState
+        boardState,
+        currentPlayer
       );
       return options;
     }
     const options = this.checkHorizontalRightPawnDownPositions(
       leftPawn,
       rightPawn,
-      boardState
+      boardState,
+      currentPlayer
     );
     return options;
   }
   static checkHorizontalRightPawnDownPositions(
     leftPawn: Pawn,
     rightPawn: Pawn,
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     const horizontalRightDownPossibilities: Coordinates[] = [];
 
@@ -188,7 +243,12 @@ export default class {
         boardState
       );
       if (isFieldSuitableToDrop)
-        horizontalRightDownPossibilities.push(possibleDropFieldCords);
+        if (leftPawn.player != currentPlayer)
+          horizontalRightDownPossibilities.push(
+            possibleDropFieldCords,
+            topScoreFieldCords
+          );
+        else horizontalRightDownPossibilities.push(possibleDropFieldCords);
     }
 
     const downScoreFieldCords: Coordinates = {
@@ -210,7 +270,12 @@ export default class {
         boardState
       );
       if (isFieldSuitableToDrop)
-        horizontalRightDownPossibilities.push(possibleDropFieldCords);
+        if (leftPawn.player != currentPlayer)
+          horizontalRightDownPossibilities.push(
+            possibleDropFieldCords,
+            downScoreFieldCords
+          );
+        else horizontalRightDownPossibilities.push(possibleDropFieldCords);
     }
 
     return horizontalRightDownPossibilities;
@@ -218,7 +283,8 @@ export default class {
   static checkVerticalRightPawnDownPositions(
     leftPawn: Pawn,
     rightPawn: Pawn,
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     const verticalRightDownPossibilities: Coordinates[] = [];
 
@@ -241,7 +307,12 @@ export default class {
         boardState
       );
       if (isFieldSuitableToDrop)
-        verticalRightDownPossibilities.push(possibleDropFieldCords);
+        if (leftPawn.player != currentPlayer)
+          verticalRightDownPossibilities.push(
+            possibleDropFieldCords,
+            leftScoreFieldCords
+          );
+        else verticalRightDownPossibilities.push(possibleDropFieldCords);
     }
 
     const rightScoreFieldCords: Coordinates = {
@@ -263,7 +334,12 @@ export default class {
         boardState
       );
       if (isFieldSuitableToDrop)
-        verticalRightDownPossibilities.push(possibleDropFieldCords);
+        if (leftPawn.player != currentPlayer)
+          verticalRightDownPossibilities.push(
+            possibleDropFieldCords,
+            rightScoreFieldCords
+          );
+        else verticalRightDownPossibilities.push(possibleDropFieldCords);
     }
 
     return verticalRightDownPossibilities;
@@ -272,7 +348,8 @@ export default class {
   static checkLsPositionsLeftPawnDown(
     leftPawn: Pawn,
     rightPawn: Pawn,
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     if (
       rightPawn.currentPosition.columnIndex -
@@ -282,7 +359,8 @@ export default class {
       const options = this.checkVerticalLeftPawnDownPositions(
         leftPawn,
         rightPawn,
-        boardState
+        boardState,
+        currentPlayer
       );
       return options;
     }
@@ -351,7 +429,8 @@ export default class {
   static checkVerticalLeftPawnDownPositions(
     leftPawn: Pawn,
     rightPawn: Pawn,
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     const verticalLeftDownPossibilities: Coordinates[] = [];
 
@@ -374,7 +453,12 @@ export default class {
         boardState
       );
       if (isFieldSuitableToDrop)
-        verticalLeftDownPossibilities.push(possibleDropFieldCords);
+        if (leftPawn.player != currentPlayer)
+          verticalLeftDownPossibilities.push(
+            possibleDropFieldCords,
+            leftScoreFieldCords
+          );
+        else verticalLeftDownPossibilities.push(possibleDropFieldCords);
     }
 
     const rightScoreFieldCords: Coordinates = {
@@ -396,7 +480,12 @@ export default class {
         boardState
       );
       if (isFieldSuitableToDrop)
-        verticalLeftDownPossibilities.push(possibleDropFieldCords);
+        if (leftPawn.player != currentPlayer)
+          verticalLeftDownPossibilities.push(
+            possibleDropFieldCords,
+            rightScoreFieldCords
+          );
+        else verticalLeftDownPossibilities.push(possibleDropFieldCords);
     }
 
     return verticalLeftDownPossibilities;
@@ -404,25 +493,29 @@ export default class {
 
   static checkNeedlesPositions(
     pair: Pawn[],
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     if (pair[0].currentPosition.rowIndex == pair[1].currentPosition.rowIndex) {
       const options: Coordinates[] = this.checkNeedlesPositionsHorizontally(
         pair,
-        boardState
+        boardState,
+        currentPlayer
       );
       return options;
     }
     const options: Coordinates[] = this.checkNeedlesPositionsVertically(
       pair,
-      boardState
+      boardState,
+      currentPlayer
     );
     return options;
   }
 
   static checkNeedlesPositionsVertically(
     pair: Pawn[],
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     const verticalNeedlePossibilities: Coordinates[] = [];
     let higherPawn, lowerPawn;
@@ -453,7 +546,12 @@ export default class {
         boardState
       );
       if (isFieldSuitableToDrop)
-        verticalNeedlePossibilities.push(possibleDropFieldCords);
+        if (lowerPawn.player != currentPlayer)
+          verticalNeedlePossibilities.push(
+            possibleDropFieldCords,
+            lowerScoreFieldCords
+          );
+        else verticalNeedlePossibilities.push(possibleDropFieldCords);
     }
 
     const higherScoreFieldCords: Coordinates = {
@@ -475,16 +573,22 @@ export default class {
         boardState
       );
       if (isFieldSuitableToDrop)
-        verticalNeedlePossibilities.push(possibleDropFieldCords);
+        if (higherPawn.player != currentPlayer)
+          verticalNeedlePossibilities.push(
+            possibleDropFieldCords,
+            higherScoreFieldCords
+          );
+        else verticalNeedlePossibilities.push(possibleDropFieldCords);
     }
 
     return verticalNeedlePossibilities;
   }
   static checkNeedlesPositionsHorizontally(
     pair: Pawn[],
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
-    const verticalNeedlePossibilities: Coordinates[] = [];
+    const horizontalNeedlePossibilities: Coordinates[] = [];
     let leftPawn, rightPawn;
     if (
       pair[0].currentPosition.columnIndex > pair[1].currentPosition.columnIndex
@@ -515,7 +619,12 @@ export default class {
         boardState
       );
       if (isFieldSuitableToDrop)
-        verticalNeedlePossibilities.push(possibleDropFieldCords);
+        if (leftPawn.player != currentPlayer)
+          horizontalNeedlePossibilities.push(
+            possibleDropFieldCords,
+            leftScoreFieldCords
+          );
+        else horizontalNeedlePossibilities.push(possibleDropFieldCords);
     }
 
     const rightScoreFieldCords: Coordinates = {
@@ -537,10 +646,15 @@ export default class {
         boardState
       );
       if (isFieldSuitableToDrop)
-        verticalNeedlePossibilities.push(possibleDropFieldCords);
+        if (rightPawn.player != currentPlayer)
+          horizontalNeedlePossibilities.push(
+            possibleDropFieldCords,
+            rightScoreFieldCords
+          );
+        else horizontalNeedlePossibilities.push(possibleDropFieldCords);
     }
 
-    return verticalNeedlePossibilities;
+    return horizontalNeedlePossibilities;
   }
 
   static checkMediumDistancePossibilities(
