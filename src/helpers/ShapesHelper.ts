@@ -1,13 +1,100 @@
-import { BoardState, Coordinates } from "../types/board";
+import { BoardState, Coordinates, Player } from "../types/board";
 import { Pawn } from "../types/board";
 import FieldHelper from "./FieldHelper";
 import PlayerScoreHelper from "./PlayerScoreHelper";
 
 export default class {
+  static findMyPossibleMoves(
+    myPawnsOnBoard: Pawn[],
+    boardState: BoardState,
+    currentPlayer: Player
+  ): {
+    coordinates: Coordinates[];
+    strength: number;
+  }[] {
+    const possiblePairs: {
+      pair: Pawn[];
+      distance: number;
+    }[] = this.findPossiblePairs(myPawnsOnBoard);
+
+    const cordinatesAndTheirPowers: {
+      coordinates: Coordinates[];
+      strength: number;
+    }[] = [];
+
+    possiblePairs.forEach((prospect) => {
+      switch (prospect.distance) {
+        case 1: {
+          const options: Coordinates[] = this.checkCloseDistancePossibilities(
+            prospect.pair,
+            boardState,
+            currentPlayer
+          );
+
+          console.log("optionsHarpoon", options.length, options);
+
+          // porównaj czy są już takie kordy, jak tak to przypisz plusika, jak nie to dodaj
+          break;
+        }
+        case 2: {
+          const options: Coordinates[] = this.checkMediumDistancePossibilities(
+            prospect.pair,
+            boardState
+          );
+
+          console.log("optionsRing", options.length, options);
+          break;
+        }
+        case 3: {
+          const options: Coordinates[] = this.checkLongDistancePossibilities(
+            prospect.pair,
+            boardState
+          );
+
+          console.log("options Needle/L", options.length, options);
+
+          break;
+        }
+      }
+    });
+
+    return cordinatesAndTheirPowers;
+  }
+
+  static findPossiblePairs(
+    myPawnsOnBoard: Pawn[]
+  ): {
+    pair: Pawn[];
+    distance: number;
+  }[] {
+    const possiblePairs: {
+      pair: Pawn[];
+      distance: number;
+    }[] = [];
+    for (let index = 0; index < myPawnsOnBoard.length - 1; index++) {
+      const currentPawn = myPawnsOnBoard[index];
+      for (let pivot = index + 1; pivot < myPawnsOnBoard.length; pivot++) {
+        const comparedPawn = myPawnsOnBoard[pivot];
+        const distanceBetweenPawns = FieldHelper.manhattanDistance(
+          currentPawn.currentPosition,
+          comparedPawn.currentPosition
+        );
+        if (distanceBetweenPawns <= 3) {
+          possiblePairs.push({
+            pair: [currentPawn, comparedPawn],
+            distance: distanceBetweenPawns,
+          });
+        }
+      }
+    }
+
+    return possiblePairs;
+  }
+
   static checkLongDistancePossibilities(
     pair: Pawn[],
     boardState: BoardState
-  ): { coordinates: Coordinates[] } {
+  ): Coordinates[] {
     if (
       pair[0].currentPosition.rowIndex == pair[1].currentPosition.rowIndex ||
       pair[0].currentPosition.columnIndex == pair[1].currentPosition.columnIndex
@@ -16,10 +103,10 @@ export default class {
         pair,
         boardState
       );
-      return { coordinates: options };
+      return options;
     }
     const options: Coordinates[] = this.checkLsPositions(pair, boardState);
-    return { coordinates: options };
+    return options;
   }
 
   static checkLsPositions(pair: Pawn[], boardState: BoardState): Coordinates[] {
@@ -458,7 +545,7 @@ export default class {
   static checkMediumDistancePossibilities(
     pair: Pawn[],
     boardState: BoardState
-  ): { coordinates: Coordinates[] } {
+  ): Coordinates[] {
     if (
       pair[0].currentPosition.rowIndex == pair[1].currentPosition.rowIndex ||
       pair[0].currentPosition.columnIndex == pair[1].currentPosition.columnIndex
@@ -467,14 +554,14 @@ export default class {
         pair,
         boardState
       );
-      return { coordinates: options };
+      return options;
     }
     const options: Coordinates[] = this.checkRingPositionDiagonally(
       pair,
       boardState
     );
     // console.log("Ring", options.length, options);
-    return { coordinates: options };
+    return options;
   }
 
   static checkRingPositionPerpendicularly(
@@ -1000,24 +1087,32 @@ export default class {
 
   static checkCloseDistancePossibilities(
     pair: Pawn[],
-    boardState: BoardState
-  ): {
-    coordinates: Coordinates[];
-  } {
+    boardState: BoardState,
+    currentPlayer: Player
+  ): Coordinates[] {
     // 1. Sprawdzamy występowanie hairpoona dwustronnie
     //    a) czy sprawdzamy pionowe czy poziome ustawienie
     //    b) czy trzecie pole jest wolne, jeśli tak sprawdź wolne wokół
     if (pair[0].currentPosition.rowIndex == pair[1].currentPosition.rowIndex) {
-      const options = this.checkHarpoonPositionInRow(pair, boardState);
-      return { coordinates: options };
+      const options = this.checkHarpoonPositionInRow(
+        pair,
+        boardState,
+        currentPlayer
+      );
+      return options;
     }
-    const options = this.checkHarpoonPositionInColumn(pair, boardState);
-    return { coordinates: options };
+    const options = this.checkHarpoonPositionInColumn(
+      pair,
+      boardState,
+      currentPlayer
+    );
+    return options;
   }
 
   static checkHarpoonPositionInColumn(
     pair: Pawn[],
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     let columnOptions: Coordinates[] = [];
     let lowerPawn, higherPawn;
@@ -1028,8 +1123,16 @@ export default class {
       higherPawn = pair[1];
       lowerPawn = pair[0];
     }
-    const highHarpoonOptions = this.checkHighHarpoon(higherPawn, boardState);
-    const lowHarpoonOptions = this.checkLowHarpoon(lowerPawn, boardState);
+    const highHarpoonOptions = this.checkHighHarpoon(
+      higherPawn,
+      boardState,
+      currentPlayer
+    );
+    const lowHarpoonOptions = this.checkLowHarpoon(
+      lowerPawn,
+      boardState,
+      currentPlayer
+    );
     columnOptions = columnOptions.concat(highHarpoonOptions, lowHarpoonOptions);
 
     return columnOptions;
@@ -1037,7 +1140,8 @@ export default class {
 
   static checkLowHarpoon(
     lowerPawn: Pawn,
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     const lowHarpoonOptions: Coordinates[] = [];
 
@@ -1080,28 +1184,38 @@ export default class {
       lowerPawn.player,
       boardState
     );
-    if (isLeftFieldSuitableToDrop) lowHarpoonOptions.push(scoreToLeftCords);
+    if (isLeftFieldSuitableToDrop)
+      if (lowerPawn.player != currentPlayer)
+        lowHarpoonOptions.push(scoreToLeftCords, scoreFieldCords);
+      else lowHarpoonOptions.push(scoreToLeftCords);
 
     const isDownFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
       scoreToBottomCords,
       lowerPawn.player,
       boardState
     );
-    if (isDownFieldSuitableToDrop) lowHarpoonOptions.push(scoreToBottomCords);
+    if (isDownFieldSuitableToDrop)
+      if (lowerPawn.player != currentPlayer)
+        lowHarpoonOptions.push(scoreToBottomCords, scoreFieldCords);
+      else lowHarpoonOptions.push(scoreToBottomCords);
 
     const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
       scoreToRightCords,
       lowerPawn.player,
       boardState
     );
-    if (isRightFieldSuitableToDrop) lowHarpoonOptions.push(scoreToRightCords);
+    if (isRightFieldSuitableToDrop)
+      if (lowerPawn.player != currentPlayer)
+        lowHarpoonOptions.push(scoreToRightCords, scoreFieldCords);
+      else lowHarpoonOptions.push(scoreToRightCords);
 
     return lowHarpoonOptions;
   }
 
   static checkHighHarpoon(
     higherPawn: Pawn,
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     const highHarpoonOptions: Coordinates[] = [];
 
@@ -1144,28 +1258,38 @@ export default class {
       higherPawn.player,
       boardState
     );
-    if (isLeftFieldSuitableToDrop) highHarpoonOptions.push(scoreToLeftCords);
+    if (isLeftFieldSuitableToDrop)
+      if (higherPawn.player != currentPlayer)
+        highHarpoonOptions.push(scoreToLeftCords, scoreFieldCords);
+      else highHarpoonOptions.push(scoreToLeftCords);
 
     const isTopFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
       scoreToTopCords,
       higherPawn.player,
       boardState
     );
-    if (isTopFieldSuitableToDrop) highHarpoonOptions.push(scoreToTopCords);
+    if (isTopFieldSuitableToDrop)
+      if (higherPawn.player != currentPlayer)
+        highHarpoonOptions.push(scoreToTopCords, scoreFieldCords);
+      else highHarpoonOptions.push(scoreToTopCords);
 
     const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
       scoreToRightCords,
       higherPawn.player,
       boardState
     );
-    if (isRightFieldSuitableToDrop) highHarpoonOptions.push(scoreToRightCords);
+    if (isRightFieldSuitableToDrop)
+      if (higherPawn.player != currentPlayer)
+        highHarpoonOptions.push(scoreToRightCords, scoreFieldCords);
+      else highHarpoonOptions.push(scoreToRightCords);
 
     return highHarpoonOptions;
   }
 
   static checkHarpoonPositionInRow(
     pair: Pawn[],
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     let rowOptions: Coordinates[] = [];
     let leftPawn, rightPawn;
@@ -1178,8 +1302,16 @@ export default class {
       rightPawn = pair[1];
       leftPawn = pair[0];
     }
-    const leftHarpoonOptions = this.checkLeftHarpoon(leftPawn, boardState);
-    const rightHarpoonOptions = this.checkRightHarpoon(rightPawn, boardState);
+    const leftHarpoonOptions = this.checkLeftHarpoon(
+      leftPawn,
+      boardState,
+      currentPlayer
+    );
+    const rightHarpoonOptions = this.checkRightHarpoon(
+      rightPawn,
+      boardState,
+      currentPlayer
+    );
     rowOptions = rowOptions.concat(leftHarpoonOptions, rightHarpoonOptions);
 
     return rowOptions;
@@ -1187,7 +1319,8 @@ export default class {
 
   static checkLeftHarpoon(
     leftPawn: Pawn,
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     const leftHarpoonOptions: Coordinates[] = [];
 
@@ -1230,28 +1363,38 @@ export default class {
       leftPawn.player,
       boardState
     );
-    if (isDownFieldSuitableToDrop) leftHarpoonOptions.push(scoreToBottomCords);
+    if (isDownFieldSuitableToDrop)
+      if (leftPawn.player != currentPlayer)
+        leftHarpoonOptions.push(scoreToBottomCords, scoreFieldCords);
+      else leftHarpoonOptions.push(scoreToBottomCords);
 
     const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
       scoreToLeftCords,
       leftPawn.player,
       boardState
     );
-    if (isLeftFieldSuitableToDrop) leftHarpoonOptions.push(scoreToLeftCords);
+    if (isLeftFieldSuitableToDrop)
+      if (leftPawn.player != currentPlayer)
+        leftHarpoonOptions.push(scoreToLeftCords, scoreFieldCords);
+      else leftHarpoonOptions.push(scoreToLeftCords);
 
     const isTopFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
       scoreToTopCords,
       leftPawn.player,
       boardState
     );
-    if (isTopFieldSuitableToDrop) leftHarpoonOptions.push(scoreToTopCords);
+    if (isTopFieldSuitableToDrop)
+      if (leftPawn.player != currentPlayer)
+        leftHarpoonOptions.push(scoreToTopCords, scoreFieldCords);
+      else leftHarpoonOptions.push(scoreToTopCords);
 
     return leftHarpoonOptions;
   }
 
   static checkRightHarpoon(
     rightPawn: Pawn,
-    boardState: BoardState
+    boardState: BoardState,
+    currentPlayer: Player
   ): Coordinates[] {
     const rightHarpoonOptions: Coordinates[] = [];
 
@@ -1294,21 +1437,30 @@ export default class {
       rightPawn.player,
       boardState
     );
-    if (isDownFieldSuitableToDrop) rightHarpoonOptions.push(scoreToBottomCords);
+    if (isDownFieldSuitableToDrop)
+      if (rightPawn.player != currentPlayer)
+        rightHarpoonOptions.push(scoreToBottomCords, scoreFieldCords);
+      else rightHarpoonOptions.push(scoreToBottomCords);
 
     const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
       scoreToRightCords,
       rightPawn.player,
       boardState
     );
-    if (isRightFieldSuitableToDrop) rightHarpoonOptions.push(scoreToRightCords);
+    if (isRightFieldSuitableToDrop)
+      if (rightPawn.player != currentPlayer)
+        rightHarpoonOptions.push(scoreToRightCords, scoreFieldCords);
+      else rightHarpoonOptions.push(scoreToRightCords);
 
     const isTopFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
       scoreToTopCords,
       rightPawn.player,
       boardState
     );
-    if (isTopFieldSuitableToDrop) rightHarpoonOptions.push(scoreToTopCords);
+    if (isTopFieldSuitableToDrop)
+      if (rightPawn.player != currentPlayer)
+        rightHarpoonOptions.push(scoreToTopCords, scoreFieldCords);
+      else rightHarpoonOptions.push(scoreToTopCords);
 
     return rightHarpoonOptions;
   }

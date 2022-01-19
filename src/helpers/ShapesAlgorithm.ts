@@ -18,100 +18,36 @@ export default class {
       boardState
     );
 
-    if (myPawnsOnBoard.length > 2) {
+    // #1 Zbieramy wszystkie możliwe nasze ustawienia względem naszych aktualnych pionków
+    if (myPawnsOnBoard.length >= 2) {
+      const powers = ShapesHelper.findMyPossibleMoves(
+        myPawnsOnBoard,
+        boardState,
+        player
+      );
+    }
+
+    const enemyPlayer: Player = player == "white" ? "black" : "black";
+    const enemyPawnsOnBoard = FieldHelper.getPlayerPawnsFromBoard(
+      enemyPlayer,
+      boardState
+    );
+    // #2 Zbieramy wszystkie możliwe nasze ustawienia względem naszych aktualnych pionków
+    if (enemyPawnsOnBoard.length >= 2) {
+      // const powers = ShapesHelper.findMyPossibleMoves(
+      //   enemyPawnsOnBoard,
+      //   boardState,
+      //   player
+      // );
       // 1) patrzysz na pionki jakie masz:
       // const perpendicularPairs: { pair: Pawn[] }[] = [];
       // const diagonalPairs: { pair: Pawn[] }[] = [];
-      const possiblePairs: { pair: Pawn[]; distance: number }[] = [];
-
-      for (let index = 0; index < myPawnsOnBoard.length - 1; index++) {
-        const currentPawn = myPawnsOnBoard[index];
-        for (let pivot = index + 1; pivot < myPawnsOnBoard.length; pivot++) {
-          const comparedPawn = myPawnsOnBoard[pivot];
-          const distanceBetweenPawns = FieldHelper.manhattanDistance(
-            currentPawn.currentPosition,
-            comparedPawn.currentPosition
-          );
-          if (distanceBetweenPawns <= 3) {
-            possiblePairs.push({
-              pair: [currentPawn, comparedPawn],
-              distance: distanceBetweenPawns,
-            });
-          }
-        }
-      }
-
-      const scoringPlaces: {
-        coordinates: Coordinates[];
-        strength: number;
-      }[] = [];
-
-      possiblePairs.forEach((prospect) => {
-        switch (prospect.distance) {
-          case 1: {
-            const options: {
-              coordinates: Coordinates[];
-            } = ShapesHelper.checkCloseDistancePossibilities(
-              prospect.pair,
-              boardState
-            );
-
-            console.log(
-              "optionsHarpoon",
-              options.coordinates,
-              options.coordinates.length
-            );
-
-            // porównaj czy są już takie kordy, jak tak to przypisz plusika, jak nie to dodaj
-            break;
-          }
-          case 2: {
-            const options: {
-              coordinates: Coordinates[];
-            } = ShapesHelper.checkMediumDistancePossibilities(
-              prospect.pair,
-              boardState
-            );
-
-            console.log(
-              "optionsRing",
-              options.coordinates.length,
-              options.coordinates
-            );
-            break;
-          }
-          case 3: {
-            break;
-          }
-          // default:
-          //   break;
-        }
-        //Znajdź prostopadle
-        //Znajdź ukośnie
-      });
-
-      // const myPawnsWithDirections = FieldHelper.getMovablePawnWithAvailableDirections(
-      //   myPawnsOnBoard,
-      //   boardState
-      // );
-      // let pawnsWithMostMoves = [] as PawnWithAvailableMoves[];
-      // let currentMostMoves = 0;
-      // myPawnsWithDirections.forEach((pawn) => {
-      //   if (pawn.directions.length > currentMostMoves) {
-      //     pawnsWithMostMoves = [];
-      //     currentMostMoves = pawn.directions.length;
-      //     pawnsWithMostMoves.push(pawn);
-      //   } else if (pawn.directions.length == currentMostMoves) {
-      //     pawnsWithMostMoves.push(pawn);
-      //   }
-      // });
-      // if (
-      //   pawnsWithMostMoves.length == 0 ||
-      //   pawnsWithMostMoves[0].directions.length == 0
-      // )
     }
 
+    // #3 Decydujem o ostatnim ruchu, czy mamy jakieś własne ruchy, czy przeciwnik ma
+
     // #4 a) Dostawiam pionka w pierwszym możliwym mniej oddalonym
+
     const position = ShapesHelper.dropNearby(myPawnsOnBoard, boardState);
     return { position: position };
 
