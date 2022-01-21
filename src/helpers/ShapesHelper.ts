@@ -1,5 +1,6 @@
 import { BoardState, Coordinates, Player } from "../types/board";
 import { Pawn } from "../types/board";
+import { strenghtCoordinate } from "../types/shapes";
 import FieldHelper from "./FieldHelper";
 import PlayerScoreHelper from "./PlayerScoreHelper";
 
@@ -8,10 +9,7 @@ export default class {
     myPawnsOnBoard: Pawn[],
     boardState: BoardState,
     currentPlayer: Player
-  ): {
-    coordinate: Coordinates;
-    strength: number;
-  }[] {
+  ): strenghtCoordinate[] {
     const possiblePairs: {
       pair: Pawn[];
       distance: number;

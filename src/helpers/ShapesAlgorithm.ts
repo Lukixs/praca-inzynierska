@@ -1,6 +1,6 @@
 import { BoardState, Coordinates, Pawn, Player } from "../types/board";
 // import { PawnWithAvailableMoves } from "../types/minimax";
-import { dropShapes } from "../types/shapes";
+import { dropShapes, strenghtCoordinate } from "../types/shapes";
 import FieldHelper from "./FieldHelper";
 import ShapesHelper from "./ShapesHelper";
 
@@ -18,7 +18,7 @@ export default class {
       boardState
     );
 
-    let playerOptions, enemyOptions;
+    let playerOptions: strenghtCoordinate[], enemyOptions: strenghtCoordinate[];
 
     if (myPawnsOnBoard.length >= 2) {
       playerOptions = ShapesHelper.findMyPossibleMoves(
@@ -44,11 +44,41 @@ export default class {
     }
 
     // #3 Decydujem o ostatnim ruchu, czy mamy jakieś własne ruchy, czy przeciwnik ma
+    if (
+      playerOptions &&
+      playerOptions.length &&
+      enemyOptions &&
+      enemyOptions.length
+    ) {
+      const commonOptions: strenghtCoordinate[] = [];
+
+      playerOptions.forEach((playerOption) => {
+        const enemySameOption = enemyOptions.find((enemyOption) => {
+          return FieldHelper.isCoordinateEqual(
+            playerOption.coordinate,
+            enemyOption.coordinate
+          );
+        });
+        if (enemySameOption)
+          commonOptions.push({
+            coordinate: playerOption.coordinate,
+            strength: playerOption.strength + enemySameOption.strength,
+          });
+      });
+
+      if (commonOptions.length) {
+        console.log("XD", {
+          position:
+            commonOptions[Math.floor(Math.random() * commonOptions.length)]
+              .coordinate,
+        });
+      }
+    }
 
     // #4 a) Dostawiam pionka w pierwszym możliwym mniej oddalonym
 
-    const position = ShapesHelper.dropNearby(myPawnsOnBoard, boardState);
-    return { position: position };
+    const defaultPosition = ShapesHelper.dropNearby(myPawnsOnBoard, boardState);
+    return { position: defaultPosition };
 
     // 1. Rozstawienie pierwszego pionka, środke/ losowo
     // 2. Drugi krok, tu już algorytm, albo doklejenie pionka
