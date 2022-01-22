@@ -1680,8 +1680,16 @@ export default class {
       Math.round(ySum / cordsAmount),
     ];
 
-    if (!boardState[xCenter][yCenter].player)
+    if (
+      !boardState[xCenter][yCenter].player &&
+      FieldHelper.isFieldSuitableToDrop(
+        { rowIndex: xCenter, columnIndex: yCenter },
+        myPawnsOnBoard[0].player,
+        boardState
+      )
+    ) {
       return { rowIndex: xCenter, columnIndex: yCenter };
+    }
 
     const centerRing = [
       { rowIndex: xCenter + 1, columnIndex: yCenter },
