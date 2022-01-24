@@ -5,7 +5,7 @@ export interface dropShapes {
   position: Coordinates;
 }
 
-export interface strenghtCoordinate {
+export interface strengthCoordinate {
   coordinate: Coordinates;
   strength: number;
 }

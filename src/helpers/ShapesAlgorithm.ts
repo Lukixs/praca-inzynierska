@@ -1,6 +1,6 @@
 import { BoardState, Coordinates, Pawn, Player } from "../types/board";
 // import { PawnWithAvailableMoves } from "../types/minimax";
-import { dropShapes, strenghtCoordinate } from "../types/shapes";
+import { dropShapes, strengthCoordinate } from "../types/shapes";
 import FieldHelper from "./FieldHelper";
 import ShapesHelper from "./ShapesHelper";
 
@@ -19,7 +19,7 @@ export default class {
 
     if (myPawnsOnBoard.length === 0) return this.dropFirstPawn(boardState);
 
-    let playerOptions: strenghtCoordinate[], enemyOptions: strenghtCoordinate[];
+    let playerOptions: strengthCoordinate[], enemyOptions: strengthCoordinate[];
 
     if (myPawnsOnBoard.length >= 2) {
       playerOptions = ShapesHelper.findDropOptions(
@@ -50,7 +50,7 @@ export default class {
       enemyOptions &&
       enemyOptions.length
     ) {
-      const commonOptions: strenghtCoordinate[] = [];
+      const commonOptions: strengthCoordinate[] = [];
 
       playerOptions.forEach((playerOption) => {
         const enemySameOption = enemyOptions.find((enemyOption) => {

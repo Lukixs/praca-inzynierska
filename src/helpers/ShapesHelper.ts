@@ -1,6 +1,6 @@
 import { BoardState, Coordinates, Player } from "../types/board";
 import { Pawn } from "../types/board";
-import { strenghtCoordinate } from "../types/shapes";
+import { strengthCoordinate } from "../types/shapes";
 import FieldHelper from "./FieldHelper";
 import PlayerScoreHelper from "./PlayerScoreHelper";
 
@@ -9,7 +9,7 @@ export default class {
     myPawnsOnBoard: Pawn[],
     boardState: BoardState,
     currentPlayer: Player
-  ): strenghtCoordinate[] {
+  ): strengthCoordinate[] {
     const possiblePairs: {
       pair: Pawn[];
       distance: number;
@@ -27,8 +27,6 @@ export default class {
           );
 
           allOptions = allOptions.concat(options);
-          // console.log("optionsHarpoon", options.length, options);
-
           break;
         }
         case 2: {
@@ -39,8 +37,6 @@ export default class {
           );
 
           allOptions = allOptions.concat(options);
-          // console.log("optionsRing", options.length, options);
-
           break;
         }
         case 3: {
@@ -51,8 +47,6 @@ export default class {
           );
 
           allOptions = allOptions.concat(options);
-          // console.log("options Needle/L", options.length, options);
-
           break;
         }
       }
