@@ -19,7 +19,8 @@ export default class {
 
     if (myPawnsOnBoard.length === 0) return this.dropFirstPawn(boardState);
 
-    let playerOptions: strengthCoordinate[], enemyOptions: strengthCoordinate[];
+    let playerOptions: strengthCoordinate[] = [],
+      enemyOptions: strengthCoordinate[] = [];
 
     if (myPawnsOnBoard.length >= 2) {
       playerOptions = ShapesHelper.findDropOptions(
@@ -27,6 +28,7 @@ export default class {
         boardState,
         player
       );
+      console.log("player", playerOptions);
     }
 
     const enemyPlayer: Player = player == "white" ? "black" : "white";
@@ -44,37 +46,60 @@ export default class {
     }
 
     // #3 Decydujem o ostatnim ruchu, czy mamy jakieś własne ruchy, czy przeciwnik ma
-    if (
-      playerOptions &&
-      playerOptions.length &&
-      enemyOptions &&
-      enemyOptions.length
-    ) {
+    if (playerOptions.length && enemyOptions.length) {
       const commonOptions: strengthCoordinate[] = [];
 
-      playerOptions.forEach((playerOption) => {
-        const enemySameOption = enemyOptions.find((enemyOption) => {
-          return FieldHelper.isCoordinateEqual(
-            playerOption.coordinate,
-            enemyOption.coordinate
-          );
-        });
-        if (enemySameOption)
-          commonOptions.push({
-            coordinate: playerOption.coordinate,
-            strength: playerOption.strength + enemySameOption.strength,
-          });
-      });
+      for (let i = 0; i < playerOptions.length; i++) {
+        const callerOption = playerOptions[i];
+        for (let j = 0; j < enemyOptions.length; j++) {
+          const enemyOption = enemyOptions[j];
+          if (
+            FieldHelper.isCoordinateEqual(
+              callerOption.coordinate,
+              enemyOption.coordinate
+            )
+          )
+            commonOptions.push({
+              coordinate: callerOption.coordinate,
+              strength: callerOption.strength + enemyOption.strength,
+            });
+        }
+      }
+      console.log("Common Options", commonOptions);
 
-      if (commonOptions.length) {
-        console.log("XD", {
-          position:
-            commonOptions[Math.floor(Math.random() * commonOptions.length)]
-              .coordinate,
-        });
+      if (commonOptions.length == 1) {
+        return {
+          position: commonOptions[0].coordinate,
+        };
+      }
+
+      if (commonOptions.length > 1) {
+        let highestPowerCommonPlace = commonOptions[0];
+
+        for (let index = 1; index < commonOptions.length; index++) {
+          const option = commonOptions[index];
+          if (option.strength > highestPowerCommonPlace.strength)
+            highestPowerCommonPlace = option;
+        }
+
+        return {
+          position: highestPowerCommonPlace.coordinate,
+        };
       }
     }
 
+    if (playerOptions.length || enemyOptions.length) {
+      const combinedOptions = playerOptions.concat(enemyOptions);
+      let strongestOption = combinedOptions[0];
+
+      for (let index = 1; index < combinedOptions.length; index++) {
+        const option = combinedOptions[index];
+        if (option.strength > strongestOption.strength)
+          strongestOption = option;
+      }
+      console.log("Zwrócona pojedyńcza pozycja:", strongestOption);
+      return { position: strongestOption.coordinate };
+    }
     // #4 a) Dostawiam pionka w pierwszym możliwym mniej oddalonym
 
     const defaultPosition = ShapesHelper.dropNearby(myPawnsOnBoard, boardState);
