@@ -5,7 +5,7 @@ import FieldHelper from "./FieldHelper";
 import PlayerScoreHelper from "./PlayerScoreHelper";
 
 export default class {
-  static findMyPossibleMoves(
+  static findDropOptions(
     myPawnsOnBoard: Pawn[],
     boardState: BoardState,
     currentPlayer: Player

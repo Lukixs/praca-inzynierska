@@ -6,27 +6,27 @@ import ShapesHelper from "./ShapesHelper";
 
 export default class {
   public static dropShapes(boardState: BoardState, player: Player): dropShapes {
-    const numberOfPawns: number = FieldHelper.amountOfPlayerPawnsOnBoard(
-      player,
-      boardState
-    );
+    // const numberOfPawns: number = FieldHelper.amountOfPlayerPawnsOnBoard(
+    //   player,
+    //   boardState
+    // );
 
-    if (numberOfPawns === 0) return this.dropFirstPawn(boardState);
-
+    // if (numberOfPawns === 0) return this.dropFirstPawn(boardState);
     const myPawnsOnBoard = FieldHelper.getPlayerPawnsFromBoard(
       player,
       boardState
     );
 
+    if (myPawnsOnBoard.length === 0) return this.dropFirstPawn(boardState);
+
     let playerOptions: strenghtCoordinate[], enemyOptions: strenghtCoordinate[];
 
     if (myPawnsOnBoard.length >= 2) {
-      playerOptions = ShapesHelper.findMyPossibleMoves(
+      playerOptions = ShapesHelper.findDropOptions(
         myPawnsOnBoard,
         boardState,
         player
       );
-      console.log("player", playerOptions);
     }
 
     const enemyPlayer: Player = player == "white" ? "black" : "white";
@@ -35,7 +35,7 @@ export default class {
       boardState
     );
     if (enemyPawnsOnBoard.length >= 2) {
-      enemyOptions = ShapesHelper.findMyPossibleMoves(
+      enemyOptions = ShapesHelper.findDropOptions(
         enemyPawnsOnBoard,
         boardState,
         player
