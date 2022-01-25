@@ -123,6 +123,27 @@ export default class {
     //        a) dostaw pionka w pierwszym możliwym najmniej oddalonym
   }
 
+  public static dropShapesEasy(
+    boardState: BoardState,
+    player: Player
+  ): dropShapes {
+    const numberOfPawns: number = FieldHelper.amountOfPlayerPawnsOnBoard(
+      player,
+      boardState
+    );
+
+    if (numberOfPawns === 0) return this.dropFirstPawn(boardState);
+    const myPawnsOnBoard = FieldHelper.getPlayerPawnsFromBoard(
+      player,
+      boardState
+    );
+
+    // #4 a) Dostawiam pionka w pierwszym możliwym mniej oddalonym
+
+    const defaultPosition = ShapesHelper.dropNearby(myPawnsOnBoard, boardState);
+    return { position: defaultPosition };
+  }
+
   //
 
   //

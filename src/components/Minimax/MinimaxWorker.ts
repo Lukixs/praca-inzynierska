@@ -10,20 +10,25 @@ const ctx: Worker = self as any;
 // Respond to message from parent thread
 ctx.addEventListener("message", (event) => {
   let result;
-  if (event.data.type == "drop") {
-    // result = MinimaxDropStage.dropMinimax(
-    //   event.data.params[0],
-    //   event.data.params[1],
-    //   event.data.params[2],
-    //   event.data.params[3],
-    //   event.data.params[4]
-    // );
+  if (event.data.type == "dropEasy") {
+    result = ShapesAlgorithm.dropShapesEasy(
+      event.data.params[0],
+      event.data.params[4]
+    );
+  } else if (event.data.type == "dropMedium") {
     result = ShapesAlgorithm.dropShapes(
       event.data.params[0],
       event.data.params[4]
     );
-  }
-  if (event.data.type == "move")
+  } else if (event.data.type == "dropHard") {
+    result = MinimaxDropStage.dropMinimax(
+      event.data.params[0],
+      event.data.params[1],
+      event.data.params[2],
+      event.data.params[3],
+      event.data.params[4]
+    );
+  } else if (event.data.type == "move")
     result = Minimax.minimax(
       event.data.params[0],
       event.data.params[1],

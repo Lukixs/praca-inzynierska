@@ -402,10 +402,10 @@ export default class Board extends Vue {
     const currentPlayer: Player = this.tura ? "white" : "black";
 
     this.$props.worker.postMessage({
-      type: "drop",
+      type: this.$props.aiDifficulty.drop,
       params: [
         this.boardState,
-        this.$props.aiDifficulty.drop,
+        5,
         minimaxValues.MIN,
         minimaxValues.MAX,
         currentPlayer,

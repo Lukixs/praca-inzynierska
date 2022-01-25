@@ -11,7 +11,11 @@ import Component from "vue-class-component";
 })
 export default class Home extends Vue {
   gameDifficulty() {
-    return { title: "Sztuczna Inteligencja - Trudna", drop: 5, move: 7 };
+    return {
+      title: "Sztuczna Inteligencja - Trudna",
+      drop: "dropHard",
+      move: 7,
+    };
   }
 }
 </script>
