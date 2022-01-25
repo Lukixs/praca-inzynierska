@@ -236,10 +236,7 @@ export default class {
       );
       if (isFieldSuitableToDrop)
         if (leftPawn.player != currentPlayer)
-          horizontalRightDownPossibilities.push(
-            possibleDropFieldCords,
-            topScoreFieldCords
-          );
+          horizontalRightDownPossibilities.push(topScoreFieldCords);
         else horizontalRightDownPossibilities.push(possibleDropFieldCords);
     }
 
@@ -263,10 +260,7 @@ export default class {
       );
       if (isFieldSuitableToDrop)
         if (leftPawn.player != currentPlayer)
-          horizontalRightDownPossibilities.push(
-            possibleDropFieldCords,
-            downScoreFieldCords
-          );
+          horizontalRightDownPossibilities.push(downScoreFieldCords);
         else horizontalRightDownPossibilities.push(possibleDropFieldCords);
     }
 
@@ -300,10 +294,7 @@ export default class {
       );
       if (isFieldSuitableToDrop)
         if (leftPawn.player != currentPlayer)
-          verticalRightDownPossibilities.push(
-            possibleDropFieldCords,
-            leftScoreFieldCords
-          );
+          verticalRightDownPossibilities.push(leftScoreFieldCords);
         else verticalRightDownPossibilities.push(possibleDropFieldCords);
     }
 
@@ -327,10 +318,7 @@ export default class {
       );
       if (isFieldSuitableToDrop)
         if (leftPawn.player != currentPlayer)
-          verticalRightDownPossibilities.push(
-            possibleDropFieldCords,
-            rightScoreFieldCords
-          );
+          verticalRightDownPossibilities.push(rightScoreFieldCords);
         else verticalRightDownPossibilities.push(possibleDropFieldCords);
     }
 
@@ -446,10 +434,7 @@ export default class {
       );
       if (isFieldSuitableToDrop)
         if (leftPawn.player != currentPlayer)
-          verticalLeftDownPossibilities.push(
-            possibleDropFieldCords,
-            leftScoreFieldCords
-          );
+          verticalLeftDownPossibilities.push(leftScoreFieldCords);
         else verticalLeftDownPossibilities.push(possibleDropFieldCords);
     }
 
@@ -473,10 +458,7 @@ export default class {
       );
       if (isFieldSuitableToDrop)
         if (leftPawn.player != currentPlayer)
-          verticalLeftDownPossibilities.push(
-            possibleDropFieldCords,
-            rightScoreFieldCords
-          );
+          verticalLeftDownPossibilities.push(rightScoreFieldCords);
         else verticalLeftDownPossibilities.push(possibleDropFieldCords);
     }
 
@@ -539,10 +521,7 @@ export default class {
       );
       if (isFieldSuitableToDrop)
         if (lowerPawn.player != currentPlayer)
-          verticalNeedlePossibilities.push(
-            possibleDropFieldCords,
-            lowerScoreFieldCords
-          );
+          verticalNeedlePossibilities.push(lowerScoreFieldCords);
         else verticalNeedlePossibilities.push(possibleDropFieldCords);
     }
 
@@ -566,10 +545,7 @@ export default class {
       );
       if (isFieldSuitableToDrop)
         if (higherPawn.player != currentPlayer)
-          verticalNeedlePossibilities.push(
-            possibleDropFieldCords,
-            higherScoreFieldCords
-          );
+          verticalNeedlePossibilities.push(higherScoreFieldCords);
         else verticalNeedlePossibilities.push(possibleDropFieldCords);
     }
 
@@ -612,10 +588,7 @@ export default class {
       );
       if (isFieldSuitableToDrop)
         if (leftPawn.player != currentPlayer)
-          horizontalNeedlePossibilities.push(
-            possibleDropFieldCords,
-            leftScoreFieldCords
-          );
+          horizontalNeedlePossibilities.push(leftScoreFieldCords);
         else horizontalNeedlePossibilities.push(possibleDropFieldCords);
     }
 
@@ -639,10 +612,7 @@ export default class {
       );
       if (isFieldSuitableToDrop)
         if (rightPawn.player != currentPlayer)
-          horizontalNeedlePossibilities.push(
-            possibleDropFieldCords,
-            rightScoreFieldCords
-          );
+          horizontalNeedlePossibilities.push(rightScoreFieldCords);
         else horizontalNeedlePossibilities.push(possibleDropFieldCords);
     }
 
@@ -729,7 +699,7 @@ export default class {
     );
     if (isTopFieldSuitableToDrop)
       if (pair[0].player != currentPlayer)
-        doublePointPossibilities.push(scoreToTopCords, scoreFieldCords);
+        doublePointPossibilities.push(scoreFieldCords);
       else doublePointPossibilities.push(scoreToTopCords);
 
     const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -739,7 +709,7 @@ export default class {
     );
     if (isRightFieldSuitableToDrop)
       if (pair[0].player != currentPlayer)
-        doublePointPossibilities.push(scoreToRightCords, scoreFieldCords);
+        doublePointPossibilities.push(scoreFieldCords);
       else doublePointPossibilities.push(scoreToRightCords);
 
     const isBottomFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -749,7 +719,7 @@ export default class {
     );
     if (isBottomFieldSuitableToDrop)
       if (pair[0].player != currentPlayer)
-        doublePointPossibilities.push(scoreToBottomtCords, scoreFieldCords);
+        doublePointPossibilities.push(scoreFieldCords);
       else doublePointPossibilities.push(scoreToBottomtCords);
 
     const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -759,7 +729,7 @@ export default class {
     );
     if (isLeftFieldSuitableToDrop)
       if (pair[0].player != currentPlayer)
-        doublePointPossibilities.push(scoreToLeftCords, scoreFieldCords);
+        doublePointPossibilities.push(scoreFieldCords);
       else doublePointPossibilities.push(scoreToLeftCords);
 
     return doublePointPossibilities;
@@ -809,7 +779,7 @@ export default class {
     );
     if (isTopFieldSuitableToDrop)
       if (pair[0].player != currentPlayer)
-        doublePointOptions.push(scoreToTopCords, scoreFieldCords);
+        doublePointOptions.push(scoreFieldCords);
       else doublePointOptions.push(scoreToTopCords);
 
     const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -819,7 +789,7 @@ export default class {
     );
     if (isRightFieldSuitableToDrop)
       if (pair[0].player != currentPlayer)
-        doublePointOptions.push(scoreToRightCords, scoreFieldCords);
+        doublePointOptions.push(scoreFieldCords);
       else doublePointOptions.push(scoreToRightCords);
 
     const isBottomFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -829,7 +799,7 @@ export default class {
     );
     if (isBottomFieldSuitableToDrop)
       if (pair[0].player != currentPlayer)
-        doublePointOptions.push(scoreToBottomtCords, scoreFieldCords);
+        doublePointOptions.push(scoreFieldCords);
       else doublePointOptions.push(scoreToBottomtCords);
 
     const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -839,7 +809,7 @@ export default class {
     );
     if (isLeftFieldSuitableToDrop)
       if (pair[0].player != currentPlayer)
-        doublePointOptions.push(scoreToLeftCords, scoreFieldCords);
+        doublePointOptions.push(scoreFieldCords);
       else doublePointOptions.push(scoreToLeftCords);
 
     return doublePointOptions;
@@ -961,7 +931,7 @@ export default class {
     );
     if (isTopFieldSuitableToDrop)
       if (lowerPawn.player != currentPlayer)
-        ringPositionBottomLeftOptions.push(scoreToTopCords, scoreFieldCords);
+        ringPositionBottomLeftOptions.push(scoreFieldCords);
       else ringPositionBottomLeftOptions.push(scoreToTopCords);
 
     const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -971,7 +941,7 @@ export default class {
     );
     if (isRightFieldSuitableToDrop)
       if (lowerPawn.player != currentPlayer)
-        ringPositionBottomLeftOptions.push(scoreToRightCords, scoreFieldCords);
+        ringPositionBottomLeftOptions.push(scoreFieldCords);
       else ringPositionBottomLeftOptions.push(scoreToRightCords);
 
     const isBottomFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -981,10 +951,7 @@ export default class {
     );
     if (isBottomFieldSuitableToDrop)
       if (lowerPawn.player != currentPlayer)
-        ringPositionBottomLeftOptions.push(
-          scoreToBottomtCords,
-          scoreFieldCords
-        );
+        ringPositionBottomLeftOptions.push(scoreFieldCords);
       else ringPositionBottomLeftOptions.push(scoreToBottomtCords);
 
     const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -994,7 +961,7 @@ export default class {
     );
     if (isLeftFieldSuitableToDrop)
       if (lowerPawn.player != currentPlayer)
-        ringPositionBottomLeftOptions.push(scoreToLeftCords, scoreFieldCords);
+        ringPositionBottomLeftOptions.push(scoreFieldCords);
       else ringPositionBottomLeftOptions.push(scoreToLeftCords);
 
     return ringPositionBottomLeftOptions;
@@ -1041,7 +1008,7 @@ export default class {
     );
     if (isTopFieldSuitableToDrop)
       if (higherPawn.player != currentPlayer)
-        ringPositionTopRightOptions.push(scoreToTopCords, scoreFieldCords);
+        ringPositionTopRightOptions.push(scoreFieldCords);
       else ringPositionTopRightOptions.push(scoreToTopCords);
 
     const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1051,7 +1018,7 @@ export default class {
     );
     if (isRightFieldSuitableToDrop)
       if (higherPawn.player != currentPlayer)
-        ringPositionTopRightOptions.push(scoreToRightCords, scoreFieldCords);
+        ringPositionTopRightOptions.push(scoreFieldCords);
       else ringPositionTopRightOptions.push(scoreToRightCords);
 
     const isBottomFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1061,7 +1028,7 @@ export default class {
     );
     if (isBottomFieldSuitableToDrop)
       if (higherPawn.player != currentPlayer)
-        ringPositionTopRightOptions.push(scoreToBottomtCords, scoreFieldCords);
+        ringPositionTopRightOptions.push(scoreFieldCords);
       else ringPositionTopRightOptions.push(scoreToBottomtCords);
 
     const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1071,7 +1038,7 @@ export default class {
     );
     if (isLeftFieldSuitableToDrop)
       if (higherPawn.player != currentPlayer)
-        ringPositionTopRightOptions.push(scoreToLeftCords, scoreFieldCords);
+        ringPositionTopRightOptions.push(scoreFieldCords);
       else ringPositionTopRightOptions.push(scoreToLeftCords);
 
     return ringPositionTopRightOptions;
@@ -1161,7 +1128,7 @@ export default class {
     );
     if (isTopFieldSuitableToDrop)
       if (lowerPawn.player != currentPlayer)
-        ringPositionBottomRightOptions.push(scoreToTopCords, scoreFieldCords);
+        ringPositionBottomRightOptions.push(scoreFieldCords);
       else ringPositionBottomRightOptions.push(scoreToTopCords);
 
     const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1171,7 +1138,7 @@ export default class {
     );
     if (isRightFieldSuitableToDrop)
       if (lowerPawn.player != currentPlayer)
-        ringPositionBottomRightOptions.push(scoreToRightCords, scoreFieldCords);
+        ringPositionBottomRightOptions.push(scoreFieldCords);
       else ringPositionBottomRightOptions.push(scoreToRightCords);
 
     const isBottomFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1181,10 +1148,7 @@ export default class {
     );
     if (isBottomFieldSuitableToDrop)
       if (lowerPawn.player != currentPlayer)
-        ringPositionBottomRightOptions.push(
-          scoreToBottomtCords,
-          scoreFieldCords
-        );
+        ringPositionBottomRightOptions.push(scoreFieldCords);
       else ringPositionBottomRightOptions.push(scoreToBottomtCords);
 
     const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1194,7 +1158,7 @@ export default class {
     );
     if (isLeftFieldSuitableToDrop)
       if (lowerPawn.player != currentPlayer)
-        ringPositionBottomRightOptions.push(scoreToLeftCords, scoreFieldCords);
+        ringPositionBottomRightOptions.push(scoreFieldCords);
       else ringPositionBottomRightOptions.push(scoreToLeftCords);
 
     return ringPositionBottomRightOptions;
@@ -1241,7 +1205,7 @@ export default class {
     );
     if (isTopFieldSuitableToDrop)
       if (higherPawn.player != currentPlayer)
-        ringPositionTopLeftOptions.push(scoreToTopCords, scoreFieldCords);
+        ringPositionTopLeftOptions.push(scoreFieldCords);
       else ringPositionTopLeftOptions.push(scoreToTopCords);
 
     const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1251,7 +1215,7 @@ export default class {
     );
     if (isRightFieldSuitableToDrop)
       if (higherPawn.player != currentPlayer)
-        ringPositionTopLeftOptions.push(scoreToRightCords, scoreFieldCords);
+        ringPositionTopLeftOptions.push(scoreFieldCords);
       else ringPositionTopLeftOptions.push(scoreToRightCords);
 
     const isBottomFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1261,7 +1225,7 @@ export default class {
     );
     if (isBottomFieldSuitableToDrop)
       if (higherPawn.player != currentPlayer)
-        ringPositionTopLeftOptions.push(scoreToBottomtCords, scoreFieldCords);
+        ringPositionTopLeftOptions.push(scoreFieldCords);
       else ringPositionTopLeftOptions.push(scoreToBottomtCords);
 
     const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1271,7 +1235,7 @@ export default class {
     );
     if (isLeftFieldSuitableToDrop)
       if (higherPawn.player != currentPlayer)
-        ringPositionTopLeftOptions.push(scoreToLeftCords, scoreFieldCords);
+        ringPositionTopLeftOptions.push(scoreFieldCords);
       else ringPositionTopLeftOptions.push(scoreToLeftCords);
 
     return ringPositionTopLeftOptions;
@@ -1378,7 +1342,7 @@ export default class {
     );
     if (isLeftFieldSuitableToDrop)
       if (lowerPawn.player != currentPlayer)
-        lowHarpoonOptions.push(scoreToLeftCords, scoreFieldCords);
+        lowHarpoonOptions.push(scoreFieldCords);
       else lowHarpoonOptions.push(scoreToLeftCords);
 
     const isDownFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1388,7 +1352,7 @@ export default class {
     );
     if (isDownFieldSuitableToDrop)
       if (lowerPawn.player != currentPlayer)
-        lowHarpoonOptions.push(scoreToBottomCords, scoreFieldCords);
+        lowHarpoonOptions.push(scoreFieldCords);
       else lowHarpoonOptions.push(scoreToBottomCords);
 
     const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1398,7 +1362,7 @@ export default class {
     );
     if (isRightFieldSuitableToDrop)
       if (lowerPawn.player != currentPlayer)
-        lowHarpoonOptions.push(scoreToRightCords, scoreFieldCords);
+        lowHarpoonOptions.push(scoreFieldCords);
       else lowHarpoonOptions.push(scoreToRightCords);
 
     return lowHarpoonOptions;
@@ -1452,7 +1416,7 @@ export default class {
     );
     if (isLeftFieldSuitableToDrop)
       if (higherPawn.player != currentPlayer)
-        highHarpoonOptions.push(scoreToLeftCords, scoreFieldCords);
+        highHarpoonOptions.push(scoreFieldCords);
       else highHarpoonOptions.push(scoreToLeftCords);
 
     const isTopFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1462,7 +1426,7 @@ export default class {
     );
     if (isTopFieldSuitableToDrop)
       if (higherPawn.player != currentPlayer)
-        highHarpoonOptions.push(scoreToTopCords, scoreFieldCords);
+        highHarpoonOptions.push(scoreFieldCords);
       else highHarpoonOptions.push(scoreToTopCords);
 
     const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1472,7 +1436,7 @@ export default class {
     );
     if (isRightFieldSuitableToDrop)
       if (higherPawn.player != currentPlayer)
-        highHarpoonOptions.push(scoreToRightCords, scoreFieldCords);
+        highHarpoonOptions.push(scoreFieldCords);
       else highHarpoonOptions.push(scoreToRightCords);
 
     return highHarpoonOptions;
@@ -1557,7 +1521,7 @@ export default class {
     );
     if (isDownFieldSuitableToDrop)
       if (leftPawn.player != currentPlayer)
-        leftHarpoonOptions.push(scoreToBottomCords, scoreFieldCords);
+        leftHarpoonOptions.push(scoreFieldCords);
       else leftHarpoonOptions.push(scoreToBottomCords);
 
     const isLeftFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1567,7 +1531,7 @@ export default class {
     );
     if (isLeftFieldSuitableToDrop)
       if (leftPawn.player != currentPlayer)
-        leftHarpoonOptions.push(scoreToLeftCords, scoreFieldCords);
+        leftHarpoonOptions.push(scoreFieldCords);
       else leftHarpoonOptions.push(scoreToLeftCords);
 
     const isTopFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1577,7 +1541,7 @@ export default class {
     );
     if (isTopFieldSuitableToDrop)
       if (leftPawn.player != currentPlayer)
-        leftHarpoonOptions.push(scoreToTopCords, scoreFieldCords);
+        leftHarpoonOptions.push(scoreFieldCords);
       else leftHarpoonOptions.push(scoreToTopCords);
 
     return leftHarpoonOptions;
@@ -1631,7 +1595,7 @@ export default class {
     );
     if (isDownFieldSuitableToDrop)
       if (rightPawn.player != currentPlayer)
-        rightHarpoonOptions.push(scoreToBottomCords, scoreFieldCords);
+        rightHarpoonOptions.push(scoreFieldCords);
       else rightHarpoonOptions.push(scoreToBottomCords);
 
     const isRightFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1641,7 +1605,7 @@ export default class {
     );
     if (isRightFieldSuitableToDrop)
       if (rightPawn.player != currentPlayer)
-        rightHarpoonOptions.push(scoreToRightCords, scoreFieldCords);
+        rightHarpoonOptions.push(scoreFieldCords);
       else rightHarpoonOptions.push(scoreToRightCords);
 
     const isTopFieldSuitableToDrop = FieldHelper.isFieldSuitableToDrop(
@@ -1651,7 +1615,7 @@ export default class {
     );
     if (isTopFieldSuitableToDrop)
       if (rightPawn.player != currentPlayer)
-        rightHarpoonOptions.push(scoreToTopCords, scoreFieldCords);
+        rightHarpoonOptions.push(scoreFieldCords);
       else rightHarpoonOptions.push(scoreToTopCords);
 
     return rightHarpoonOptions;
