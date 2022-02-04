@@ -51,7 +51,12 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import { Coordinates, BoardDimensions, Pawn } from "../../../../types/board";
+import {
+  Coordinates,
+  BoardDimensions,
+  Pawn,
+  Player,
+} from "../../../../types/board";
 import { onlinePlayer } from "../../../../types/online";
 import Timer from "../../../Timer.vue";
 import Chat from "../Chat/ChatWindow.vue";
@@ -261,7 +266,7 @@ export default class Board extends Vue {
 
   pawnsPlacingStageController(position: Coordinates): void {
     const isTaken = this.isGivenFieldTaken(position);
-    if (!isTaken) this.placePawn(position);
+    if (!isTaken) this.tryPlacePawn(position);
   }
 
   pawnsMovingStageController(position: Coordinates): void {
@@ -293,7 +298,9 @@ export default class Board extends Vue {
     if (this.focused != null) return true;
   }
 
-  placePawn(position: Coordinates): void {
+  tryPlacePawn(position: Coordinates): void {
+    if (this.isPawnThirdInRow(position)) return;
+
     const newPawn = this.createNewPawn(position);
 
     this.addPawnToGame(newPawn, position);
@@ -302,6 +309,168 @@ export default class Board extends Vue {
 
     this.tura = !this.tura;
     this.moveCounter++;
+  }
+
+  isPawnThirdInRow(position: Coordinates): boolean {
+    const player: Player = this.tura ? "white" : "black";
+    if (
+      this.checkRowsForLine(position, player) ||
+      this.checkColumnsForLine(position, player)
+    )
+      return true;
+  }
+
+  checkRowsForLine(position: Coordinates, player: Player) {
+    if (position.rowIndex === 0)
+      return this.checkUpperRowsForLine(position, player);
+    if (position.rowIndex === this.boardDimensions.rowsNumber - 1)
+      return this.checkLowerRowsForLine(position, player);
+
+    return this.checkAroundRowForLine(position, player);
+  }
+
+  checkAroundRowForLine(position: Coordinates, player: Player): boolean {
+    let positionUnder: Coordinates = {
+      rowIndex: position.rowIndex - 1,
+      columnIndex: position.columnIndex,
+    };
+    let positionOver: Coordinates = {
+      rowIndex: position.rowIndex + 1,
+      columnIndex: position.columnIndex,
+    };
+    let under = this.isThisPlayerField(positionUnder, player);
+    let over = this.isThisPlayerField(positionOver, player);
+
+    //Czy otaczające należą do gracza?
+    if (under && over) return true;
+
+    if (under) {
+      positionUnder = {
+        rowIndex: position.rowIndex - 2,
+        columnIndex: position.columnIndex,
+      };
+      under = this.isThisPlayerField(positionUnder, player);
+
+      if (under) return true;
+    }
+    if (over) {
+      positionOver = {
+        rowIndex: position.rowIndex + 2,
+        columnIndex: position.columnIndex,
+      };
+      over = this.isThisPlayerField(positionOver, player);
+
+      if (over) return true;
+    }
+  }
+
+  checkLowerRowsForLine(position: Coordinates, player: Player): boolean {
+    const firstPosition: Coordinates = {
+      rowIndex: position.rowIndex - 1,
+      columnIndex: position.columnIndex,
+    };
+    const secondPosition: Coordinates = {
+      rowIndex: position.rowIndex - 2,
+      columnIndex: position.columnIndex,
+    };
+
+    const firstNext = this.isThisPlayerField(firstPosition, player);
+    const secondNext = this.isThisPlayerField(secondPosition, player);
+
+    if (firstNext && secondNext) return true;
+  }
+
+  checkUpperRowsForLine(position: Coordinates, player: Player): boolean {
+    const firstPosition: Coordinates = {
+      rowIndex: position.rowIndex + 1,
+      columnIndex: position.columnIndex,
+    };
+    const secondPosition: Coordinates = {
+      rowIndex: position.rowIndex + 2,
+      columnIndex: position.columnIndex,
+    };
+
+    const firstNext = this.isThisPlayerField(firstPosition, player);
+    const secondNext = this.isThisPlayerField(secondPosition, player);
+
+    if (firstNext && secondNext) return true;
+  }
+
+  checkColumnsForLine(position: Coordinates, player: string): boolean {
+    if (position.columnIndex === 0)
+      return this.checkRightColumnsForLine(position, player);
+
+    if (position.columnIndex === this.boardDimensions.columnsNumber - 1)
+      return this.checkLeftColumnsForLine(position, player);
+
+    return this.checkAroundColumnForLine(position, player);
+  }
+
+  checkAroundColumnForLine(position: Coordinates, player: string): boolean {
+    let rightPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex + 1,
+    };
+    let leftPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex - 1,
+    };
+    let right = this.isThisPlayerField(rightPosition, player);
+    let left = this.isThisPlayerField(leftPosition, player);
+
+    //Czy otaczające należą do gracza?
+    if (right && left) {
+      return true;
+    }
+
+    if (right) {
+      rightPosition = {
+        rowIndex: position.rowIndex,
+        columnIndex: position.columnIndex + 2,
+      };
+      right = this.isThisPlayerField(rightPosition, player);
+
+      if (right) return true;
+    }
+
+    if (left) {
+      leftPosition = {
+        rowIndex: position.rowIndex,
+        columnIndex: position.columnIndex - 2,
+      };
+      left = this.isThisPlayerField(leftPosition, player);
+
+      if (left) return true;
+    }
+  }
+
+  checkRightColumnsForLine(position: Coordinates, player: string): boolean {
+    const firstPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex + 1,
+    };
+    const secondPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex + 2,
+    };
+
+    const firstNext = this.isThisPlayerField(firstPosition, player);
+    const secondNext = this.isThisPlayerField(secondPosition, player);
+    if (firstNext && secondNext) return true;
+  }
+
+  checkLeftColumnsForLine(position: Coordinates, player: string): boolean {
+    const firstPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex - 1,
+    };
+    const secondPosition: Coordinates = {
+      rowIndex: position.rowIndex,
+      columnIndex: position.columnIndex - 2,
+    };
+    const firstNext = this.isThisPlayerField(firstPosition, player);
+    const secondNext = this.isThisPlayerField(secondPosition, player);
+    if (firstNext && secondNext) return true;
   }
 
   addPawnToGame(pawn: Pawn, position: Coordinates): void {

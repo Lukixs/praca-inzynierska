@@ -2,8 +2,83 @@ import { BoardState, Coordinates, Pawn, Player } from "../types/board";
 import { MinimaxNode, PawnWithAvailableMoves } from "../types/minimax";
 import { boardStats } from "./BoardInfo";
 import FieldHelper from "./FieldHelper";
+import PlayerScoreHelper from "./PlayerScoreHelper";
 
 export default class {
+  static isFieldSuitableToDrop(
+    coordinates: Coordinates,
+    player: Player,
+    boardState: BoardState
+  ): boolean {
+    if (this.isCoordinateOutOfBounds(coordinates)) return false;
+    const targetedField =
+      boardState[coordinates.rowIndex][coordinates.columnIndex];
+
+    if (targetedField.player) return false;
+
+    const isGonnaBeThirdinRow = PlayerScoreHelper.isGonnaBeThirdInRow(
+      coordinates,
+      player,
+      boardState
+    );
+    if (isGonnaBeThirdinRow) return false;
+
+    return true;
+  }
+
+  static isThisFieldEmpty(
+    position: Coordinates,
+    boardState: BoardState
+  ): boolean {
+    if (this.isCoordinateOutOfBounds(position)) {
+      return false;
+    }
+
+    const targetedField = boardState[position.rowIndex][position.columnIndex];
+    if (targetedField.player) return false;
+
+    return true;
+  }
+
+  static manhattanDistance(first: Coordinates, second: Coordinates): number {
+    const distance =
+      Math.abs(first.rowIndex - second.rowIndex) +
+      Math.abs(first.columnIndex - second.columnIndex);
+    return distance;
+  }
+  static randomLegalEmptyFieldFromBoard(
+    boardState: BoardState,
+    player: Player
+  ): Coordinates {
+    const emptyFields = [] as Coordinates[];
+    boardState.forEach((column, rowIndex) => {
+      column.forEach((field, columnIndex) => {
+        if (!field.player) {
+          const gonnaBeThirdInRow = PlayerScoreHelper.isGonnaBeThirdInRow(
+            { rowIndex: rowIndex, columnIndex: columnIndex } as Coordinates,
+            player,
+            boardState
+          );
+          if (!gonnaBeThirdInRow)
+            emptyFields.push({ rowIndex: rowIndex, columnIndex: columnIndex });
+        }
+      });
+    });
+
+    return emptyFields[Math.floor(Math.random() * emptyFields.length)];
+  }
+
+  static findEmptyFields(
+    boardstate: BoardState,
+    centerRing: Coordinates[]
+  ): Coordinates[] {
+    const emptyFields = centerRing.filter((coordinate) => {
+      if (this.isCoordinateOutOfBounds(coordinate)) return false;
+      return !boardstate[coordinate.rowIndex][coordinate.columnIndex].player;
+    });
+    return emptyFields;
+  }
+
   static randomIntFromInterval(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min) + min);
   }
@@ -310,5 +385,17 @@ export default class {
     );
 
     if (playerPawnsWithAvailableMoves.length == 0) return true;
+  }
+
+  static amountOfPlayerPawnsOnBoard(
+    maximizingPlayer: Player,
+    boardState: BoardState
+  ): number {
+    const copyOfBoardState = FieldHelper.deepCopyItem(boardState);
+    const pawnsAmounts = FieldHelper.getWhiteBlackPawnsAmounts(
+      copyOfBoardState
+    );
+    if (maximizingPlayer == "white") return pawnsAmounts.whitePawns;
+    return pawnsAmounts.blackPawns;
   }
 }
