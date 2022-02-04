@@ -22,29 +22,28 @@ export default class {
 
     if (numberOfPawns === 0) return this.dropEntryPhase(boardState);
 
-    if (numberOfPawns < 12 && depth <= 2) {
-      // console.log("make minimax for depth 2");
-      const result = MinimaxMove.minimax(
-        { boardState },
-        2,
-        minimaxValues.MIN,
-        minimaxValues.MAX,
-        maximizingPlayer
-      );
-
-      if (result.value == 0)
-        return MinimaxScoringHelper.returnNumberOfFreeMovesAsValue(
-          maximizingPlayer,
-          boardState
+    if (numberOfPawns < 12) {
+      if (depth <= 2) {
+        const result = MinimaxMove.minimax(
+          { boardState },
+          2,
+          minimaxValues.MIN,
+          minimaxValues.MAX,
+          maximizingPlayer
         );
 
-      return {
-        value: result.value,
-        position: null,
-      };
-    }
+        if (result.value == 0)
+          return MinimaxScoringHelper.returnNumberOfFreeMovesAsValue(
+            maximizingPlayer,
+            boardState
+          );
 
-    if (numberOfPawns < 12) {
+        return {
+          value: result.value,
+          position: null,
+        };
+      }
+
       if (maximizingPlayer == "white")
         return this.dropWhiteMiddlePhase(
           boardState,
