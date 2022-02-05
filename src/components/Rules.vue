@@ -1,10 +1,19 @@
 <template>
   <div class="instructions">
-    <ul class="rules">
-      <li v-for="(item, index) in getRules()" :key="index">
-        <span>{{ index + 1 }}. </span><span>{{ item }}</span>
-      </li>
-    </ul>
+    <div class="rules">
+      <div
+        class="rules-pack"
+        v-for="(pack, packIndex) in getRules()"
+        :key="packIndex"
+      >
+        <ul>
+          <li v-for="(item, itemIndex) in pack" :key="itemIndex">
+            <span>{{ packIndex * 3 + itemIndex + 1 }}. </span
+            ><span>{{ item }}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -15,11 +24,11 @@ import Component from "vue-class-component";
 @Component({})
 export default class Timer extends Vue {
   mounted() {
-    console.log("XD");
+    console.log(this.getRules());
   }
 
   getRules() {
-    return [
+    const rules = [
       "Gracze rozpoczynają układając na przemian swoje pionki na planszy. Nazywamy to fazą układania.",
       "W tej fazie graczom nie wolno ułożyć 3 pionów swojego koloru w jednym rzędzie (w orientacji pionowo lub poziomo, rzędów po ukosie nie bierzemy pod uwagę).",
       "Po ułożeniu wszystkich 24 pionków, następuje druga część rozgrywki, mianowicie faza przesuwania.",
@@ -34,6 +43,12 @@ export default class Timer extends Vue {
       "Gra toczy się, dopóki któryś z graczy nie odbierze przeciwnikowi 10 pionków, co w efekcie uniemożliwi mu kontynuację rozgrywki. Opcjonalnie w przypadku braku możliwości wykonania ruchu przez którąś ze stron następuje remis.",
       "Gra toczy się, dopóki któryś z graczy nie odbierze przeciwnikowi 10 pionków, co w efekcie uniemożliwi mu kontynuację rozgrywki. Opcjonalnie w przypadku braku możliwości wykonania ruchu przez którąś ze stron następuje remis.",
     ];
+    let result = [],
+      spacing = 3;
+    for (var i = 0; i < rules.length; i += spacing) {
+      result[result.length] = rules.slice(i, i + spacing);
+    }
+    return result;
   }
 }
 </script>
@@ -42,12 +57,39 @@ export default class Timer extends Vue {
 <style lang="scss" scoped>
 .instructions {
   display: flex;
-  max-width: 800px;
   text-align: left;
-  margin: 50px auto;
+  margin: 50px 300px;
 }
 
 .rules {
-  font-size: 24px;
+  font-size: 28px;
+  width: 100%;
+}
+
+.rules-pack {
+  position: relative;
+  margin-bottom: 50px;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: unset;
+  padding: 20px 25px 25px 45px;
+  border: 5px solid white;
+  z-index: 10;
+}
+
+.rules-pack:before {
+  z-index: 5;
+  content: " ";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  border: 3px solid white;
+}
+
+.rules-pack:nth-child(even) {
+  margin-right: auto;
+  margin-left: unset;
 }
 </style>

@@ -1,8 +1,6 @@
 html,
 body {
   margin: 0;
-  height: 100%;
-  overflow: hidden !important;
 }
 
 #app {
@@ -14,6 +12,7 @@ body {
   background-color: #161616;
   min-height: 100vh;
   min-width: 100vw;
+  overflow-y: auto;
 }
 
 #nav {
