@@ -6,6 +6,7 @@ import AIGameEasy from "../views/LocalGame/Difficulty/Easy.vue";
 import AIGameMedium from "../views/LocalGame/Difficulty/Medium.vue";
 import AIGameHard from "../views/LocalGame/Difficulty/Hard.vue";
 import OnlineGame from "../views/OnlineGame.vue";
+import Instruction from "../views/Instruction.vue";
 import Menu from "../views/Menu.vue";
 
 Vue.use(VueRouter);
@@ -57,6 +58,14 @@ const routes: Array<RouteConfig> = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: OnlineGame,
+  },
+  {
+    path: "/instruction",
+    name: "Instruction",
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: Instruction,
   },
 ];
 

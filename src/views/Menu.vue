@@ -35,7 +35,7 @@ export default Vue.extend({
         { title: "GRAJ LOKALNIE", link: "/local-menu" },
         { title: "GRAJ ONLINE", link: "/online" },
         { title: "OPCJE", link: "/options" },
-        { title: "INSTRUKCJA", icon: "mdi-forum", link: "/help" },
+        { title: "INSTRUKCJA", icon: "mdi-forum", link: "/instruction" },
       ],
     };
   },
