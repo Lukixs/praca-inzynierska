@@ -1,7 +1,7 @@
 <template>
   <div class="menu">
     <div class="header">
-      <h1 class="h1 title ">Zasady gry</h1>
+      <h1 class="h1 title ">Instruckcja</h1>
     </div>
     <Rules />
   </div>
