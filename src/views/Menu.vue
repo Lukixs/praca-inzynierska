@@ -51,6 +51,7 @@ export default Vue.extend({
 .header {
   font-size: 130px;
   letter-spacing: -41px;
+  font-family: "Lora";
 }
 
 .options {
