@@ -36,9 +36,7 @@
             @click="joinRoom(room)"
           >
             <span>{{ room.name }}</span>
-            [<span v-for="(player, jd) in room.players" :key="jd"
-              >{{ player.name }},</span
-            >] <span>{{ room.players.length }}/2</span>
+            <span> - {{ room.players.length }}/2</span>
           </div>
         </div>
       </div>
