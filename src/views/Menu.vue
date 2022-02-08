@@ -49,9 +49,29 @@ export default Vue.extend({
   user-select: none; /* Standard */
 }
 .header {
+  text-transform: capitalize;
   font-size: 130px;
   letter-spacing: -41px;
   font-family: "Lora";
+
+  .title::before {
+    color: white;
+    position: relative;
+    left: -10px;
+    top: -50px;
+    content: url(../assets/img/Branch.svg);
+  }
+
+  .title::after {
+    color: white;
+    position: relative;
+    display: inline-block;
+    left: 60px;
+    top: -50px;
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    content: url(../assets/img/Branch.svg);
+  }
 }
 
 .options {
