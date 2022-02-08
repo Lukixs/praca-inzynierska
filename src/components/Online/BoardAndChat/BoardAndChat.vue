@@ -14,8 +14,7 @@
     </div>
     <div class="random">
       <div class="field">
-        <span style="color: white;">&#9922;</span
-        ><span style="color: black;">&#9922;</span>
+        ?
       </div>
       <v-btn
         :disabled="!availableColors.black || !availableColors.white"

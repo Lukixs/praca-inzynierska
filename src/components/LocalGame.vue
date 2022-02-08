@@ -38,7 +38,6 @@
         ><v-btn dark @click="setupGame()">Restart Game</v-btn></Timer
       >
       <PopUp ref="popup" />
-      <button @click="showDialog('Wygrałeś')">XDD</button>
     </div>
   </div>
 </template>

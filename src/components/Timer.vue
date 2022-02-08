@@ -10,7 +10,7 @@
           >:<span class="seconds">{{
             firstPlayerSeconds.toLocaleString("en-US", {
               minimumIntegerDigits: 2,
-              useGrouping: false
+              useGrouping: false,
             })
           }}</span
           ><span class="mili-seconds" v-if="firstPlayerMiliSecondsLeft < 10000"
@@ -40,7 +40,7 @@
           >:<span class="seconds">{{
             secondPlayerSeconds.toLocaleString("en-US", {
               minimumIntegerDigits: 2,
-              useGrouping: false
+              useGrouping: false,
             })
           }}</span
           ><span class="mili-seconds" v-if="secondPlayerMiliSecondsLeft < 10000"
@@ -61,12 +61,12 @@ import Component from "vue-class-component";
 @Component({
   props: {
     firstPlayerName: {
-      type: String
+      type: String,
     },
     secondPlayerName: {
-      type: String
-    }
-  }
+      type: String,
+    },
+  },
 })
 export default class Timer extends Vue {
   firstTimerRunning = false;
