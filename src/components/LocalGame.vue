@@ -33,13 +33,12 @@
       <Timer
         ref="timer"
         @timesUp="timesUp"
-        :firstPlayerName="`Gracz 1`"
-        :secondPlayerName="`Gracz 2`"
+        :firstPlayerName="`Gracz Biały`"
+        :secondPlayerName="`Gracz Czarny`"
         ><v-btn dark @click="setupGame()">Restart Game</v-btn></Timer
       >
-      <!-- <span>Tura {{ moveCounter }} |</span>
-      <span v-if="tura">Ruch Białych </span>
-      <span v-else>Ruch Czarnych</span> -->
+      <PopUp ref="popup" />
+      <button @click="showDialog('Wygrałeś')">XDD</button>
     </div>
   </div>
 </template>
@@ -49,6 +48,8 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Coordinates, BoardDimensions, Pawn, Player } from "../types/board";
 import Timer from "./Timer.vue";
+import PopUp from "./PopUp.vue";
+
 @Component({
   props: {
     msg: {
@@ -57,18 +58,20 @@ import Timer from "./Timer.vue";
   },
   components: {
     Timer,
+    PopUp,
   },
 })
 export default class Board extends Vue {
   $refs!: {
     timer: Timer;
+    popup: PopUp;
   };
 
   tura = true;
   freezeGame = false;
   removeStagePlayer: string;
   moveCounter = 1;
-  firstStageMovesLimit = 24;
+  firstStageMovesLimit = 8;
   focused: Coordinates; // {rowIndex, columnIndex}   Aktualnie wybrany pionek
   boardDimensions: BoardDimensions = {
     columnsNumber: 6,
@@ -84,6 +87,10 @@ export default class Board extends Vue {
 
   pawns: Pawn[] = []; // { player: 'black', currentPosition: {rowIndex: 4, columnIndex: 4}, lastPosition:{rowIndex: 4, columnIndex: 3} }
   // history = []; // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
+
+  showDialog(text: string) {
+    this.$refs.popup.showDialog(text);
+  }
 
   setupGame() {
     this.clearTheBoard();
@@ -119,11 +126,11 @@ export default class Board extends Vue {
   timesUp() {
     if (this.tura) {
       this.freezeGame = true;
-      alert("Wygrał gracz czarny poprzez czas");
+      this.showDialog("Wygrały pionki czarne poprzez czas.");
       return;
     }
     this.freezeGame = true;
-    alert("Wygrał gracz biały poprzez czas");
+    this.showDialog("Wygrały pionki białe poprzez czas.");
   }
 
   // fillBoard(position: Coordinates): void {
@@ -668,7 +675,9 @@ export default class Board extends Vue {
     {
       this.freezeGame = true;
       this.$refs.timer.stopTimer();
-      alert(`Gratulacje, wygrał gracz: ${player}`);
+      this.showDialog(
+        `Wygrały pionki ${player == "white" ? "białe" : "czarne"}.`
+      );
     }
   }
 
