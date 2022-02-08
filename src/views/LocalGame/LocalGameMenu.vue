@@ -31,19 +31,19 @@ export default Vue.extend({
       items: [
         { title: "DWÓCH GRACZY", link: "/local" },
         {
-          title: "BOT - ŁATWY",
+          title: "Sztuczna Inteligecnja - ŁATWA",
           link: {
             name: "AI Game Easy",
           },
         },
         {
-          title: "BOT - ŚREDNI",
+          title: "Sztuczna Inteligecnja - ŚREDNIA",
           link: {
             name: "AI Game Medium",
           },
         },
         {
-          title: "BOT - TRUDNY",
+          title: "Sztuczna Inteligecnja - TRUDNA",
           link: {
             name: "AI Game Hard",
           },
@@ -61,6 +61,7 @@ export default Vue.extend({
   -ms-user-select: none; /* IE10+/Edge */
   user-select: none; /* Standard */
 }
+
 .header {
   font-size: 30px;
   padding: 15px;
@@ -70,18 +71,18 @@ export default Vue.extend({
 
 .options {
   margin-top: 15vh;
-  font-size: 50px;
+  font-size: 44px;
   display: flex;
 
   justify-content: center;
   &--list {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    align-items: flex-start;
   }
 
   .v-btn {
-    font-size: 50px;
+    font-size: 44px;
     height: 110px !important;
   }
 }
