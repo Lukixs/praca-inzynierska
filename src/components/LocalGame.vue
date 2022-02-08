@@ -68,7 +68,7 @@ export default class Board extends Vue {
   freezeGame = false;
   removeStagePlayer: string;
   moveCounter = 1;
-  firstStageMovesLimit = 8;
+  firstStageMovesLimit = 24;
   focused: Coordinates; // {rowIndex, columnIndex}   Aktualnie wybrany pionek
   boardDimensions: BoardDimensions = {
     columnsNumber: 6,

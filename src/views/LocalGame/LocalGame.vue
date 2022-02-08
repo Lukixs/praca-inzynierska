@@ -1,7 +1,7 @@
 <template>
   <div class="local">
     <div class="header">
-      <h1 class="h1 title ">Rozgrywka lokalna, dwóch graczy</h1>
+      <h1 class="h1 title ">Rozgrywka Lokalna - Dwóch Graczy</h1>
     </div>
     <LocalGame />
   </div>
