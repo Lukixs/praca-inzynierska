@@ -44,6 +44,7 @@
         >
       </Timer>
       <Chat :socket="$props.socket" />
+      <PopUp ref="popup" />
     </div>
   </div>
 </template>
@@ -60,6 +61,8 @@ import {
 import { onlinePlayer } from "../../../../types/online";
 import Timer from "../../../Timer.vue";
 import Chat from "../Chat/ChatWindow.vue";
+import PopUp from "../../../PopUp.vue";
+
 @Component({
   props: {
     socket: {},
@@ -67,11 +70,13 @@ import Chat from "../Chat/ChatWindow.vue";
   components: {
     Timer,
     Chat,
+    PopUp,
   },
 })
 export default class Board extends Vue {
   $refs!: {
     timer: Timer;
+    popup: PopUp;
   };
 
   mounted(): void {
@@ -147,13 +152,13 @@ export default class Board extends Vue {
       this.$refs.timer.stopTimer();
       this.setupGame();
       this.freezeGame = true;
-      alert(`Przeciwnik ${name} opuścił rozgrywkę`);
+      this.showDialog(`Przeciwnik ${name} opuścił rozgrywkę`);
     });
 
     this.$props.socket.on("player-surrendered", (name: string) => {
       this.freezeGame = true;
       this.$refs.timer.stopTimer();
-      alert(`Gracz ${name} poddał się`);
+      this.showDialog(`Gracz ${name} poddał się`);
     });
 
     this.$props.socket.on("show-rematch-option", () => {
@@ -235,6 +240,10 @@ export default class Board extends Vue {
     this.freezeGame = false;
     this.rematchOption = false;
     this.emitGetPlayerColor();
+  }
+
+  showDialog(text: string) {
+    this.$refs.popup.showDialog(text);
   }
 
   clearTheBoard() {
@@ -797,7 +806,7 @@ export default class Board extends Vue {
     const enemyPawns = this.getEnemyPawns(player);
     if (enemyPawns.length > 2) return;
     this.$refs.timer.stopTimer();
-    alert(`Gratulacje, wygrał gracz: ${player}`);
+    this.showDialog(`Wygrał gracz: ${player}`);
     return true;
   }
 
@@ -1022,10 +1031,10 @@ export default class Board extends Vue {
 
   timesUp() {
     if (this.tura) {
-      alert("Wygrał gracz czarny poprzez czas");
+      this.showDialog("Wygrały pionki czarne poprzez czas");
       return;
     }
-    alert("Wygrał gracz biały poprzez czas");
+    this.showDialog("Wygrały pionki białe poprzez czas");
   }
 
   showSurrenderButton(): boolean {

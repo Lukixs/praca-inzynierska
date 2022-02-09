@@ -87,10 +87,6 @@ export default class Board extends Vue {
   pawns: Pawn[] = []; // { player: 'black', currentPosition: {rowIndex: 4, columnIndex: 4}, lastPosition:{rowIndex: 4, columnIndex: 3} }
   // history = []; // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
 
-  showDialog(text: string) {
-    this.$refs.popup.showDialog(text);
-  }
-
   setupGame() {
     this.clearTheBoard();
     this.focused = null as Coordinates;
@@ -130,6 +126,10 @@ export default class Board extends Vue {
     }
     this.freezeGame = true;
     this.showDialog("Wygrały pionki białe poprzez czas.");
+  }
+
+  showDialog(text: string) {
+    this.$refs.popup.showDialog(text);
   }
 
   // fillBoard(position: Coordinates): void {
