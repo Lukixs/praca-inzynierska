@@ -77,7 +77,6 @@ export default class Board extends Vue {
   // }
 
   sendMessage(): void {
-    console.log("trying to send a message", this.message);
     if (this.message != "") this.$props.socket.emit("message", this.message);
   }
 

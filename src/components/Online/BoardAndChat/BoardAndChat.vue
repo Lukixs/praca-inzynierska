@@ -77,7 +77,6 @@ export default class BoardAndChat extends Vue {
 
   joinAsRandomColor() {
     const colors = ["white", "black"];
-    console.log(colors[Math.round(Math.random())]);
     this.$props.socket.emit(
       "set-player-color",
       colors[Math.round(Math.random())]

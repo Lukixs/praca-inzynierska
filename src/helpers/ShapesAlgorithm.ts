@@ -28,7 +28,6 @@ export default class {
         boardState,
         player
       );
-      console.log("player", playerOptions);
     }
 
     const enemyPlayer: Player = player == "white" ? "black" : "white";
@@ -42,7 +41,6 @@ export default class {
         boardState,
         player
       );
-      console.log("enemy", enemyOptions);
     }
 
     // #3 Decydujem o ostatnim ruchu, czy mamy jakieś własne ruchy, czy przeciwnik ma
@@ -65,7 +63,6 @@ export default class {
             });
         }
       }
-      console.log("Common Options", commonOptions);
 
       if (commonOptions.length == 1) {
         return {
@@ -97,7 +94,6 @@ export default class {
         if (option.strength > strongestOption.strength)
           strongestOption = option;
       }
-      console.log("Zwrócona pojedyńcza pozycja:", strongestOption);
       return { position: strongestOption.coordinate };
     }
     // #4 a) Dostawiam pionka w pierwszym możliwym mniej oddalonym

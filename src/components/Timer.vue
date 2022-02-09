@@ -112,7 +112,6 @@ export default class Timer extends Vue {
   }
 
   timerChangePlayer() {
-    // console.log("starting", this);
     if (!this.firstTimerRunning && !this.SecondTimerRunning)
       this.firstTimerRunning = true;
     this.firstTimerRunning = !this.firstTimerRunning;

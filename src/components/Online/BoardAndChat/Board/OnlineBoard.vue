@@ -121,7 +121,6 @@ export default class Board extends Vue {
     });
 
     this.$props.socket.on("players-in-room", (players: onlinePlayer[]) => {
-      console.log("playersInRoom", players);
       if (players.length == 2) this.freezeGame = false;
 
       const whitePlayer = players.find((player) => {

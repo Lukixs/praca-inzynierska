@@ -36,6 +36,5 @@ ctx.addEventListener("message", (event) => {
       event.data.params[3],
       event.data.params[4]
     );
-  // console.log(event);
   ctx.postMessage(result);
 });

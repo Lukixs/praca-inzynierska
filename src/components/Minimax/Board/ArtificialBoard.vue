@@ -418,8 +418,6 @@ export default class Board extends Vue {
       };
     });
     result.then((result: any) => {
-      console.log("value", result.data);
-
       let newPawn: Pawn;
 
       if (result.data.position) {
@@ -774,7 +772,6 @@ export default class Board extends Vue {
         return;
       }
 
-      console.log(data);
       this.tura = !this.tura;
       this.moveCounter++;
       this.isComputerThinking = false;
@@ -843,7 +840,6 @@ export default class Board extends Vue {
 
   hasPlayerWon(player: string): boolean {
     const enemyPawns = this.getEnemyPawns(player);
-    console.log("Did Player win", enemyPawns);
     if (enemyPawns.length > 2) return;
     this.$refs.timer.stopTimer();
     alert(`Gratulacje, wygrał gracz: ${player}`);
@@ -888,18 +884,6 @@ export default class Board extends Vue {
     )
       return true;
   }
-
-  // hasPlayerScoredAI(movedPawn, boardState, maximizingPlayer) {
-  //   // console.log("hasPlayerScored", boardState);
-  //   if (
-  //     this.checkRowsForPointAI(movedPawn, boardState, maximizingPlayer) ||
-  //     this.checkColumnsForPointAI(movedPawn, boardState, maximizingPlayer)
-  //   ) {
-  //     // console.log("mamy punkt", movedPawn, boardState);
-  //     return true;
-  //   }
-  //   return false;
-  // },
 
   checkRowsForPoint(position: Coordinates, player: string): boolean {
     if (position.rowIndex === 0) return this.checkUpperRows(position, player);
