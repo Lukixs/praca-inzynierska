@@ -2,6 +2,17 @@
 
 The purpose of the project was to create a web implementation of strategic game called Dara.
 
+## Table of Contents
+
+- [General Informations](#general-information)
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Room for Improvement](#room-for-improvement)
+- [Run Locally](#run-locally)
+
+## General Information
+
 The application will allow to play the game in three variants:
 
 - local game (two players at one device), game with artificial intelligence and
@@ -9,18 +20,6 @@ The application will allow to play the game in three variants:
 - online game (two devices connected via internet connection). The main challenges during the production of this application is to create an artificial intelligence that allows to real-time competitive level gameplay,
 
 - creating and maintaining a connection between two connection between two players who want to play matches over the Internet.
-
-## Table of Contents
-
-- [General Informations](#general-information)
-- [Screenshots](#screenshots)
-- [Features](#features)
-- [Documentation](#documentation)
-- [Tech](#tech)
-- [Room for Improvement](#room-for-improvement)
-- [Run Locally](#run-locally)
-
-## General Informations
 
 ## Screenshots
 
