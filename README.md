@@ -41,7 +41,7 @@ Application also contains a simple manual outlining the set of rules necessary t
 
 ## Tech Stack
 
-**Client:** Vue, TypeScript, Socket.IO, WebWorkers,
+**Client:** Vue 2, TypeScript, Socket.IO, WebWorkers,
 
 **Server:** Node.js, Socket.IO, WebSocket
 
