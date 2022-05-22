@@ -34,7 +34,6 @@
 
 <script>
 export default {
-  // name: 'Board',
   props: {
     msg: String,
   },
@@ -44,15 +43,14 @@ export default {
       removeStagePlayer: null,
       moveCounter: 1,
       firstStageMovesLimit: 8,
-      focused: null, // {rowIndex, columnIndex}   Aktualnie wybrany pionek
+      focused: null,
       board: {
         columnsNumber: 6,
         rowsNumber: 5,
-        values: null, // { player: 'black', pawnIndex: '0' }
-        // rows: Array(8).fill(null),
+        values: null,
       },
-      pawns: [], // { player: 'black', currentPosition: {rowIndex: 4, columnIndex: 4}, lastPosition:{rowIndex: 4, columnIndex: 3} }
-      history: [], // HistoryItem{tour: 1, pawnIndexMoved: w4, from: {rowIndex: 4, columnIndex:5}, to: {rowIndex: 3, columnIndex:5}, scored: {rowIndex: 2, columnIndex:2, player: 'white', pawnIndex: w4 } }
+      pawns: [],
+      history: [],
     };
   },
   methods: {
@@ -369,7 +367,6 @@ export default {
         this.focused.columnIndex
       ];
 
-      // Check if given field hasn't been last position of given pawn, is so end function
       const pawn = this.getPawnById(boardPawn.pawnIndex);
       if (
         pawn.lastPosition &&

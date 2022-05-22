@@ -33,13 +33,11 @@
       <Timer
         ref="timer"
         @timesUp="timesUp"
-        :firstPlayerName="`Gracz 1`"
-        :secondPlayerName="`Gracz 2`"
+        :firstPlayerName="`Gracz Biały`"
+        :secondPlayerName="`Gracz Czarny`"
         ><v-btn dark @click="setupGame()">Restart Game</v-btn></Timer
       >
-      <!-- <span>Tura {{ moveCounter }} |</span>
-      <span v-if="tura">Ruch Białych </span>
-      <span v-else>Ruch Czarnych</span> -->
+      <PopUp ref="popup" />
     </div>
   </div>
 </template>
@@ -49,6 +47,8 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Coordinates, BoardDimensions, Pawn, Player } from "../types/board";
 import Timer from "./Timer.vue";
+import PopUp from "./PopUp.vue";
+
 @Component({
   props: {
     msg: {
@@ -57,18 +57,20 @@ import Timer from "./Timer.vue";
   },
   components: {
     Timer,
+    PopUp,
   },
 })
 export default class Board extends Vue {
   $refs!: {
     timer: Timer;
+    popup: PopUp;
   };
 
   tura = true;
   freezeGame = false;
   removeStagePlayer: string;
   moveCounter = 1;
-  firstStageMovesLimit = 8;
+  firstStageMovesLimit = 24;
   focused: Coordinates; // {rowIndex, columnIndex}   Aktualnie wybrany pionek
   boardDimensions: BoardDimensions = {
     columnsNumber: 6,
@@ -119,11 +121,15 @@ export default class Board extends Vue {
   timesUp() {
     if (this.tura) {
       this.freezeGame = true;
-      alert("Wygrał gracz czarny poprzez czas");
+      this.showDialog("Wygrały pionki czarne poprzez czas.");
       return;
     }
     this.freezeGame = true;
-    alert("Wygrał gracz biały poprzez czas");
+    this.showDialog("Wygrały pionki białe poprzez czas.");
+  }
+
+  showDialog(text: string) {
+    this.$refs.popup.showDialog(text);
   }
 
   // fillBoard(position: Coordinates): void {
@@ -668,7 +674,9 @@ export default class Board extends Vue {
     {
       this.freezeGame = true;
       this.$refs.timer.stopTimer();
-      alert(`Gratulacje, wygrał gracz: ${player}`);
+      this.showDialog(
+        `Wygrały pionki ${player == "white" ? "białe" : "czarne"}.`
+      );
     }
   }
 

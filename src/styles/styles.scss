@@ -27,3 +27,11 @@ body {
 #nav a.router-link-exact-active {
   color: #42b983;
 }
+
+@font-face {
+  font-family: "Lora";
+  font-weight: 400;
+  font-display: auto;
+  src: local("Lora"),
+    url(../assets/fonts/Lora/Lora-VariableFont_wght.ttf) format("truetype");
+}

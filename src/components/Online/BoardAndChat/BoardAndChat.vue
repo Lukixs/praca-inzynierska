@@ -14,8 +14,7 @@
     </div>
     <div class="random">
       <div class="field">
-        <span style="color: white;">&#9922;</span
-        ><span style="color: black;">&#9922;</span>
+        ?
       </div>
       <v-btn
         :disabled="!availableColors.black || !availableColors.white"
@@ -78,7 +77,6 @@ export default class BoardAndChat extends Vue {
 
   joinAsRandomColor() {
     const colors = ["white", "black"];
-    console.log(colors[Math.round(Math.random())]);
     this.$props.socket.emit(
       "set-player-color",
       colors[Math.round(Math.random())]

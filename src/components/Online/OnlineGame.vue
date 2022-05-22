@@ -20,14 +20,7 @@
 
       <div v-else class="rooms">
         <span class="rooms--header">Dołącz do któregoś z dostępnych pokoi</span>
-        <!-- <ul class="list">
-          <li style="display:block" v-for="(room, id) in rooms" :key="id">
-            <span @click="joinRoom(room)">{{ room.name }}</span>
-            [<span v-for="(player, jd) in room.players" :key="jd"
-              >{{ player.name }},</span
-            >]
-          </li>
-        </ul> -->
+
         <div class="rooms--list">
           <div
             class="rooms--list--item"
@@ -36,9 +29,7 @@
             @click="joinRoom(room)"
           >
             <span>{{ room.name }}</span>
-            [<span v-for="(player, jd) in room.players" :key="jd"
-              >{{ player.name }},</span
-            >] <span>{{ room.players.length }}/2</span>
+            <span> - {{ room.players.length }}/2</span>
           </div>
         </div>
       </div>
@@ -68,11 +59,6 @@ export default class Board extends Vue {
   protected socket = io.connect("ws://localhost:8081");
 
   mounted(): void {
-    console.log("Created", {
-      connected: this.socket.connected,
-      id: this.socket,
-    });
-
     this.loadSocketsListeners();
   }
 
@@ -92,8 +78,6 @@ export default class Board extends Vue {
   }
 
   verifyNameInput() {
-    // console.log(this.$refs.NameInput.value);
-    console.log(this.playerName);
     if (this.playerName && this.playerName != "") this.nameSetted = true;
   }
 

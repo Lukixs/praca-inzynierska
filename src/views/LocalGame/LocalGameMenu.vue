@@ -1,7 +1,7 @@
 <template>
   <div class="menu">
     <div class="header">
-      <h1 class="h1 title ">Wybierz poziom trudności</h1>
+      <h1 class="h1 title ">Wybierz Tryb Rozgrywki Lokalnej</h1>
     </div>
 
     <div class="options">
@@ -31,19 +31,23 @@ export default Vue.extend({
       items: [
         { title: "DWÓCH GRACZY", link: "/local" },
         {
-          title: "BOT - ŁATWY",
+          title: `Sztuczna Inteligecnja - ŁATWA ${String.fromCharCode(9734)}`,
           link: {
             name: "AI Game Easy",
           },
         },
         {
-          title: "BOT - ŚREDNI",
+          title: `Sztuczna Inteligecnja - ŚREDNIA ${String.fromCharCode(
+            9734
+          )} ${String.fromCharCode(9734)}`,
           link: {
             name: "AI Game Medium",
           },
         },
         {
-          title: "BOT - TRUDNY",
+          title: `Sztuczna Inteligecnja - TRUDNA ${String.fromCharCode(
+            9734
+          )} ${String.fromCharCode(9734)} ${String.fromCharCode(9734)}`,
           link: {
             name: "AI Game Hard",
           },
@@ -61,27 +65,26 @@ export default Vue.extend({
   -ms-user-select: none; /* IE10+/Edge */
   user-select: none; /* Standard */
 }
+
 .header {
   font-size: 30px;
   padding: 15px;
-  // min-height: 10vh;
   background-color: #6e6e6e30;
 }
 
 .options {
   margin-top: 15vh;
-  font-size: 50px;
   display: flex;
-
   justify-content: center;
+
   &--list {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    align-items: flex-start;
   }
 
   .v-btn {
-    font-size: 50px;
+    font-size: 40px;
     height: 110px !important;
   }
 }

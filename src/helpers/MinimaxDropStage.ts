@@ -62,7 +62,6 @@ export default class {
     }
 
     if (numberOfPawns == 12) {
-      // console.log("Odpalamy dla depth: ", depth);
       const result = MinimaxMove.minimax(
         { boardState },
         depth ? depth - 1 : 0,
@@ -79,36 +78,7 @@ export default class {
         value: result.value,
         position: null,
       };
-      // const result = MinimaxMove.minimax(
-      //   { boardState },
-      //   depth,
-      //   minimaxValues.MIN,
-      //   minimaxValues.MAX,
-      //   maximizingPlayer
-      // );
-      // return {
-      //   value: result.value,
-      //   position: null,
-      // };
-      // console.log("make minimax for depth > 2");
     }
-
-    // const pawnsOnBoard = FieldHelper.getWhiteBlackPawnsFromBoard(
-    //   node.boardState
-    // );
-    // if (!pawnsOnBoard.blackPawns && !pawnsOnBoard.whitePawns) {
-    //   return { rowIndex: 2, columnIndex: 3 };
-    // }
-    // ============================================================
-    // 1. Sprawdzić czy mamy już jakieś nasze pionki na planszy,
-    //   * Jeśli ma to szukamyDostawienia()
-    //   * Jeśli nie to StawiamyNaŚrodku()
-    // ============================================================
-    // szukamyDostawienia() {}
-    // Patrzy czy mamy jakieś dwójki,Jeśli mamy, dostawiamy po rogach na ile to możliwe
-    // jak nie TO dostawiamy do tego bliżej środka, staramy się również kierować na środek. |x-3|
-    // WAŻNE, raczej unikamy zbitych kontrukcji, i nie dostawiamy "na 3"
-    //
   }
 
   static dropWhiteMiddlePhase(

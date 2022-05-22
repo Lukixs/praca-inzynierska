@@ -46,6 +46,7 @@
           >Restart Game</v-btn
         >
       </Timer>
+      <PopUp ref="popup" />
     </div>
 
     <!-- <span>Tura {{ moveCounter }} |</span>
@@ -67,6 +68,7 @@ import { Difficulty } from "../../../types/minimax";
 import FieldHelper from "../../../helpers/FieldHelper";
 import { minimaxValues } from "../../../helpers/BoardInfo";
 import Timer from "../../Timer.vue";
+import PopUp from "../../PopUp.vue";
 
 @Component({
   props: {
@@ -75,11 +77,13 @@ import Timer from "../../Timer.vue";
   },
   components: {
     Timer,
+    PopUp,
   },
 })
 export default class Board extends Vue {
   $refs: {
     timer: Timer;
+    popup: PopUp;
   };
 
   freezeGame = false;
@@ -418,8 +422,6 @@ export default class Board extends Vue {
       };
     });
     result.then((result: any) => {
-      console.log("value", result.data);
-
       let newPawn: Pawn;
 
       if (result.data.position) {
@@ -675,13 +677,20 @@ export default class Board extends Vue {
     const enemyPlayer: Player = pawn.player == "white" ? "black" : "white";
     if (FieldHelper.isPlayerOutOfMoves(enemyPlayer, this.boardState)) {
       this.$refs.timer.stopTimer();
-      alert(
-        `Niestety graczowi ${enemyPlayer} nie posiada możliwości ruchu, przez co następuje remis`
+
+      this.showDialog(
+        `Niestety pionki koloru ${
+          enemyPlayer == "white" ? "białe" : "czarne"
+        }, nie posiadają możliwości ruchu, przez co następuje remis.`
       );
       this.freezeGame = true;
       return;
     }
     this.movePawnByAI(currentPlayer, board);
+  }
+
+  showDialog(text: string) {
+    this.$refs.popup.showDialog(text);
   }
 
   emptyGivenField(position: Coordinates): void {
@@ -748,7 +757,7 @@ export default class Board extends Vue {
 
       if (!data.bestMove) {
         this.$refs.timer.stopTimer();
-        alert(`Komputer poddał się, wygrał gracz: ${currentPlayer}`);
+        this.showDialog(`Komputer poddał się, wygrały pionki białe`);
         this.freezeGame = true;
         this.isComputerThinking = false;
         return;
@@ -766,15 +775,15 @@ export default class Board extends Vue {
 
       if (FieldHelper.isPlayerOutOfMoves(enemyPlayer, this.boardState)) {
         this.$refs.timer.stopTimer();
-        alert(
+        this.showDialog(
           `Niestety graczowi ${enemyPlayer} nie posiada możliwości ruchu, przez co następuje remis`
         );
+
         this.freezeGame = true;
         this.isComputerThinking = false;
         return;
       }
 
-      console.log(data);
       this.tura = !this.tura;
       this.moveCounter++;
       this.isComputerThinking = false;
@@ -843,10 +852,11 @@ export default class Board extends Vue {
 
   hasPlayerWon(player: string): boolean {
     const enemyPawns = this.getEnemyPawns(player);
-    console.log("Did Player win", enemyPawns);
     if (enemyPawns.length > 2) return;
     this.$refs.timer.stopTimer();
-    alert(`Gratulacje, wygrał gracz: ${player}`);
+    this.showDialog(
+      `Wygrały pionki ${player == "white" ? "białe" : "czarne"}.`
+    );
     this.freezeGame = true;
     this.isComputerThinking = false;
     return true;
@@ -888,18 +898,6 @@ export default class Board extends Vue {
     )
       return true;
   }
-
-  // hasPlayerScoredAI(movedPawn, boardState, maximizingPlayer) {
-  //   // console.log("hasPlayerScored", boardState);
-  //   if (
-  //     this.checkRowsForPointAI(movedPawn, boardState, maximizingPlayer) ||
-  //     this.checkColumnsForPointAI(movedPawn, boardState, maximizingPlayer)
-  //   ) {
-  //     // console.log("mamy punkt", movedPawn, boardState);
-  //     return true;
-  //   }
-  //   return false;
-  // },
 
   checkRowsForPoint(position: Coordinates, player: string): boolean {
     if (position.rowIndex === 0) return this.checkUpperRows(position, player);
@@ -1082,11 +1080,11 @@ export default class Board extends Vue {
 
   timesUp() {
     if (this.tura) {
-      alert("Wygrał gracz czarny poprzez czas");
+      this.showDialog("Wygrały pionki czarne poprzez czas");
       this.freezeGame = true;
       return;
     }
-    alert("Wygrał gracz biały poprzez czas");
+    this.showDialog("Wygrały pionki białe poprzez czas");
     this.freezeGame = true;
   }
   // },
