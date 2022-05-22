@@ -586,15 +586,15 @@ export default {
     },
 
     removePawnById(id) {
-      this.pawns = this.pawns.filter((item) => item.pawnIndex != id);
+      this.pawns = this.pawns.filter(item => item.pawnIndex != id);
     },
 
     getPawnById(id) {
-      return this.pawns.find((item) => item.pawnIndex === id);
+      return this.pawns.find(item => item.pawnIndex === id);
     },
 
     getEnemyPawns(player) {
-      return this.pawns.filter((item) => {
+      return this.pawns.filter(item => {
         if (item.player != player) return item;
       });
     },
