@@ -13,13 +13,8 @@ The purpose of the project was to create a web implementation of strategic game 
 
 ## General Information
 
-The application will allow to play the game in three variants:
-
-- local game (two players at one device), game with artificial intelligence and
-
-- online game (two devices connected via internet connection). The main challenges during the production of this application is to create an artificial intelligence that allows to real-time competitive level gameplay,
-
-- creating and maintaining a connection between two connection between two players who want to play matches over the Internet.
+The application will allow to play the game in three variants: local game (both players on the same device), local game vs AI (Players is facing an Artificial Inteligence on three difficulty levels) and online game (a game between players played via [node.js server](https://github.com/Lukixs/praca-inzynierska-server)).
+Application also contains a simple manual outlining the set of rules necessary to play Dara.
 
 ## Screenshots
 
@@ -48,7 +43,7 @@ The application will allow to play the game in three variants:
 
 **Client:** Vue, TypeScript, Socket.IO, WebWorkers,
 
-**Server:** Node, Socket.IO
+**Server:** Node.js, Socket.IO, WebSocket
 
 ## Room for Improvement
 
